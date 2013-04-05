@@ -3,30 +3,17 @@
 <launch>
 
     <arg name="ROBOT_REAL" default="$(optenv ROBOT_REAL false)" />
+
+	<!-- PEIN Perception -->
+	<include file="$(find pein_supervisor)/launch/start.launch" />
+
+	 <!-- face segmentation -->
+	<include file="$(find pein_face_recognition)/launch/start.launch" />
 	
-	<group if="$(arg ROBOT_REAL)">
-		<!-- REAL ROBOT -->
+	<!-- Template matching -->
+	<node pkg="pein_template_matching" type="detection_node" name="template_matching" args="-C Demo"/>		
 
-		<!-- Start all sensors -->
-		<include file="$(find amigo_launch_files)/launch/sensors/sensors.launch" />	
-
-		<!-- PEIN Perception -->
-		<include file="$(find pein_supervisor)/launch/start.launch" />
-
-		 <!-- face segmentation -->
-		<include file="$(find pein_face_recognition)/launch/start.launch" />
-		
-		<!-- Template matching -->
-		<node pkg="pein_template_matching" type="detection_node" name="template_matching" machine="amigo1"/>		
-
-	</group>
-	
-	<group unless="$(arg ROBOT_REAL)">
-		<!-- SIMULATION -->
-				
-	</group>
-
-    <arg name="ROBOT_MAP" default="$(optenv ROBOT_MAP robotics_testlab_A)" /> 
+	<arg name="ROBOT_MAP" default="$(optenv ROBOT_MAP robotics_testlab_A)" /> 
      
     <node name="loc_map_server" pkg="map_server" type="map_server" args="$(find amigo_maps)/maps/$(arg ROBOT_MAP)/loc/yaml" output="screen">
 	<remap from="/map" to="/loc_map"/>
