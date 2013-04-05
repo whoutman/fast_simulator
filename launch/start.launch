@@ -1,0 +1,39 @@
+<?xml version="1.0"?>
+<launch>
+
+    <!-- load robot -->
+    <param name="robot_description" command="$(find xacro)/xacro.py '$(find amigo_robot_model)/description/robot_complex.urdf.xacro' " />
+
+    <!-- load robot joint group info -->
+    <rosparam file="$(find amigo_robot_model)/description/joint_groups.yaml" command="load" />
+
+    <!-- SIMULATION -->
+
+    <node name="fast_simulator" pkg="fast_simulator" type="simulator" output="screen"/>
+
+    <!-- Robot state publisher -->
+    <node pkg="robot_state_publisher" type="state_publisher" name="robot_state_publisher">
+        <param name="publish_frequency" type="double" value="50.0" />
+        <param name="tf_prefix" type="string" value="" />
+    </node>
+     
+    <node name="fast_simulator_map_server" pkg="map_server" type="map_server" args="$(find amigo_maps)/maps/robotics_testlab_A/loc/yaml" output="screen">
+    	<remap from="/map" to="/fast_simulator/map"/>
+    </node>
+
+    <!-- Required simulation parameter -->
+    <!--param name="/use_sim_time" value="true"/ -->
+    <param name="/use_sim_time" value="false"/>
+
+    <!-- launch node that converts sensor_msgs/JointState to amigo_msgs/arm_joints -->
+    <include file="$(find amigo_joint_interface_converter)/launch/start.launch"/>
+
+    <!-- Self filter (robots self removed from Kinect pointcloud on topic /camera/depth/points_self_filtered) -->
+    <!--<include file="$(find amigo_self_filter)/start_filter.launch"/>-->
+
+    <!-- Start ps3 teleop -->
+    <!--<include file="$(find amigo_launch_files)/launch/interaction/teleop_ps3_joystick.launch" />-->
+
+
+ </launch>
+  
