@@ -17,6 +17,8 @@
 #include "amigo_msgs/spindle_setpoint.h"
 #include "amigo_msgs/head_ref.h"
 #include "amigo_msgs/arm_joints.h"
+#include "amigo_msgs/AmigoGripperCommand.h"
+#include "amigo_msgs/AmigoGripperMeasurement.h"
 #include "std_msgs/Float64.h"
 
 // TODO:
@@ -49,6 +51,9 @@ ros::Publisher pub_right_arm_;
 
 ros::Publisher pub_spindle_;
 
+ros::Publisher pub_left_gripper_;
+ros::Publisher pub_right_gripper_;
+
 double laser_resolution = 0.01;
 
 //sensor_msgs::JointState joint_states;
@@ -71,6 +76,34 @@ void callbackCmdVel(const geometry_msgs::Twist::ConstPtr& msg) {
         robot_->velocity_ = *msg;
     }
     t_last_cmd_vel_ = ros::Time::now();
+}
+
+void callbackLeftGripper(const amigo_msgs::AmigoGripperCommand::ConstPtr& msg) {
+    if (msg->direction == amigo_msgs::AmigoGripperCommand::CLOSE) {
+        setJointReference("finger1_joint_left", 0.20);
+        setJointReference("finger2_joint_left", 0.20);
+        setJointReference("finger1_tip_joint_left", -0.60);
+        setJointReference("finger2_tip_joint_left", -0.60);
+    } else if  (msg->direction == amigo_msgs::AmigoGripperCommand::OPEN) {
+        setJointReference("finger1_joint_left", 0.25);
+        setJointReference("finger2_joint_left", 0.25);
+        setJointReference("finger1_tip_joint_left", -0.18);
+        setJointReference("finger2_tip_joint_left", -0.18);
+    }
+}
+
+void callbackRightGripper(const amigo_msgs::AmigoGripperCommand::ConstPtr& msg) {
+    if (msg->direction == amigo_msgs::AmigoGripperCommand::CLOSE) {
+        setJointReference("finger1_joint_right", 0.20);
+        setJointReference("finger2_joint_right", 0.20);
+        setJointReference("finger1_tip_joint_right", -0.60);
+        setJointReference("finger2_tip_joint_right", -0.60);
+    } else if  (msg->direction == amigo_msgs::AmigoGripperCommand::OPEN) {
+        setJointReference("finger1_joint_right", 0.25);
+        setJointReference("finger2_joint_right", 0.25);
+        setJointReference("finger1_tip_joint_right", -0.18);
+        setJointReference("finger2_tip_joint_right", -0.18);
+    }
 }
 
 void callbackSpindleSetpoint(const amigo_msgs::spindle_setpoint::ConstPtr& msg) {
@@ -127,6 +160,9 @@ void publishControlRefs() {
         right_arm_joints.pos[j].data = getJointPosition(right_arm_joint_names[j]);
     }
     pub_right_arm_.publish(right_arm_joints);
+
+    //amigo_msgs::AmigoGripperMeasurement left_gripper;
+    //left_gripper.
 }
 
 void step(double dt) {
@@ -309,8 +345,6 @@ int main(int argc, char **argv) {
     right_arm_joint_names.push_back("wrist_pitch_joint_right");
     right_arm_joint_names.push_back("wrist_yaw_joint_right");
 
-
-
     pub_head_pan_ = nh.advertise<std_msgs::Float64>("/head_pan_angle", 10);
     pub_head_tilt_ = nh.advertise<std_msgs::Float64>("/head_tilt_angle", 10);
 
@@ -319,10 +353,10 @@ int main(int argc, char **argv) {
 
     pub_spindle_ = nh.advertise<std_msgs::Float64>("/spindle_position", 10);
 
+    pub_left_gripper_ = nh.advertise<amigo_msgs::AmigoGripperMeasurement>("/arm_left_controller/gripper_measurement", 10);
+    pub_right_gripper_ = nh.advertise<amigo_msgs::AmigoGripperMeasurement>("/arm_right_controller/gripper_measurement", 10);
+
     ros::Publisher pub_laser_scan = nh.advertise<sensor_msgs::LaserScan>("/base_scan", 10);
-
-
-
 
     tf_base_link_to_front_laser.setOrigin(tf::Vector3(0.31, 0, 0.3));
     tf_base_link_to_front_laser.setRotation(tf::Quaternion(0, 0, 0, 1));
@@ -345,6 +379,10 @@ int main(int argc, char **argv) {
     ros::Subscriber sub_left_arm = nh.subscribe("/arm_left_controller/joint_references", 10, &callbackLeftArm);
 
     ros::Subscriber sub_right_arm = nh.subscribe("/arm_right_controller/joint_references", 10, &callbackRightArm);
+
+    ros::Subscriber sub_left_gripper = nh.subscribe("/arm_left_controller/gripper_command", 10, &callbackLeftGripper);
+
+    ros::Subscriber sub_right_gripper = nh.subscribe("/arm_right_controller/gripper_command", 10, &callbackRightGripper);
 
     // TF
 
