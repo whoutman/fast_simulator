@@ -53,6 +53,8 @@ ros::Publisher pub_spindle_;
 
 ros::Publisher pub_left_gripper_;
 ros::Publisher pub_right_gripper_;
+int left_gripper_direction_;
+int right_gripper_direction_;
 
 double laser_resolution = 0.01;
 
@@ -84,11 +86,13 @@ void callbackLeftGripper(const amigo_msgs::AmigoGripperCommand::ConstPtr& msg) {
         setJointReference("finger2_joint_left", 0.20);
         setJointReference("finger1_tip_joint_left", -0.60);
         setJointReference("finger2_tip_joint_left", -0.60);
+        left_gripper_direction_ = amigo_msgs::AmigoGripperMeasurement::CLOSE;
     } else if  (msg->direction == amigo_msgs::AmigoGripperCommand::OPEN) {
-        setJointReference("finger1_joint_left", 0.25);
-        setJointReference("finger2_joint_left", 0.25);
+        setJointReference("finger1_joint_left", 0.60);
+        setJointReference("finger2_joint_left", 0.60);
         setJointReference("finger1_tip_joint_left", -0.18);
         setJointReference("finger2_tip_joint_left", -0.18);
+        left_gripper_direction_ = amigo_msgs::AmigoGripperMeasurement::OPEN;
     }
 }
 
@@ -98,11 +102,13 @@ void callbackRightGripper(const amigo_msgs::AmigoGripperCommand::ConstPtr& msg) 
         setJointReference("finger2_joint_right", 0.20);
         setJointReference("finger1_tip_joint_right", -0.60);
         setJointReference("finger2_tip_joint_right", -0.60);
+        right_gripper_direction_ = amigo_msgs::AmigoGripperMeasurement::CLOSE;
     } else if  (msg->direction == amigo_msgs::AmigoGripperCommand::OPEN) {
-        setJointReference("finger1_joint_right", 0.25);
-        setJointReference("finger2_joint_right", 0.25);
+        setJointReference("finger1_joint_right", 0.60);
+        setJointReference("finger2_joint_right", 0.60);
         setJointReference("finger1_tip_joint_right", -0.18);
         setJointReference("finger2_tip_joint_right", -0.18);
+        right_gripper_direction_ = amigo_msgs::AmigoGripperMeasurement::OPEN;
     }
 }
 
@@ -161,8 +167,21 @@ void publishControlRefs() {
     }
     pub_right_arm_.publish(right_arm_joints);
 
-    //amigo_msgs::AmigoGripperMeasurement left_gripper;
-    //left_gripper.
+    amigo_msgs::AmigoGripperMeasurement left_gripper;
+    left_gripper.direction = left_gripper_direction_;
+    if ((left_gripper.direction == amigo_msgs::AmigoGripperMeasurement::CLOSE && getJointPosition("finger1_tip_joint_left") < -0.58)
+            || (left_gripper.direction == amigo_msgs::AmigoGripperMeasurement::OPEN && getJointPosition("finger1_joint_left") > 0.58)) {
+        left_gripper.end_position_reached = true;
+    }
+    pub_left_gripper_.publish(left_gripper);
+
+    amigo_msgs::AmigoGripperMeasurement right_gripper;
+    right_gripper.direction = right_gripper_direction_;
+    if ((right_gripper.direction == amigo_msgs::AmigoGripperMeasurement::CLOSE && getJointPosition("finger1_tip_joint_right") < -0.58)
+            || (right_gripper.direction == amigo_msgs::AmigoGripperMeasurement::OPEN && getJointPosition("finger1_joint_right") > 0.58)) {
+        right_gripper.end_position_reached = true;
+    }
+    pub_right_gripper_.publish(right_gripper);
 }
 
 void step(double dt) {
@@ -379,6 +398,10 @@ int main(int argc, char **argv) {
     ros::Subscriber sub_left_arm = nh.subscribe("/arm_left_controller/joint_references", 10, &callbackLeftArm);
 
     ros::Subscriber sub_right_arm = nh.subscribe("/arm_right_controller/joint_references", 10, &callbackRightArm);
+
+    left_gripper_direction_ = amigo_msgs::AmigoGripperMeasurement::OPEN;
+    right_gripper_direction_ = amigo_msgs::AmigoGripperMeasurement::OPEN;
+
 
     ros::Subscriber sub_left_gripper = nh.subscribe("/arm_left_controller/gripper_command", 10, &callbackLeftGripper);
 
