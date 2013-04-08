@@ -45,7 +45,7 @@
 	<include file="$(find amigo_launch_files)/launch/middleware/reasoner.launch"/>
 
 	<!-- Node to attach world model object to gripper-->
-	<!--node pkg="obj_in_gripper" type="obj_in_gripper_pub" name="obj_in_gripper"/-->
+	<node pkg="obj_in_gripper" type="obj_in_gripper_pub" name="obj_in_gripper"/>
 	
 	<!-- Start text to speech -->
     <include file="$(find amigo_launch_files)/launch/interaction/text_to_speech.launch" />	
