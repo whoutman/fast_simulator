@@ -1,6 +1,8 @@
 <?xml version="1.0"?>
 <launch>
 
+    <arg name="teleport" default="false"/>
+
     <!-- load robot -->
     <param name="robot_description" command="$(find xacro)/xacro.py '$(find amigo_robot_model)/description/robot_complex.urdf.xacro' " />
 
@@ -10,6 +12,8 @@
     <!-- SIMULATION -->
 
     <node name="fast_simulator" pkg="fast_simulator" type="simulator" output="screen"/>
+
+    <node if="$(arg teleport)" name="amigo_teleporter" pkg="fast_simulator" type="amigo_teleporter"/>
 
     <!-- Robot state publisher -->
     <node pkg="robot_state_publisher" type="state_publisher" name="robot_state_publisher">

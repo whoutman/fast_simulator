@@ -305,6 +305,8 @@ int main(int argc, char **argv) {
     ros::init(argc, argv, "fast_simulator");
     ros::NodeHandle nh;
 
+    bool publish_localization = true;
+
     ros::Subscriber sub_map = nh.subscribe("/fast_simulator/map", 10, &callbackMap);
     while(ros::ok() && world_map_.data.empty()) {
         ros::spinOnce();
@@ -450,8 +452,10 @@ int main(int argc, char **argv) {
             tf_odom_to_base_link.setRotation(amigo->pose_.getRotation());
             tf_broadcaster.sendTransform(tf_odom_to_base_link);
 
-            tf_map_to_odom.stamp_ = ros::Time::now();
-            tf_broadcaster.sendTransform(tf_map_to_odom);
+            if (publish_localization) {
+                tf_map_to_odom.stamp_ = ros::Time::now();
+                tf_broadcaster.sendTransform(tf_map_to_odom);
+            }
         }
 
         if (count % 4 == 0) {

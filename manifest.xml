@@ -18,6 +18,9 @@
 
   <depend package="amigo_msgs"/>
 
+  <!-- For amigo_teleporter -->
+  <depend package="tue_move_base_msgs"/>
+
 </package>
 
 
