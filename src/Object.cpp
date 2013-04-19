@@ -1,4 +1,5 @@
 #include "fast_simulator/Object.h"
+#include "fast_simulator/World.h"
 
 using namespace std;
 
@@ -22,6 +23,10 @@ void Object::addChild(const string& type, double dx, double dy, double dz) {
     child->pose_.setRotation(tf::Quaternion(0, 0, 0, 1));
     child->pose_.frame_id_ = "PARENT";
     parts_.push_back(child);
+}
+
+World* Object::getWorldHandle() {
+    return world_;
 }
 
 tf::Stamped<tf::Pose> Object::getAbsolutePose() const {

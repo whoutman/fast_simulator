@@ -9,7 +9,11 @@
 // TODO: better data structure
 #include <geometry_msgs/Twist.h>
 
+class World;
+
 class Object {
+
+    friend class World;
 
 public:
 
@@ -21,7 +25,9 @@ public:
 
     tf::Stamped<tf::Pose> getAbsolutePose() const;
 
-    void step(double dt);
+    virtual void step(double dt);
+
+    World* getWorldHandle();
 
     Object* parent_;
 
@@ -40,6 +46,10 @@ public:
     std::vector<Object*> parts_;
 
     int visualization_id_;
+
+private:
+
+    World* world_;
 
 };
 
