@@ -6,6 +6,7 @@
 #include <string>
 
 #include "fast_simulator/Object.h"
+#include "fast_simulator/Box.h"
 
 class World {
 
@@ -31,6 +32,8 @@ protected:
     tf::Transform map_transform_inverse_;
 
     std::vector<Object*> objects_;
+
+    std::vector<Box*> boxes_;
 
     void callbackMap(const nav_msgs::OccupancyGrid::ConstPtr& msg);
 
