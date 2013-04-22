@@ -37,8 +37,6 @@ public:
 
     std::string type_;
 
-    tf::Transform pose_;
-
     geometry_msgs::Twist velocity_;
 
     int current_goal_;
@@ -60,6 +58,10 @@ protected:
     Box* bounding_box_;
 
     Box* shape_;
+
+    bool has_pose_;
+
+    tf::Transform pose_;
 
 };
 

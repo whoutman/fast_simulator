@@ -61,18 +61,22 @@ bool Object::intersect(const Ray &r, float t0, float t1, double& distance) const
         return false;
     }
 
+    //Ray r_transformed(this->pose_ * r.origin, this->pose_ * r.direction);
+    Ray r_transformed = r;
+
+    //t0 = distance - 0.1;
     bool has_intersect = false;
     distance = t1;
 
     double dist;
-    if (shape_ && shape_->intersect(r, t0, t1, dist)) {
+    if (shape_ && shape_->intersect(r_transformed, t0, t1, dist)) {
         has_intersect = true;
         distance = min(distance, dist);
     }
 
     for(vector<Object*>::const_iterator it_part = parts_.begin(); it_part != parts_.end(); ++it_part) {
         Object* obj = *it_part;
-        if (obj->intersect(r, t0, t1, dist)) {
+        if (obj->intersect(r_transformed, t0, t1, dist)) {
             has_intersect = true;
             distance = min(distance, dist);
         }

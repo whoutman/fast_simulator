@@ -7,7 +7,7 @@ class Ray {
 
 public:
 
-    Ray(tf::Vector3 &o, tf::Vector3 &d) ;
+    Ray(const tf::Vector3 &o, const tf::Vector3 &d) ;
 
     tf::Vector3 origin;
 

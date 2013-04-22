@@ -1,6 +1,7 @@
 #include <ros/ros.h>
 
 #include "fast_simulator/World.h"
+#include "fast_simulator/Sprite.h"
 #include "fast_simulator/util.h"
 
 using namespace std;
@@ -19,6 +20,8 @@ World::World() {
     boxes_.push_back(new Box(tf::Vector3(4.543, -2.555, 0), tf::Vector3(5.427, -0.478, 4)));
     boxes_.push_back(new Box(tf::Vector3(-0.131, 0.705, 0), tf::Vector3(1.160, 1.228, 4)));
     */
+
+    //Sprite* s = new Sprite("/home/sdries/test.pgm", 0.05, 0, 2);
 }
 
 World::~World() {
@@ -113,6 +116,7 @@ void World::initFromTopic(const std::string &topic) {
     sub_map.shutdown();
 
     Object* root = new Object();
+    //root->pose_ = tf::Transform(tf::Quaternion(0, 0, 0, 1), tf::Vector3(1, 2, 3));
     objects_.push_back(root);
 
     createQuadTree(world_map_, 0, 0, world_map_.info.width, world_map_.info.height, root);
@@ -138,23 +142,7 @@ bool World::intersect(const Ray& r, float t0, float t1, double& distance) const 
     }
 
     return has_intersection;
-/*
 
-    double res = 0.01;
-
-    tf::Vector3 delta = r.direction.normalized() * res;
-
-    tf::Vector3 v = r.origin;
-    distance = 0;
-    for(; distance < t1; distance += res) {
-        if (isOccupied(v)) {
-            return true;
-        }
-        v += delta;
-    }
-
-    return false;
- */
 }
 
 bool World::isOccupied(const tf::Vector3& pos) const {

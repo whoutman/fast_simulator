@@ -1,9 +1,9 @@
 #ifndef _FAST_SIMULATOR_BOX_H_
 #define _FAST_SIMULATOR_BOX_H_
 
-#include "fast_simulator/Ray.h"
+#include "Shape.h"
 
-class Box {
+class Box : public Shape {
 
 public:
 
