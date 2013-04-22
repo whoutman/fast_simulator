@@ -6,7 +6,6 @@
 #include <nav_msgs/Odometry.h>
 #include <tf/transform_broadcaster.h>
 #include <sensor_msgs/JointState.h>
-#include <sensor_msgs/LaserScan.h>
 #include <geometry_msgs/Twist.h>
 #include <nav_msgs/OccupancyGrid.h>
 
@@ -22,6 +21,7 @@
 #include "fast_simulator/Joint.h"
 #include "fast_simulator/Object.h"
 #include "fast_simulator/World.h"
+#include "fast_simulator/LRF.h"
 
 class Amigo : public Object {
 
@@ -39,10 +39,6 @@ protected:
 
     bool publish_localization_;
 
-    sensor_msgs::LaserScan scan;
-    std::vector<tf::Vector3> laser_ray_deltas_;
-
-    tf::StampedTransform tf_base_link_to_front_laser;
     tf::StampedTransform tf_map_to_odom;
     tf::StampedTransform tf_odom_to_base_link;
 
@@ -60,7 +56,6 @@ protected:
     ros::Publisher pub_right_gripper_;
 
     ros::Publisher pub_joint_states;
-    ros::Publisher pub_laser_scan;
 
     ros::Subscriber sub_cmd_vel;
 
@@ -79,8 +74,6 @@ protected:
     int left_gripper_direction_;
     int right_gripper_direction_;
 
-    double laser_resolution_;
-
     tf::TransformBroadcaster tf_broadcaster_;
 
     //sensor_msgs::JointState joint_states;
@@ -89,6 +82,8 @@ protected:
 
     std::vector<std::string> left_arm_joint_names;
     std::vector<std::string> right_arm_joint_names;
+
+    LRF* laser_range_finder_;
 
     void setJointReference(const std::string& joint_name, double position);
 
@@ -111,10 +106,6 @@ protected:
     void callbackInitialPose(const geometry_msgs::PoseWithCovarianceStamped::ConstPtr& msg);
 
     void publishControlRefs();
-
-    void initLaserScan();
-
-    bool getLaserScan(sensor_msgs::LaserScan& ret_scan);
 
     sensor_msgs::JointState getJointStates();
 

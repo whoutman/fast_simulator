@@ -2,7 +2,7 @@
 
 using namespace std;
 
-Amigo::Amigo(ros::NodeHandle& nh, bool publish_localization) : nh_(nh), publish_localization_(publish_localization), laser_resolution_(0.01) {
+Amigo::Amigo(ros::NodeHandle& nh, bool publish_localization) : nh_(nh), publish_localization_(publish_localization) {
     // joint_states
     pub_joint_states = nh.advertise<sensor_msgs::JointState>("/joint_states", 10);
 
@@ -62,14 +62,11 @@ Amigo::Amigo(ros::NodeHandle& nh, bool publish_localization) : nh_(nh), publish_
     pub_left_gripper_ = nh.advertise<amigo_msgs::AmigoGripperMeasurement>("/arm_left_controller/gripper_measurement", 10);
     pub_right_gripper_ = nh.advertise<amigo_msgs::AmigoGripperMeasurement>("/arm_right_controller/gripper_measurement", 10);
 
-    pub_laser_scan = nh.advertise<sensor_msgs::LaserScan>("/base_scan", 10);
-
+    tf::Transform tf_base_link_to_front_laser;
     tf_base_link_to_front_laser.setOrigin(tf::Vector3(0.31, 0, 0.3));
     tf_base_link_to_front_laser.setRotation(tf::Quaternion(0, 0, 0, 1));
-    tf_base_link_to_front_laser.frame_id_ = "/base_link";
-    tf_base_link_to_front_laser.child_frame_id_ = "/front_laser";
-
-    initLaserScan();
+    laser_range_finder_ = new LRF("/base_scan");
+    this->addChild(laser_range_finder_, tf_base_link_to_front_laser);
 
     // SUBSCRIBERS
 
@@ -107,7 +104,6 @@ Amigo::Amigo(ros::NodeHandle& nh, bool publish_localization) : nh_(nh), publish_
 }
 
 Amigo::~Amigo() {
-
 }
 
 void Amigo::step(double dt) {
@@ -147,10 +143,7 @@ void Amigo::step(double dt) {
     publishControlRefs();
 
     if (count_ % 10 == 0) {
-        sensor_msgs::LaserScan scan ;
-        if (getLaserScan(scan)) {
-            pub_laser_scan.publish(scan);
-        }
+        laser_range_finder_->publishScan();
     }
 
     count_++;
@@ -264,66 +257,6 @@ void Amigo::publishControlRefs() {
         right_gripper.end_position_reached = true;
     }
     pub_right_gripper_.publish(right_gripper);
-}
-
-void Amigo::initLaserScan() {
-    scan.header.frame_id = "/front_laser";
-    scan.angle_min = -2.09439492226;
-    scan.angle_max = 2.09439492226;
-    scan.angle_increment = 0.00614192103967;
-    scan.time_increment = 0;
-    scan.scan_time = 0;
-    scan.range_min = 0.5;
-    scan.range_max = 10.0;
-
-    laser_ray_deltas_.clear();
-    for(double angle = scan.angle_min; angle <= scan.angle_max; angle += scan.angle_increment) {
-        tf::Quaternion q;
-        q.setRPY(0, 0, angle);
-
-        tf::Transform t;
-        t.setOrigin(tf::Vector3(0, 0, 0));
-        t.setRotation(q);
-
-        laser_ray_deltas_.push_back(t * tf::Vector3(laser_resolution_, 0, 0));
-
-        //cout << laser_ray_deltas_.back().getX() << ", " << laser_ray_deltas_.back().getY() << ", " << laser_ray_deltas_.back().getZ() << endl;
-    }
-
-    //cout << laser_ray_deltas_.size() << endl;
-}
-
-bool Amigo::getLaserScan(sensor_msgs::LaserScan& ret_scan) {
-
-   scan.header.stamp = ros::Time::now();
-
-   scan.ranges.clear();
-   scan.intensities.clear();
-
-   tf::Transform tf_map_to_front_laser = tf_map_to_odom *  tf_odom_to_base_link * tf_base_link_to_front_laser;
-
-   tf::Vector3 laser_origin = tf_map_to_front_laser.getOrigin();
-
-   for(unsigned int i = 0; i < laser_ray_deltas_.size(); ++i) {
-
-       tf::Vector3 delta = tf::Transform(tf_map_to_front_laser.getRotation()) * laser_ray_deltas_[i];
-
-       tf::Vector3 v = laser_origin;
-       double distance = 0;
-       for(; distance < 9; distance += laser_resolution_) {
-           if (getWorldHandle()->isOccupied(v)) {
-               break;
-           }
-           v += delta;
-       }
-
-       scan.ranges.push_back(distance);
-       scan.intensities.push_back(101);
-   }
-
-   ret_scan = scan;
-
-   return true;
 }
 
 sensor_msgs::JointState Amigo::getJointStates() {

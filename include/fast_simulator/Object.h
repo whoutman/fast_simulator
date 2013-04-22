@@ -9,6 +9,8 @@
 // TODO: better data structure
 #include <geometry_msgs/Twist.h>
 
+#include "fast_simulator/Box.h"
+
 class World;
 
 class Object {
@@ -21,9 +23,9 @@ public:
 
     virtual ~Object();
 
-    void addChild(const std::string& type, double dx, double dy, double dz);
+    void addChild(Object* child, const tf::Transform& rel_pose);
 
-    tf::Stamped<tf::Pose> getAbsolutePose() const;
+    tf::Transform getAbsolutePose() const;
 
     virtual void step(double dt);
 
@@ -35,7 +37,7 @@ public:
 
     std::string type_;
 
-    tf::Stamped<tf::Pose> pose_;
+    tf::Transform pose_;
 
     geometry_msgs::Twist velocity_;
 
@@ -47,9 +49,17 @@ public:
 
     int visualization_id_;
 
-private:
+    void setBoundingBox(const Box& box);
 
-    World* world_;
+    void setShape(const Box& box);
+
+    bool intersect(const Ray &r, float t0, float t1, double& distance) const;
+
+protected:
+
+    Box* bounding_box_;
+
+    Box* shape_;
 
 };
 

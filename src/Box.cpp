@@ -6,11 +6,13 @@ Box::Box(const tf::Vector3 &min, const tf::Vector3 &max) {
 }
 
 bool Box::intersect(const Ray &r, float t0, float t1, double& distance) const {
+
     float tmin, tmax, tymin, tymax, tzmin, tzmax;
     tmin = (bounds[r.sign[0]].x() - r.origin.x()) * r.inv_direction.x();
     tmax = (bounds[1-r.sign[0]].x() - r.origin.x()) * r.inv_direction.x();
     tymin = (bounds[r.sign[1]].y() - r.origin.y()) * r.inv_direction.y();
     tymax = (bounds[1-r.sign[1]].y() - r.origin.y()) * r.inv_direction.y();
+
     if ( (tmin > tymax) || (tymin > tmax) )
         return false;
     if (tymin > tmin)

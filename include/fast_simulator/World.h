@@ -12,9 +12,12 @@ class World {
 
 public:
 
-    World();
+    static World& getInstance();
 
     virtual ~World();
+
+    void createQuadTree(const nav_msgs::OccupancyGrid& map, unsigned int mx_min, unsigned int my_min,
+             unsigned int mx_max, unsigned int my_max, Object* parent, std::string indent = "");
 
     void initFromTopic(const std::string& topic);
 
@@ -22,9 +25,13 @@ public:
 
     void addObject(Object* obj);
 
-    bool isOccupied(const tf::Vector3& pos);
+    bool isOccupied(const tf::Vector3& pos) const;
+
+    bool intersect(const Ray& r, float t0, float t1, double& distance) const;
 
 protected:
+
+    static World* instance_;
 
     nav_msgs::OccupancyGrid world_map_;
 
@@ -33,7 +40,7 @@ protected:
 
     std::vector<Object*> objects_;
 
-    std::vector<Box*> boxes_;
+    World();
 
     void callbackMap(const nav_msgs::OccupancyGrid::ConstPtr& msg);
 

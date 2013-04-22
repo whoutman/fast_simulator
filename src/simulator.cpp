@@ -7,20 +7,6 @@
 
 using namespace std;
 
-#include <sstream>
-string toString(const tf::Vector3& v) {
-    stringstream s;
-    s << "(" << v.getX() << ", " << v.getY() << ", " << v.getZ() << ")";
-    return s.str();
-}
-
-string toString(const tf::Transform& tf) {
-    stringstream s;
-    s << toString(tf.getOrigin()) << ", "
-      << "(" << tf.getRotation().getX() << ", " << tf.getRotation().getY() << ", " << tf.getRotation().getZ() << ", " << tf.getRotation().getW() << ")";
-    return s.str();
-}
-
 int main(int argc, char **argv) {
     // Initialize node
     ros::init(argc, argv, "fast_simulator");
@@ -28,7 +14,7 @@ int main(int argc, char **argv) {
 
     bool publish_localization = true;
 
-    World world;
+    World& world = World::getInstance();
     world.initFromTopic("/fast_simulator/map");
 
     // PUBLISHERS    

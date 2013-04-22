@@ -11,7 +11,7 @@
 
     <!-- SIMULATION -->
 
-    <node name="fast_simulator" pkg="fast_simulator" type="simulator" output="screen"/>
+    <node name="fast_simulator" pkg="fast_simulator" type="simulator" output="screen" launch-prefix=""/>
 
     <node if="$(arg teleport)" name="amigo_teleporter" pkg="fast_simulator" type="amigo_teleporter"/>
 

@@ -3,7 +3,7 @@
 
 using namespace std;
 
-Object::Object() : parent_(0), current_goal_(-1) {
+Object::Object() : parent_(0), current_goal_(-1), bounding_box_(0), shape_(0) {
 
 }
 
@@ -12,31 +12,26 @@ Object::~Object() {
     for(vector<Object*>::const_iterator it_part = parts_.begin(); it_part != parts_.end(); ++it_part) {
         delete *it_part;
     }
+
+    delete bounding_box_;
+    delete shape_;
 }
 
-void Object::addChild(const string& type, double dx, double dy, double dz) {
-    Object* child = new Object();
-    child->id_ = "";
-    child->type_ = type;
+void Object::addChild(Object* child, const tf::Transform& rel_pose) {
+    child->pose_ = rel_pose;
     child->parent_ = this;
-    child->pose_.setOrigin(tf::Vector3(dx, dy, dz));
-    child->pose_.setRotation(tf::Quaternion(0, 0, 0, 1));
-    child->pose_.frame_id_ = "PARENT";
     parts_.push_back(child);
 }
 
 World* Object::getWorldHandle() {
-    return world_;
+    return &World::getInstance();
 }
 
-tf::Stamped<tf::Pose> Object::getAbsolutePose() const {
+tf::Transform Object::getAbsolutePose() const {
     if (!parent_) {
         return pose_;
     }
-
-    tf::Stamped<tf::Pose> pose = parent_->getAbsolutePose();
-    pose.setOrigin(pose.getOrigin() + pose_.getOrigin());
-    return pose;
+    return parent_->getAbsolutePose() * pose_;
 }
 
 void Object::step(double dt) {
@@ -51,6 +46,38 @@ void Object::step(double dt) {
     pose_.setOrigin(pose_.getOrigin() + trans);
 
     pose_.setRotation(pose_.getRotation() * q);
+}
+
+void Object::setBoundingBox(const Box& box) {
+    bounding_box_ = new Box(box);
+}
+
+void Object::setShape(const Box& box) {
+    shape_ = new Box(box);
+}
+
+bool Object::intersect(const Ray &r, float t0, float t1, double& distance) const {
+    if (bounding_box_ && !bounding_box_->intersect(r, t0, t1, distance)) {
+        return false;
+    }
+
+    bool has_intersect = false;
+    distance = t1;
+
+    double dist;
+    if (shape_ && shape_->intersect(r, t0, t1, dist)) {
+        has_intersect = true;
+        distance = min(distance, dist);
+    }
+
+    for(vector<Object*>::const_iterator it_part = parts_.begin(); it_part != parts_.end(); ++it_part) {
+        Object* obj = *it_part;
+        if (obj->intersect(r, t0, t1, dist)) {
+            has_intersect = true;
+            distance = min(distance, dist);
+        }
+    }
+    return has_intersect;
 }
 
 

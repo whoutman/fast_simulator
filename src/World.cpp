@@ -1,15 +1,35 @@
 #include <ros/ros.h>
 
 #include "fast_simulator/World.h"
+#include "fast_simulator/util.h"
 
 using namespace std;
 
-World::World() {
+World* World::instance_ = 0;
 
+/*
+
+
+*/
+
+World::World() {
+    /*
+    boxes_.push_back(new Box(tf::Vector3(2.739, -2.532, 0), tf::Vector3(3.107, 1.237, 4)));
+    boxes_.push_back(new Box(tf::Vector3(3.529, -2.514, 0), tf::Vector3(3.966, -2.028, 4)));
+    boxes_.push_back(new Box(tf::Vector3(4.543, -2.555, 0), tf::Vector3(5.427, -0.478, 4)));
+    boxes_.push_back(new Box(tf::Vector3(-0.131, 0.705, 0), tf::Vector3(1.160, 1.228, 4)));
+    */
 }
 
 World::~World() {
 
+}
+
+World& World::getInstance() {
+    if (!instance_) {
+        instance_ = new World();
+    }
+    return *instance_;
 }
 
 void World::step(double dt) {
@@ -21,7 +41,64 @@ void World::step(double dt) {
 
 void World::addObject(Object* obj) {
     objects_.push_back(obj);
-    obj->world_ = this;
+}
+
+void World::createQuadTree(const nav_msgs::OccupancyGrid& map, unsigned int mx_min, unsigned int my_min,
+                                                    unsigned int mx_max, unsigned int my_max, Object* parent, string indent) {
+
+    bool has_cell = false;
+    for(unsigned int mx = mx_min; mx < mx_max; ++mx) {
+        for(unsigned int my = my_min; my < my_max; ++my) {
+            if (map.data[map.info.width * my + mx] > 10 ) {
+                has_cell = true;
+            }
+        }
+    }
+
+    if (!has_cell) {
+        return;
+    }
+
+    Object* obj = new Object();
+    tf::Vector3 min_map((double)mx_min * map.info.resolution,
+                        (double)my_min * map.info.resolution, 0);
+    tf::Vector3 max_map((double)mx_max * map.info.resolution,
+                        (double)my_max * map.info.resolution, 2);
+    obj->setBoundingBox(Box(map_transform_ * min_map, map_transform_ * max_map));
+    parent->addChild(obj, tf::Transform(tf::Quaternion(0, 0, 0, 1), tf::Vector3(0, 0, 0)));
+
+    //cout << indent << mx_min << " - " << mx_max << ", " << my_min << " - " << my_max << endl;
+
+    // cout << indent << toString(min_map) << ", " << toString(max_map) << endl;
+
+
+    if (mx_max - mx_min < 10 || my_max - my_min < 10) {
+        for(unsigned int mx = mx_min; mx < mx_max; ++mx) {
+            for(unsigned int my = my_min; my < my_max; ++my) {
+                if (map.data[map.info.width * my + mx] > 10 ) {
+                    tf::Vector3 pos_map((double)mx * map.info.resolution,
+                                        (double)my * map.info.resolution, 0);
+
+                    tf::Vector3 pos = map_transform_ * pos_map;
+
+                    Object* child = new Object();
+                    child->setShape(Box(pos, tf::Vector3(pos.x() + map.info.resolution,
+                                                       pos.y() + map.info.resolution,
+                                                       2)));
+                    obj->addChild(child, tf::Transform(tf::Quaternion(0, 0, 0, 1), tf::Vector3(0, 0, 0)));
+                }
+            }
+        }
+    } else {
+
+        unsigned int cx = (mx_max + mx_min) / 2;
+        unsigned int cy = (my_max + my_min) / 2;
+
+        createQuadTree(map, mx_min, my_min, cx, cy, obj, indent + "    ");
+        createQuadTree(map, cx , my_min, mx_max, cy, obj, indent + "    ");
+        createQuadTree(map, mx_min, cy , cx, my_max, obj, indent + "    ");
+        createQuadTree(map, cx , cy , mx_max, my_max, obj, indent + "    ");
+    }
 }
 
 void World::initFromTopic(const std::string &topic) {
@@ -34,6 +111,12 @@ void World::initFromTopic(const std::string &topic) {
     }
     ROS_INFO("Map found at topic %s", sub_map.getTopic().c_str());
     sub_map.shutdown();
+
+    Object* root = new Object();
+    objects_.push_back(root);
+
+    createQuadTree(world_map_, 0, 0, world_map_.info.width, world_map_.info.height, root);
+
 }
 
 void World::callbackMap(const nav_msgs::OccupancyGrid::ConstPtr& msg) {
@@ -42,7 +125,40 @@ void World::callbackMap(const nav_msgs::OccupancyGrid::ConstPtr& msg) {
     map_transform_inverse_ = map_transform_.inverse();
 }
 
-bool World::isOccupied(const tf::Vector3& pos) {
+bool World::intersect(const Ray& r, float t0, float t1, double& distance) const {
+    distance = t1;
+    bool has_intersection = false;
+    for(vector<Object*>::const_iterator it_obj = objects_.begin(); it_obj != objects_.end(); ++it_obj) {
+        Object* obj = *it_obj;
+        double dist;
+        if (obj->intersect(r, t0, t1, dist)) {
+            has_intersection = true;
+            distance = min (dist, distance);
+        }
+    }
+
+    return has_intersection;
+/*
+
+    double res = 0.01;
+
+    tf::Vector3 delta = r.direction.normalized() * res;
+
+    tf::Vector3 v = r.origin;
+    distance = 0;
+    for(; distance < t1; distance += res) {
+        if (isOccupied(v)) {
+            return true;
+        }
+        v += delta;
+    }
+
+    return false;
+ */
+}
+
+bool World::isOccupied(const tf::Vector3& pos) const {
+
     tf::Vector3 pos_map = map_transform_inverse_ * pos;
 
     int mx = (int)(pos_map.getX() / world_map_.info.resolution);

@@ -7,7 +7,8 @@ include($ENV{ROS_ROOT}/core/rosbuild/rosbuild.cmake)
 #  Release        : w/o debug symbols, w/ optimization
 #  RelWithDebInfo : w/ debug symbols, w/ optimization
 #  MinSizeRel     : w/o debug symbols, w/ optimization, stripped binaries
-#set(ROS_BUILD_TYPE RelWithDebInfo)
+set(ROS_BUILD_TYPE RelWithDebInfo)
+#set(ROS_BUILD_TYPE Debug)
 
 rosbuild_init()
 
@@ -29,6 +30,15 @@ file(GLOB_RECURSE HEADER_FILES include/*.h)
 #target_link_libraries(${PROJECT_NAME} another_library)
 #rosbuild_add_boost_directories()
 #rosbuild_link_boost(${PROJECT_NAME} thread)
-rosbuild_add_executable(simulator src/simulator.cpp src/Object.cpp src/Joint.cpp src/World.cpp src/Amigo.cpp src/Box.cpp src/Ray.cpp ${HEADER_FILES})
+rosbuild_add_executable(simulator src/simulator.cpp
+                                  src/Object.cpp
+                                  src/Joint.cpp
+                                  src/World.cpp
+                                  src/Amigo.cpp
+                                  src/Box.cpp
+                                  src/Ray.cpp
+                                  src/LRF.cpp
+                                  src/Kinect.cpp
+                                  src/Sprite.cpp ${HEADER_FILES})
 rosbuild_add_executable(amigo_teleporter src/amigo_teleporter.cpp)
 #target_link_libraries(example ${PROJECT_NAME})
