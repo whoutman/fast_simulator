@@ -4,6 +4,7 @@
 #include "fast_simulator/Joint.h"
 #include "fast_simulator/World.h"
 #include "fast_simulator/Amigo.h"
+#include "fast_simulator/Pico.h"
 
 using namespace std;
 
@@ -21,10 +22,15 @@ int main(int argc, char **argv) {
 
     // AMIGO
 
-    Amigo* amigo = new Amigo(nh, publish_localization);
-    amigo->pose_.setOrigin(tf::Vector3(0, 0, 0));
-    amigo->pose_.setRotation(tf::Quaternion(0, 0, 0, 1));
-    world.addObject(amigo);
+    if (argc == 2 && string(argv[1]) == "pico") {
+        Pico* pico = new Pico(nh, publish_localization);
+        pico->setPose(tf::Vector3(0, 0, 0), tf::Quaternion(0, 0, 0, 1));
+        world.addObject(pico);
+    } else {
+        Amigo* amigo = new Amigo(nh, publish_localization);
+        amigo->setPose(tf::Vector3(0, 0, 0), tf::Quaternion(0, 0, 0, 1));
+        world.addObject(amigo);
+    }
 
     double freq = 100;
     ros::Rate r(freq);

@@ -6,7 +6,7 @@ Amigo::Amigo(ros::NodeHandle& nh, bool publish_localization) : nh_(nh), publish_
     // joint_states
     pub_joint_states = nh.advertise<sensor_msgs::JointState>("/joint_states", 10);
 
-    joints_["spindle_joint"] = new Joint(0.351846521684684);
+    joints_["spindle_joint"] = new Joint(0.351846521684684, 0.1);
     joints_["shoulder_yaw_joint_left"] = new Joint(-0.010038043598955326);
     joints_["shoulder_pitch_joint_left"] = new Joint(-0.39997462399515005);
     joints_["shoulder_roll_joint_left"] = new Joint(2.0889754646091774e-06);
@@ -65,7 +65,7 @@ Amigo::Amigo(ros::NodeHandle& nh, bool publish_localization) : nh_(nh), publish_
     tf::Transform tf_base_link_to_front_laser;
     tf_base_link_to_front_laser.setOrigin(tf::Vector3(0.31, 0, 0.3));
     tf_base_link_to_front_laser.setRotation(tf::Quaternion(0, 0, 0, 1));
-    laser_range_finder_ = new LRF("/base_scan");
+    laser_range_finder_ = new LRF("/base_scan", "/front_laser");
     this->addChild(laser_range_finder_, tf_base_link_to_front_laser);
 
     // SUBSCRIBERS
@@ -107,11 +107,12 @@ Amigo::~Amigo() {
 }
 
 void Amigo::step(double dt) {
+    Object::step(dt);
+
     for(map<string, Joint*>::iterator it_joint = joints_.begin(); it_joint != joints_.end(); ++it_joint) {
         Joint* joint = it_joint->second;
         joint->step(dt);
     }
-
 
     if (ros::Time::now() - t_last_cmd_vel_ > ros::Duration(0.5)) {
         this->velocity_.angular.x = 0;

@@ -9,6 +9,8 @@ public:
 
     Box(const tf::Vector3 &min, const tf::Vector3 &max);
 
+    Box* clone() const;
+
     bool intersect(const Ray &, float t0, float t1, double& distance) const;
 
     tf::Vector3 bounds[2];

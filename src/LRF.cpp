@@ -1,11 +1,11 @@
 #include "fast_simulator/LRF.h"
 #include "fast_simulator/World.h"
 
-LRF::LRF(const std::string& topic) {
+LRF::LRF(const std::string& topic, const std::string& frame_id) : frame_id_(frame_id) {
     ros::NodeHandle nh;
     pub_laser_scan = nh.advertise<sensor_msgs::LaserScan>(topic, 10);
 
-    scan.header.frame_id = "/front_laser";
+    scan.header.frame_id = frame_id_;
     scan.angle_min = -2.09439492226;
     scan.angle_max = 2.09439492226;
     scan.angle_increment = 0.00614192103967;
@@ -36,6 +36,8 @@ LRF::~LRF() {
 }
 
 void LRF::publishScan() {
+    std::cout << "LRF::publishScan" << std::endl;
+
     scan.header.stamp = ros::Time::now();
 
     scan.ranges.clear();

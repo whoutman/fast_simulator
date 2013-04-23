@@ -23,14 +23,6 @@ public:
 
     virtual ~Object();
 
-    void addChild(Object* child, const tf::Transform& rel_pose);
-
-    tf::Transform getAbsolutePose() const;
-
-    virtual void step(double dt);
-
-    World* getWorldHandle();
-
     Object* parent_;
 
     std::string id_;
@@ -47,9 +39,21 @@ public:
 
     int visualization_id_;
 
+    void addChild(Object* child);
+
+    void addChild(Object* child, const tf::Transform& rel_pose);
+
+    tf::Transform getAbsolutePose() const;
+
+    virtual void step(double dt);
+
+    World* getWorldHandle();
+
     void setBoundingBox(const Box& box);
 
-    void setShape(const Box& box);
+    void setShape(const Shape& box);
+
+    void setPose(const tf::Vector3& pos, const tf::Quaternion& rot);
 
     bool intersect(const Ray &r, float t0, float t1, double& distance) const;
 
@@ -57,7 +61,7 @@ protected:
 
     Box* bounding_box_;
 
-    Box* shape_;
+    Shape* shape_;
 
     bool has_pose_;
 

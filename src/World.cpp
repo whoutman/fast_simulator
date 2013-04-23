@@ -22,6 +22,15 @@ World::World() {
     */
 
     //Sprite* s = new Sprite("/home/sdries/test.pgm", 0.05, 0, 2);
+
+    Object* obj = new Object();
+    obj->setBoundingBox(Box(tf::Vector3(-0.5, -0.5, 0), tf::Vector3(0.5, 0.5, 2)));
+    obj->setShape(Sprite("/home/sdries/laser_body.pgm", 0.025, 0, 2));
+    tf::Quaternion q;
+    q.setRPY(0, 0, 1);
+    obj->setPose(tf::Vector3(0, 0, 0), q);
+    //obj->setBoundingBox(Box(tf::Vector3(0, 0, 0), tf::Vector3(1, 1, 1)));
+    objects_.push_back(obj);
 }
 
 World::~World() {
@@ -68,7 +77,8 @@ void World::createQuadTree(const nav_msgs::OccupancyGrid& map, unsigned int mx_m
     tf::Vector3 max_map((double)mx_max * map.info.resolution,
                         (double)my_max * map.info.resolution, 2);
     obj->setBoundingBox(Box(map_transform_ * min_map, map_transform_ * max_map));
-    parent->addChild(obj, tf::Transform(tf::Quaternion(0, 0, 0, 1), tf::Vector3(0, 0, 0)));
+    // parent->addChild(obj, tf::Transform(tf::Quaternion(0, 0, 0, 1), tf::Vector3(0, 0, 0)));
+    parent->addChild(obj);
 
     //cout << indent << mx_min << " - " << mx_max << ", " << my_min << " - " << my_max << endl;
 

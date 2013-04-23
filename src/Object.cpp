@@ -1,9 +1,11 @@
 #include "fast_simulator/Object.h"
 #include "fast_simulator/World.h"
 
+#include "fast_simulator/util.h"
+
 using namespace std;
 
-Object::Object() : parent_(0), current_goal_(-1), bounding_box_(0), shape_(0) {
+Object::Object() : parent_(0), current_goal_(-1), bounding_box_(0), shape_(0), has_pose_(false) {
 
 }
 
@@ -17,10 +19,15 @@ Object::~Object() {
     delete shape_;
 }
 
-void Object::addChild(Object* child, const tf::Transform& rel_pose) {
-    child->pose_ = rel_pose;
+void Object::addChild(Object* child) {
     child->parent_ = this;
     parts_.push_back(child);
+}
+
+void Object::addChild(Object* child, const tf::Transform& rel_pose) {
+    child->pose_ = rel_pose;
+    child->has_pose_ = true;
+    addChild(child);
 }
 
 World* Object::getWorldHandle() {
@@ -52,17 +59,32 @@ void Object::setBoundingBox(const Box& box) {
     bounding_box_ = new Box(box);
 }
 
-void Object::setShape(const Box& box) {
-    shape_ = new Box(box);
+void Object::setShape(const Shape& shape) {
+    shape_ = shape.clone();
+}
+
+void Object::setPose(const tf::Vector3& pos, const tf::Quaternion& rot) {
+    pose_.setOrigin(pos);
+    pose_.setRotation(rot);
+    has_pose_ = true;
 }
 
 bool Object::intersect(const Ray &r, float t0, float t1, double& distance) const {
-    if (bounding_box_ && !bounding_box_->intersect(r, t0, t1, distance)) {
+    if (!bounding_box_ && !shape_ && parts_.empty()) {
         return false;
     }
 
-    //Ray r_transformed(this->pose_ * r.origin, this->pose_ * r.direction);
     Ray r_transformed = r;
+    if (has_pose_) {
+        tf::Transform inv = this->pose_.inverse();
+        tf::Transform inv_rot(inv.getRotation(), tf::Vector3(0, 0, 0));
+
+        r_transformed = Ray(inv * r.origin, inv_rot * r.direction);
+    }
+
+    if (bounding_box_ && !bounding_box_->intersect(r_transformed, t0, t1, distance)) {
+        return false;
+    }
 
     //t0 = distance - 0.1;
     bool has_intersect = false;

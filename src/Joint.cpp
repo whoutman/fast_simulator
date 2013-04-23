@@ -4,7 +4,7 @@
 
 using namespace std;
 
-Joint::Joint(double position) : position_(position), reference_(position), max_velocity_(0.6) {
+Joint::Joint(double position, double max_velocity) : position_(position), reference_(position), max_velocity_(max_velocity) {
 }
 
 Joint::~Joint() {

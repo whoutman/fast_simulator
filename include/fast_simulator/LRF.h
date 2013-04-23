@@ -10,13 +10,15 @@ class LRF : public Object {
 
 public:
 
-    LRF(const std::string& topic);
+    LRF(const std::string& topic, const std::string& frame_id);
 
     virtual ~LRF();
 
     void publishScan();
 
 protected:
+
+    std::string frame_id_;
 
     sensor_msgs::LaserScan scan;
 

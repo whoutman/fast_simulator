@@ -14,12 +14,17 @@ Sprite::Sprite(const std::string& filename, double resolution, double z_min, dou
         for(unsigned int y = 0; y < height_; ++y) {
             for(unsigned int x = 0; x < width_; ++x) {
                 sprite_.push_back(image.at<unsigned char>(y, x) < 128);
-                std::cout << sprite_.back();
+                //std::cout << sprite_.back();
             }
-            std::cout << std::endl;
+            //std::cout << std::endl;
         }
     }
 }
+
+Sprite* Sprite::clone() const {
+    return new Sprite(*this);
+}
+
 
 bool Sprite::intersect(const Ray& r, float t0, float t1, double& distance) const {
     tf::Vector3 delta = r.direction * resolution_;
@@ -28,10 +33,13 @@ bool Sprite::intersect(const Ray& r, float t0, float t1, double& distance) const
     distance = 0;
     for(; distance < t1; distance += resolution_) {
         if (z_min_ < v.z() && v.z() < z_max_) {
-            int mx = v.x() / resolution_;
-            int my = v.y() / resolution_;
+            int mx = v.x() / resolution_ + width_ / 2;
+            int my = v.y() / resolution_ + height_ / 2;
 
-            // if ... return true
+            if (mx > 0 && my > 0 && mx < width_ && my < height_ && sprite_[my * width_ + mx]) {
+                return true;
+            }
+
         }
         v += delta;
     }

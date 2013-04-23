@@ -9,6 +9,8 @@ public:
 
     Sprite(const std::string& filename, double resolution, double z_min, double z_max);
 
+    Sprite* clone() const;
+
     bool intersect(const Ray &, float t0, float t1, double& distance) const;
 
 protected:

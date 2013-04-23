@@ -7,7 +7,7 @@ class Joint {
 
 public:
 
-    Joint(double position);
+    Joint(double position, double max_velocity = 0.6);
 
     virtual ~Joint();
 

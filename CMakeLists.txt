@@ -35,11 +35,14 @@ rosbuild_add_executable(simulator src/simulator.cpp
                                   src/Joint.cpp
                                   src/World.cpp
                                   src/Amigo.cpp
+                                  src/Pico.cpp
                                   src/Box.cpp
                                   src/Ray.cpp
                                   src/LRF.cpp
+                                  src/Sonar.cpp
                                   src/Kinect.cpp
                                   src/Sprite.cpp
-                                  src/Shape.cpp ${HEADER_FILES})
+                                  src/Shape.cpp
+                                  src/util.cpp ${HEADER_FILES})
 rosbuild_add_executable(amigo_teleporter src/amigo_teleporter.cpp)
 #target_link_libraries(example ${PROJECT_NAME})

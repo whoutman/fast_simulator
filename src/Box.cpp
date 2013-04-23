@@ -5,6 +5,10 @@ Box::Box(const tf::Vector3 &min, const tf::Vector3 &max) {
     bounds[1] = max;
 }
 
+Box* Box::clone() const {
+    return new Box(*this);
+}
+
 bool Box::intersect(const Ray &r, float t0, float t1, double& distance) const {
 
     float tmin, tmax, tymin, tymax, tzmin, tzmax;
