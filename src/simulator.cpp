@@ -17,6 +17,7 @@ using namespace std;
 World* WORLD;
 string MODEL_DIR;
 int UNIQUE_VIS_ID = 0;
+ros::Publisher PUB_MARKER;
 
 map<string, int> object_id_to_vis_id;
 
@@ -127,44 +128,47 @@ bool setObject(fast_simulator::SetObject::Request& req, fast_simulator::SetObjec
     */
 }
 
-void addVisualizationMarker(const Object& obj, visualization_msgs::MarkerArray& marker_array) {
-    visualization_msgs::Marker m;
+void visualizeObjects() {
+    World& world = World::getInstance();
+    map<string, Object*> objects = world.getObjects();
 
-    m.action = visualization_msgs::Marker::ADD;
+    visualization_msgs::MarkerArray marker_array;
+    for(map<string, Object*>::const_iterator it_obj = objects.begin(); it_obj != objects.end(); ++it_obj) {
+        Object& obj = *it_obj->second;
 
-    map<string, int>::iterator it_vis_id = object_id_to_vis_id.find(obj.getID());
-    if (it_vis_id == object_id_to_vis_id.end()) {
-        m.id = UNIQUE_VIS_ID;
-        object_id_to_vis_id[obj.getID()] = m.id;
-        UNIQUE_VIS_ID++;
-    } else {
-        m.id = it_vis_id->second;
+        visualization_msgs::Marker m;
+
+        m.action = visualization_msgs::Marker::ADD;
+
+        map<string, int>::iterator it_vis_id = object_id_to_vis_id.find(obj.getID());
+        if (it_vis_id == object_id_to_vis_id.end()) {
+            m.id = UNIQUE_VIS_ID;
+            object_id_to_vis_id[obj.getID()] = m.id;
+            UNIQUE_VIS_ID++;
+        } else {
+            m.id = it_vis_id->second;
+        }
+
+        tf::Transform pose = obj.getAbsolutePose();
+        m.header.frame_id = "/map";
+        tf::poseTFToMsg(pose, m.pose);
+
+        m.color.a = 1;
+        m.color.r = 1;
+        m.color.g = 1;
+        m.color.b = 1;
+
+        m.type = visualization_msgs::Marker::SPHERE;
+        m.scale.x = 0.1;
+        m.scale.y = 0.1;
+        m.scale.z = 0.1;
+
+        m.lifetime = ros::Duration(1.0);
+
+        marker_array.markers.push_back(m);
     }
 
-    tf::Transform pose = obj.getAbsolutePose();
-    m.header.frame_id = "/map";
-    tf::poseTFToMsg(pose, m.pose);
-
-    m.color.a = 1;
-    m.color.r = 1;
-    m.color.g = 1;
-    m.color.b = 1;
-
-    m.type = visualization_msgs::Marker::SPHERE;
-    m.scale.x = 0.1;
-    m.scale.y = 0.1;
-    m.scale.z = 0.1;
-
-    m.lifetime = ros::Duration(1.0);
-
-    marker_array.markers.push_back(m);
-
-    // also add all the parts as visualization
-    /*
-    for(vector<Object*>::const_iterator it_part = obj.parts_.begin(); it_part != obj.parts_.end(); ++it_part) {
-        addVisualizationMarker(**it_part, marker_array);
-    }
-    */
+    PUB_MARKER.publish(marker_array);
 }
 
 int main(int argc, char **argv) {
@@ -190,7 +194,7 @@ int main(int argc, char **argv) {
 
     // PUBLISHERS    
 
-    // AMIGO
+    PUB_MARKER = nh.advertise<visualization_msgs::MarkerArray>("/fast_simulator/visualization", 10);
 
     if (args.find("pico") != args.end()) {
         Pico* pico = new Pico(nh, publish_localization);
@@ -223,6 +227,10 @@ int main(int argc, char **argv) {
         ros::spinOnce();
 
         WORLD->step(1 / freq);
+
+        if (count % 10 == 0) {
+            visualizeObjects();
+        }
 
         ++count;
         r.sleep();
