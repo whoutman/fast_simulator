@@ -68,8 +68,11 @@ Amigo::Amigo(ros::NodeHandle& nh, bool publish_localization) : nh_(nh), publish_
     laser_range_finder_ = new LRF("/base_scan", "/front_laser");
     this->addChild(laser_range_finder_, tf_base_link_to_front_laser);
 
+    tf::Transform tf_base_link_to_top_laser;
+    tf_base_link_to_top_laser.setOrigin(tf::Vector3(0.31, 0, 1.0));
+    tf_base_link_to_top_laser.setRotation(tf::Quaternion(0, 0, 0, 1));
     laser_range_finder_top_ = new LRF("/top_scan", "/front_laser");
-    this->addChild(laser_range_finder_top_, tf_base_link_to_front_laser);
+    this->addChild(laser_range_finder_top_, tf_base_link_to_top_laser);
 
     // SUBSCRIBERS
 

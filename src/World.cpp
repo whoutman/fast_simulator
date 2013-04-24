@@ -24,13 +24,13 @@ World::World() {
     //Sprite* s = new Sprite("/home/sdries/test.pgm", 0.05, 0, 2);
 
     Object* obj = new Object();
-    obj->setBoundingBox(Box(tf::Vector3(-0.5, -0.5, 0), tf::Vector3(0.5, 0.5, 2)));
-    obj->setShape(Sprite("/home/sdries/laser_body.pgm", 0.025, 0, 2));
+    obj->setBoundingBox(Box(tf::Vector3(-0.5, -0.5, 0.5), tf::Vector3(0.5, 0.5, 1.5)));
+    obj->setShape(Sprite("/home/sdries/laser_body.pgm", 0.025, 0.5, 1.5));
     tf::Quaternion q;
     q.setRPY(0, 0, 1.57);
     obj->setPose(tf::Vector3(2, 0, 0), q);
     //obj->setBoundingBox(Box(tf::Vector3(0, 0, 0), tf::Vector3(1, 1, 1)));
-    objects_.push_back(obj);
+    addObject("person1", obj);
 }
 
 World::~World() {
@@ -45,14 +45,22 @@ World& World::getInstance() {
 }
 
 void World::step(double dt) {
-    for(vector<Object*>::iterator it_obj = objects_.begin(); it_obj != objects_.end(); ++it_obj) {
-        Object* obj = *it_obj;
+    for(map<string, Object*>::iterator it_obj = objects_.begin(); it_obj != objects_.end(); ++it_obj) {
+        Object* obj = it_obj->second;
         obj->step(dt);
     }
 }
 
-void World::addObject(Object* obj) {
-    objects_.push_back(obj);
+void World::addObject(const std::string& id, Object* obj) {
+    objects_[id] = obj;
+}
+
+Object* World::getObject(const std::string& id) const {
+    map<string, Object*>::const_iterator it_obj = objects_.find(id);
+    if (it_obj != objects_.end()) {
+        return it_obj->second;
+    }
+    return 0;
 }
 
 void World::createQuadTree(const nav_msgs::OccupancyGrid& map, unsigned int mx_min, unsigned int my_min,
@@ -75,7 +83,7 @@ void World::createQuadTree(const nav_msgs::OccupancyGrid& map, unsigned int mx_m
     tf::Vector3 min_map((double)mx_min * map.info.resolution,
                         (double)my_min * map.info.resolution, 0);
     tf::Vector3 max_map((double)mx_max * map.info.resolution,
-                        (double)my_max * map.info.resolution, 2);
+                        (double)my_max * map.info.resolution, 0.5);
     obj->setBoundingBox(Box(map_transform_ * min_map, map_transform_ * max_map));
     // parent->addChild(obj, tf::Transform(tf::Quaternion(0, 0, 0, 1), tf::Vector3(0, 0, 0)));
     parent->addChild(obj);
@@ -97,7 +105,7 @@ void World::createQuadTree(const nav_msgs::OccupancyGrid& map, unsigned int mx_m
                     Object* child = new Object();
                     child->setShape(Box(pos, tf::Vector3(pos.x() + map.info.resolution,
                                                        pos.y() + map.info.resolution,
-                                                       2)));
+                                                       0.5)));
                     obj->addChild(child, tf::Transform(tf::Quaternion(0, 0, 0, 1), tf::Vector3(0, 0, 0)));
                 }
             }
@@ -127,7 +135,7 @@ void World::initFromTopic(const std::string &topic) {
 
     Object* root = new Object();
     //root->pose_ = tf::Transform(tf::Quaternion(0, 0, 0, 1), tf::Vector3(1, 2, 3));
-    objects_.push_back(root);
+    addObject("world", root);
 
     createQuadTree(world_map_, 0, 0, world_map_.info.width, world_map_.info.height, root);
 
@@ -142,8 +150,8 @@ void World::callbackMap(const nav_msgs::OccupancyGrid::ConstPtr& msg) {
 bool World::intersect(const Ray& r, float t0, float t1, double& distance) const {
     distance = t1;
     bool has_intersection = false;
-    for(vector<Object*>::const_iterator it_obj = objects_.begin(); it_obj != objects_.end(); ++it_obj) {
-        Object* obj = *it_obj;
+    for(map<string, Object*>::const_iterator it_obj = objects_.begin(); it_obj != objects_.end(); ++it_obj) {
+        Object* obj = it_obj->second;
         double dist;
         if (obj->intersect(r, t0, t1, dist)) {
             has_intersection = true;

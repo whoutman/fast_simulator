@@ -23,7 +23,9 @@ public:
 
     void step(double dt);
 
-    void addObject(Object* obj);
+    void addObject(const std::string& id, Object* obj);
+
+    Object* getObject(const std::string& id) const;
 
     bool isOccupied(const tf::Vector3& pos) const;
 
@@ -38,7 +40,8 @@ protected:
     tf::Transform map_transform_;
     tf::Transform map_transform_inverse_;
 
-    std::vector<Object*> objects_;
+    //std::vector<Object*> objects_;
+    std::map<std::string, Object*> objects_;
 
     World();
 

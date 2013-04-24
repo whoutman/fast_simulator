@@ -1,0 +1,16 @@
+uint8 SET_POSE=0
+uint8 SET_PATH=1
+uint8 SET_PARAMS=2
+uint8 DELETE=3
+
+uint8 action
+string id
+string type
+geometry_msgs/PoseStamped pose
+geometry_msgs/PoseStamped[] path
+
+string[] param_names
+float64[] param_values
+
+---
+string result_msg
