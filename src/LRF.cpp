@@ -36,7 +36,7 @@ LRF::~LRF() {
 }
 
 void LRF::publishScan() {
-    std::cout << "LRF::publishScan" << std::endl;
+
 
     scan.header.stamp = ros::Time::now();
 
