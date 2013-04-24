@@ -38,6 +38,7 @@ rosbuild_add_executable(simulator src/simulator.cpp
                                   src/Pico.cpp
                                   src/Box.cpp
                                   src/Ray.cpp
+                                  src/Sonar.cpp
                                   src/LRF.cpp
                                   src/Sonar.cpp
                                   src/Kinect.cpp

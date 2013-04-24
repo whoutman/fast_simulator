@@ -202,6 +202,16 @@ int main(int argc, char **argv) {
         WORLD->addObject("pico", pico);
     } else {
         Amigo* amigo = new Amigo(nh, publish_localization);
+
+        // add kinect
+        tf::Transform tf_base_link_to_kinect;
+        tf_base_link_to_kinect.setOrigin(tf::Vector3(0.31, 0, 1.0)); // exact pose doesnt matter for now
+        tf_base_link_to_kinect.setRotation(tf::Quaternion(0, 0, 0, 1));
+        Kinect* top_kinect = new Kinect("/camera/rgb/image_rect_color", "/camera/depth_registered/image", "/camera/rgb/camera_info", "/openni_rgb_optical_frame");
+        top_kinect->addModel("loy", MODEL_DIR + "/kinect/loy");
+
+        amigo->addSensor(top_kinect, tf_base_link_to_kinect);
+
         amigo->setPose(tf::Vector3(-0.6, 0, 0), tf::Quaternion(0, 0, 0, 1));
         WORLD->addObject("amigo", amigo);
     }

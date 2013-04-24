@@ -22,6 +22,7 @@
 #include "fast_simulator/Object.h"
 #include "fast_simulator/World.h"
 #include "fast_simulator/LRF.h"
+#include "fast_simulator/Kinect.h"
 
 class Amigo : public Object {
 
@@ -32,6 +33,8 @@ public:
     virtual ~Amigo();
 
     void step(double dt);
+
+    void addSensor(Sensor *sensor, const tf::Transform& rel_pose);
 
 protected:
 
@@ -83,8 +86,7 @@ protected:
     std::vector<std::string> left_arm_joint_names;
     std::vector<std::string> right_arm_joint_names;
 
-    LRF* laser_range_finder_;
-    LRF* laser_range_finder_top_;
+    std::vector<Sensor*> sensors_;
 
     void setJointReference(const std::string& joint_name, double position);
 

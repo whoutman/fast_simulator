@@ -35,9 +35,7 @@ LRF::~LRF() {
 
 }
 
-void LRF::publishScan() {
-
-
+void LRF::publish() {
     scan.header.stamp = ros::Time::now();
 
     scan.ranges.clear();

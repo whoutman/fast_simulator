@@ -1,12 +1,12 @@
 #ifndef _FAST_SIMULATOR_LRF_H_
 #define _FAST_SIMULATOR_LRF_H_
 
-#include "Object.h"
+#include "Sensor.h"
 
 #include <ros/ros.h>
 #include <sensor_msgs/LaserScan.h>
 
-class LRF : public Object {
+class LRF : public Sensor {
 
 public:
 
@@ -14,7 +14,7 @@ public:
 
     virtual ~LRF();
 
-    void publishScan();
+    void publish();
 
 protected:
 

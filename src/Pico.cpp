@@ -89,7 +89,7 @@ void Pico::step(double dt) {
     publishControlRefs();
 
     if (count_ % 10 == 0) {
-        laser_range_finder_->publishScan();
+        laser_range_finder_->publish();
         front_sonar_->publishScan();
     }
 

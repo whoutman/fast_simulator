@@ -29,6 +29,8 @@ public:
 
     void removeObject(const std::string& id);
 
+    const std::map<std::string, Object*>& getObjects() const;
+
     bool isOccupied(const tf::Vector3& pos) const;
 
     bool intersect(const Ray& r, float t0, float t1, double& distance) const;

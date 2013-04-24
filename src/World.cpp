@@ -51,6 +51,10 @@ void World::removeObject(const std::string& id) {
         objects_.erase(id);
 }
 
+const std::map<std::string, Object*>& World::getObjects() const {
+    return objects_;
+}
+
 void World::createQuadTree(const nav_msgs::OccupancyGrid& map, unsigned int mx_min, unsigned int my_min,
                                                     unsigned int mx_max, unsigned int my_max, Object* parent, string indent) {
 

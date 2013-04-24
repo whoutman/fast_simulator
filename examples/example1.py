@@ -9,7 +9,7 @@ if __name__ == "__main__":
 
     W = client.SimWorld()
 
-    person1 = W.add_object("person-1", "person", 2, 0, 0)
+    person1 = W.add_object("loy", "person", 2, 0, 0)
     person2 = W.add_object("person-2", "person")
     person2.set_position(2, 1, 0)
 

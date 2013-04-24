@@ -65,14 +65,14 @@ Amigo::Amigo(ros::NodeHandle& nh, bool publish_localization) : nh_(nh), publish_
     tf::Transform tf_base_link_to_front_laser;
     tf_base_link_to_front_laser.setOrigin(tf::Vector3(0.31, 0, 0.3));
     tf_base_link_to_front_laser.setRotation(tf::Quaternion(0, 0, 0, 1));
-    laser_range_finder_ = new LRF("/base_scan", "/front_laser");
-    this->addChild(laser_range_finder_, tf_base_link_to_front_laser);
+    LRF* laser_range_finder_ = new LRF("/base_scan", "/front_laser");
+    this->addSensor(laser_range_finder_, tf_base_link_to_front_laser);
 
     tf::Transform tf_base_link_to_top_laser;
     tf_base_link_to_top_laser.setOrigin(tf::Vector3(0.31, 0, 1.0));
     tf_base_link_to_top_laser.setRotation(tf::Quaternion(0, 0, 0, 1));
-    laser_range_finder_top_ = new LRF("/top_scan", "/front_laser");
-    this->addChild(laser_range_finder_top_, tf_base_link_to_top_laser);
+    LRF* laser_range_finder_top_ = new LRF("/top_scan", "/front_laser");
+    this->addSensor(laser_range_finder_top_, tf_base_link_to_top_laser);
 
     // SUBSCRIBERS
 
@@ -110,6 +110,9 @@ Amigo::Amigo(ros::NodeHandle& nh, bool publish_localization) : nh_(nh), publish_
 }
 
 Amigo::~Amigo() {
+    for(vector<Sensor*>::iterator it_sensor = sensors_.begin(); it_sensor != sensors_.end(); it_sensor) {
+        delete *it_sensor;
+    }
 }
 
 void Amigo::step(double dt) {
@@ -150,11 +153,18 @@ void Amigo::step(double dt) {
     publishControlRefs();
 
     if (count_ % 10 == 0) {
-        laser_range_finder_->publishScan();
-        laser_range_finder_top_->publishScan();
+        for(vector<Sensor*>::iterator it_sensor = sensors_.begin(); it_sensor != sensors_.end(); ++it_sensor) {
+            Sensor* sensor = *it_sensor;
+            sensor->publish();
+        }
     }
 
     count_++;
+}
+
+void Amigo::addSensor(Sensor* sensor, const tf::Transform& rel_pose) {
+    this->addChild(sensor, rel_pose);
+    sensors_.push_back(sensor);
 }
 
 void Amigo::setJointReference(const string& joint_name, double position) {
