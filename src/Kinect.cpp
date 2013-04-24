@@ -2,6 +2,8 @@
 #include "fast_simulator/World.h"
 #include "virtual_cam/Loader.h"
 
+#include "fast_simulator/util.h"
+
 using namespace std;
 
 Kinect::Kinect(const string& rgb_topic, const string& depth_topic, const string& info_topic, const string& frame_id) {
@@ -30,10 +32,14 @@ void Kinect::publish() {
         }
 
         if (it_filename != type_to_filename_.end()) {
-            // TODO: check if in view
-            // ...
+            tf::Transform tf_kinect_to_object = getAbsolutePose().inverseTimes(obj.getAbsolutePose());
 
-            filename = it_filename->second;
+            double x = tf_kinect_to_object.getOrigin().getX();
+            double y = tf_kinect_to_object.getOrigin().getY();
+
+            if (x > 0 && x < 2 && abs(y) < x / 2) {
+                filename = it_filename->second;
+            }
         }
     }
 
