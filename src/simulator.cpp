@@ -165,7 +165,29 @@ void visualizeObjects() {
 
         m.lifetime = ros::Duration(1.0);
 
+        // add text
+        visualization_msgs::Marker m_text;
+
+        m_text.id = m.id + 10000;
+        m_text.text = obj.getID();
+        m_text.action = visualization_msgs::Marker::ADD;
+        m_text.header.frame_id = "/map";
+        tf::poseTFToMsg(pose, m_text.pose);
+        m_text.pose.position.z += 0.2;
+        m_text.color.a = 1;
+        m_text.color.r = 1;
+        m_text.color.g = 1;
+        m_text.color.b = 1;
+
+        m_text.type = visualization_msgs::Marker::TEXT_VIEW_FACING;
+        m_text.scale.x = 0.1;
+        m_text.scale.y = 0.1;
+        m_text.scale.z = 0.1;
+
+        m_text.lifetime = ros::Duration(1.0);
+
         marker_array.markers.push_back(m);
+        marker_array.markers.push_back(m_text);
     }
 
     PUB_MARKER.publish(marker_array);
