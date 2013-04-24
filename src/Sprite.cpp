@@ -27,11 +27,11 @@ Sprite* Sprite::clone() const {
 
 
 bool Sprite::intersect(const Ray& r, float t0, float t1, double& distance) const {
-    tf::Vector3 delta = r.direction * resolution_;
+    tf::Vector3 delta = r.direction * resolution_ * 0.25;
 
     tf::Vector3 v = r.origin;
     distance = 0;
-    for(; distance < t1; distance += resolution_) {
+    for(; distance < t1; distance += resolution_ * 0.25) {
         if (z_min_ < v.z() && v.z() < z_max_) {
             int mx = v.x() / resolution_ + width_ / 2;
             int my = v.y() / resolution_ + height_ / 2;

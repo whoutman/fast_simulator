@@ -27,8 +27,8 @@ World::World() {
     obj->setBoundingBox(Box(tf::Vector3(-0.5, -0.5, 0), tf::Vector3(0.5, 0.5, 2)));
     obj->setShape(Sprite("/home/sdries/laser_body.pgm", 0.025, 0, 2));
     tf::Quaternion q;
-    q.setRPY(0, 0, 1);
-    obj->setPose(tf::Vector3(0, 0, 0), q);
+    q.setRPY(0, 0, 1.57);
+    obj->setPose(tf::Vector3(2, 0, 0), q);
     //obj->setBoundingBox(Box(tf::Vector3(0, 0, 0), tf::Vector3(1, 1, 1)));
     objects_.push_back(obj);
 }

@@ -68,6 +68,9 @@ Amigo::Amigo(ros::NodeHandle& nh, bool publish_localization) : nh_(nh), publish_
     laser_range_finder_ = new LRF("/base_scan", "/front_laser");
     this->addChild(laser_range_finder_, tf_base_link_to_front_laser);
 
+    laser_range_finder_top_ = new LRF("/top_scan", "/front_laser");
+    this->addChild(laser_range_finder_top_, tf_base_link_to_front_laser);
+
     // SUBSCRIBERS
 
     // cmd_vel
@@ -145,6 +148,7 @@ void Amigo::step(double dt) {
 
     if (count_ % 10 == 0) {
         laser_range_finder_->publishScan();
+        laser_range_finder_top_->publishScan();
     }
 
     count_++;

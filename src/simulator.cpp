@@ -13,7 +13,7 @@ int main(int argc, char **argv) {
     ros::init(argc, argv, "fast_simulator");
     ros::NodeHandle nh;
 
-    bool publish_localization = true;
+    bool publish_localization = false;
 
     World& world = World::getInstance();
     world.initFromTopic("/fast_simulator/map");

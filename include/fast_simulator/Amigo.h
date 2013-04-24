@@ -84,6 +84,7 @@ protected:
     std::vector<std::string> right_arm_joint_names;
 
     LRF* laser_range_finder_;
+    LRF* laser_range_finder_top_;
 
     void setJointReference(const std::string& joint_name, double position);
 
