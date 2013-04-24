@@ -21,7 +21,7 @@
         <param name="tf_prefix" type="string" value="" />
     </node>
      
-    <node name="fast_simulator_map_server" pkg="map_server" type="map_server" args="$(find amigo_maps)/maps/tue_robotics_lab/loc/yaml" output="screen">
+    <node name="fast_simulator_map_server" pkg="map_server" type="map_server" args="$(find amigo_maps)/maps/rgo2013/loc/yaml" output="screen">
     	<remap from="/map" to="/fast_simulator/map"/>
     </node>
 
