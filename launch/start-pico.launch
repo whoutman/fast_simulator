@@ -1,0 +1,37 @@
+<?xml version="1.0"?>
+<launch>
+
+    <arg name="teleport" default="false"/>
+
+    <!-- load robot -->
+    <param name="robot_description" command="$(find xacro)/xacro.py '$(find jazz_description)/urdf/jazz.urdf.xacro' " />
+
+    <!-- SIMULATION -->
+
+    <node name="fast_simulator" pkg="fast_simulator" type="simulator" args="pico" output="screen" launch-prefix=""/>
+
+    <node if="$(arg teleport)" name="amigo_teleporter" pkg="fast_simulator" type="amigo_teleporter"/>
+
+    <!-- Robot state publisher -->
+    <node pkg="robot_state_publisher" type="state_publisher" name="robot_state_publisher">
+        <param name="publish_frequency" type="double" value="50.0" />
+        <param name="tf_prefix" type="string" value="" />
+    </node>
+     
+    <node name="fast_simulator_map_server" pkg="map_server" type="map_server" args="$(find pico_maps)/maps/tue_robotics_lab/loc/yaml" output="screen">
+    	<remap from="/map" to="/fast_simulator/map"/>
+    </node>
+
+    <!-- Required simulation parameter -->
+    <!--param name="/use_sim_time" value="true"/ -->
+    <param name="/use_sim_time" value="false"/>
+
+    <!-- Self filter (robots self removed from Kinect pointcloud on topic /camera/depth/points_self_filtered) -->
+    <!--<include file="$(find amigo_self_filter)/start_filter.launch"/>-->
+
+    <!-- Start ps3 teleop -->
+    <!--<include file="$(find amigo_launch_files)/launch/interaction/teleop_ps3_joystick.launch" />-->
+
+
+ </launch>
+  

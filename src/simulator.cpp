@@ -13,7 +13,12 @@ int main(int argc, char **argv) {
     ros::init(argc, argv, "fast_simulator");
     ros::NodeHandle nh;
 
-    bool publish_localization = false;
+    set<string> args;
+    for(int i = 1; i < argc; ++i) {
+        args.insert(argv[i]);
+    }
+
+    bool publish_localization = (args.find("no-loc") == args.end());
 
     World& world = World::getInstance();
     world.initFromTopic("/fast_simulator/map");
@@ -22,7 +27,7 @@ int main(int argc, char **argv) {
 
     // AMIGO
 
-    if (argc == 2 && string(argv[1]) == "pico") {
+    if (args.find("pico") != args.end()) {
         Pico* pico = new Pico(nh, publish_localization);
         pico->setPose(tf::Vector3(0, 0, 0), tf::Quaternion(0, 0, 0, 1));
         world.addObject(pico);
