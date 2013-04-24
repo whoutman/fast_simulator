@@ -19,25 +19,9 @@ class Object {
 
 public:
 
-    Object();
+    Object(const std::string& type = "");
 
     virtual ~Object();
-
-    Object* parent_;
-
-    std::string id_;
-
-    std::string type_;
-
-    geometry_msgs::Twist velocity_;
-
-    int current_goal_;
-
-    std::vector<tf::Stamped<tf::Pose> > path_;
-
-    std::vector<Object*> parts_;
-
-    int visualization_id_;
 
     void addChild(Object* child);
 
@@ -49,15 +33,25 @@ public:
 
     World* getWorldHandle();
 
+    const std::string& getID() const;
+
     void setBoundingBox(const Box& box);
 
     void setShape(const Shape& box);
 
     void setPose(const tf::Vector3& pos, const tf::Quaternion& rot);
 
+    const std::string& getType() const;
+
     bool intersect(const Ray &r, float t0, float t1, double& distance) const;
 
 protected:
+
+    std::string id_;
+
+    std::string type_;
+
+    Object* parent_;
 
     Box* bounding_box_;
 
@@ -66,6 +60,20 @@ protected:
     bool has_pose_;
 
     tf::Transform pose_;
+
+    std::vector<Object*> parts_;
+
+    geometry_msgs::Twist velocity_;
+
+    /*
+
+
+    int current_goal_;
+
+    std::vector<tf::Stamped<tf::Pose> > path_;
+
+    int visualization_id_;
+    */
 
 };
 

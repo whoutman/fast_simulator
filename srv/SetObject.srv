@@ -6,8 +6,8 @@ uint8 DELETE=3
 uint8 action
 string id
 string type
-geometry_msgs/PoseStamped pose
-geometry_msgs/PoseStamped[] path
+geometry_msgs/Pose pose
+geometry_msgs/Pose[] path
 
 string[] param_names
 float64[] param_values

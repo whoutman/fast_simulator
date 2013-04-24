@@ -5,7 +5,7 @@
 
 using namespace std;
 
-Object::Object() : parent_(0), current_goal_(-1), bounding_box_(0), shape_(0), has_pose_(false) {
+Object::Object(const string& type) : type_(type), parent_(0), bounding_box_(0), shape_(0), has_pose_(false) {
 
 }
 
@@ -67,6 +67,14 @@ void Object::setPose(const tf::Vector3& pos, const tf::Quaternion& rot) {
     pose_.setOrigin(pos);
     pose_.setRotation(rot);
     has_pose_ = true;
+}
+
+const string& Object::getID() const {
+    return id_;
+}
+
+const string& Object::getType() const {
+    return type_;
 }
 
 bool Object::intersect(const Ray &r, float t0, float t1, double& distance) const {

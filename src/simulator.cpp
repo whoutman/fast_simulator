@@ -1,22 +1,68 @@
 #include <ros/ros.h>
+#include <ros/package.h>
 
 #include "fast_simulator/Object.h"
 #include "fast_simulator/Joint.h"
 #include "fast_simulator/World.h"
+#include "fast_simulator/Sprite.h"
 #include "fast_simulator/Amigo.h"
 #include "fast_simulator/Pico.h"
 
 #include "fast_simulator/SetObject.h"
 
+#include <visualization_msgs/MarkerArray.h>
+
 using namespace std;
 
 World* WORLD;
+string MODEL_DIR;
+int UNIQUE_VIS_ID = 0;
+
+map<string, int> object_id_to_vis_id;
 
 bool setObject(fast_simulator::SetObject::Request& req, fast_simulator::SetObject::Response& res) {
+
+    Object* obj = WORLD->getObject(req.id);
+
+    if (req.action == fast_simulator::SetObject::Request::SET_POSE) {
+        if (!obj) {
+            if (req.type == "person") {
+                obj = new Object(req.type);
+                obj->setBoundingBox(Box(tf::Vector3(-0.4, -0.4, 0.5), tf::Vector3(0.4, 0.4, 1.5)));
+                obj->setShape(Sprite(MODEL_DIR + "/laser/body.pgm", 0.025, 0.5, 1.5));
+                WORLD->addObject(req.id, obj);
+
+            } else {
+                res.result_msg = "Unknown object type: " + req.type;
+                return true;
+            }
+
+            tf::Point pos;
+            tf::pointMsgToTF(req.pose.position, pos);
+            tf::Quaternion rot;
+            tf::quaternionMsgToTF(req.pose.orientation, rot);
+            obj->setPose(pos, rot);
+
+            cout << "Added " << req.type << " at position (" << pos.x() << ", " << pos.y() << ", " << pos.z() << ")" << endl;
+        }
+    } else {
+        if (!obj) {
+            res.result_msg = "Object with id " + req.id + " does not exist";
+            return true;
+        }
+
+        if (req.action == fast_simulator::SetObject::Request::DELETE) {
+            WORLD->removeObject(req.id);
+        } else if (req.action == fast_simulator::SetObject::Request::SET_PARAMS) {
+
+        }
+    }
+
+    return true;
+
+
+
     /*
-    WORLD->
-
-
     map<string, Object*>::iterator it_obj = id_to_object_.find(req.id);
 
     if (req.action == gazebo_life::Set::Request::DELETE) {
@@ -84,10 +130,56 @@ bool setObject(fast_simulator::SetObject::Request& req, fast_simulator::SetObjec
     */
 }
 
+void addVisualizationMarker(const Object& obj, visualization_msgs::MarkerArray& marker_array) {
+    visualization_msgs::Marker m;
+
+    m.action = visualization_msgs::Marker::ADD;
+
+    map<string, int>::iterator it_vis_id = object_id_to_vis_id.find(obj.getID());
+    if (it_vis_id == object_id_to_vis_id.end()) {
+        m.id = UNIQUE_VIS_ID;
+        object_id_to_vis_id[obj.getID()] = m.id;
+        UNIQUE_VIS_ID++;
+    } else {
+        m.id = it_vis_id->second;
+    }
+
+    tf::Transform pose = obj.getAbsolutePose();
+    m.header.frame_id = "/map";
+    tf::poseTFToMsg(pose, m.pose);
+
+    m.color.a = 1;
+    m.color.r = 1;
+    m.color.g = 1;
+    m.color.b = 1;
+
+    m.type = visualization_msgs::Marker::SPHERE;
+    m.scale.x = 0.1;
+    m.scale.y = 0.1;
+    m.scale.z = 0.1;
+
+    m.lifetime = ros::Duration(1.0);
+
+    marker_array.markers.push_back(m);
+
+    // also add all the parts as visualization
+    /*
+    for(vector<Object*>::const_iterator it_part = obj.parts_.begin(); it_part != obj.parts_.end(); ++it_part) {
+        addVisualizationMarker(**it_part, marker_array);
+    }
+    */
+}
+
 int main(int argc, char **argv) {
     // Initialize node
     ros::init(argc, argv, "fast_simulator");
     ros::NodeHandle nh;
+
+    MODEL_DIR = ros::package::getPath("fast_simulator_data");
+    if (MODEL_DIR == "") {
+        ROS_ERROR("Could not find package 'fast_simulator_data' for object models. Exiting..");
+        exit(-1);
+    }
 
     set<string> args;
     for(int i = 1; i < argc; ++i) {
@@ -113,6 +205,8 @@ int main(int argc, char **argv) {
         WORLD->addObject("amigo", amigo);
     }
 
+    ros::ServiceServer srv_set_object_ = nh.advertiseService("/fast_simulator/set_object", &setObject);
+
     double freq = 100;
     ros::Rate r(freq);
 
@@ -125,6 +219,8 @@ int main(int argc, char **argv) {
         ++count;
         r.sleep();
     }
+
+    srv_set_object_.shutdown();
 
     return 0;
 }

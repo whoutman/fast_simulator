@@ -14,23 +14,6 @@ World* World::instance_ = 0;
 */
 
 World::World() {
-    /*
-    boxes_.push_back(new Box(tf::Vector3(2.739, -2.532, 0), tf::Vector3(3.107, 1.237, 4)));
-    boxes_.push_back(new Box(tf::Vector3(3.529, -2.514, 0), tf::Vector3(3.966, -2.028, 4)));
-    boxes_.push_back(new Box(tf::Vector3(4.543, -2.555, 0), tf::Vector3(5.427, -0.478, 4)));
-    boxes_.push_back(new Box(tf::Vector3(-0.131, 0.705, 0), tf::Vector3(1.160, 1.228, 4)));
-    */
-
-    //Sprite* s = new Sprite("/home/sdries/test.pgm", 0.05, 0, 2);
-
-    Object* obj = new Object();
-    obj->setBoundingBox(Box(tf::Vector3(-0.5, -0.5, 0.5), tf::Vector3(0.5, 0.5, 1.5)));
-    obj->setShape(Sprite("/home/sdries/laser_body.pgm", 0.025, 0.5, 1.5));
-    tf::Quaternion q;
-    q.setRPY(0, 0, 1.57);
-    obj->setPose(tf::Vector3(2, 0, 0), q);
-    //obj->setBoundingBox(Box(tf::Vector3(0, 0, 0), tf::Vector3(1, 1, 1)));
-    addObject("person1", obj);
 }
 
 World::~World() {
@@ -52,6 +35,7 @@ void World::step(double dt) {
 }
 
 void World::addObject(const std::string& id, Object* obj) {
+    obj->id_ = id;
     objects_[id] = obj;
 }
 
@@ -61,6 +45,10 @@ Object* World::getObject(const std::string& id) const {
         return it_obj->second;
     }
     return 0;
+}
+
+void World::removeObject(const std::string& id) {
+        objects_.erase(id);
 }
 
 void World::createQuadTree(const nav_msgs::OccupancyGrid& map, unsigned int mx_min, unsigned int my_min,
@@ -133,7 +121,7 @@ void World::initFromTopic(const std::string &topic) {
     ROS_INFO("Map found at topic %s", sub_map.getTopic().c_str());
     sub_map.shutdown();
 
-    Object* root = new Object();
+    Object* root = new Object("world");
     //root->pose_ = tf::Transform(tf::Quaternion(0, 0, 0, 1), tf::Vector3(1, 2, 3));
     addObject("world", root);
 

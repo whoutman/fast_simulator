@@ -9,6 +9,7 @@
   <review status="unreviewed" notes=""/>
   <url>http://ros.org/wiki/fast_simulator</url>
   <depend package="roscpp"/>
+  <depend package="roslib"/>
   <depend package="tf"/>
   <depend package="psi"/>
   <depend package="geometry_msgs"/>
