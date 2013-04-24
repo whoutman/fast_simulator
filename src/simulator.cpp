@@ -26,16 +26,12 @@ bool setObject(fast_simulator::SetObject::Request& req, fast_simulator::SetObjec
 
     if (req.action == fast_simulator::SetObject::Request::SET_POSE) {
         if (!obj) {
+            obj = new Object(req.type);
             if (req.type == "person") {
-                obj = new Object(req.type);
                 obj->setBoundingBox(Box(tf::Vector3(-0.4, -0.4, 0.5), tf::Vector3(0.4, 0.4, 1.5)));
                 obj->setShape(Sprite(MODEL_DIR + "/laser/body.pgm", 0.025, 0.5, 1.5));
-                WORLD->addObject(req.id, obj);
-
-            } else {
-                res.result_msg = "Unknown object type: " + req.type;
-                return true;
             }
+            WORLD->addObject(req.id, obj);
         }
 
         tf::Point pos;
@@ -209,6 +205,7 @@ int main(int argc, char **argv) {
         tf_base_link_to_kinect.setRotation(tf::Quaternion(0, 0, 0, 1));
         Kinect* top_kinect = new Kinect("/camera/rgb/image_rect_color", "/camera/depth_registered/image", "/camera/rgb/camera_info", "/openni_rgb_optical_frame");
         top_kinect->addModel("loy", MODEL_DIR + "/kinect/loy");
+        top_kinect->addModel("coke", MODEL_DIR + "/kinect/coke");
 
         amigo->addSensor(top_kinect, tf_base_link_to_kinect);
 
