@@ -14,9 +14,4 @@ if __name__ == "__main__":
     person2.set_position(2, 1, 0)
 
     raw_input("Press Enter to continue...")
-    person1.set_path([(5, -2, 1), (2, 3, 1)])
-
-    
-    person2.set_velocity(4)
-    person2.set_path([(0, 0, 0), (10, 4, 2)])
-    
+    person1.set_position(2, 2, 0)

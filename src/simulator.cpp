@@ -36,15 +36,16 @@ bool setObject(fast_simulator::SetObject::Request& req, fast_simulator::SetObjec
                 res.result_msg = "Unknown object type: " + req.type;
                 return true;
             }
-
-            tf::Point pos;
-            tf::pointMsgToTF(req.pose.position, pos);
-            tf::Quaternion rot;
-            tf::quaternionMsgToTF(req.pose.orientation, rot);
-            obj->setPose(pos, rot);
-
-            cout << "Added " << req.type << " at position (" << pos.x() << ", " << pos.y() << ", " << pos.z() << ")" << endl;
         }
+
+        tf::Point pos;
+        tf::pointMsgToTF(req.pose.position, pos);
+        tf::Quaternion rot;
+        tf::quaternionMsgToTF(req.pose.orientation, rot);
+        obj->setPose(pos, rot);
+
+        cout << "Set " << req.id << " (type: " << req.type << ") at position (" << pos.x() << ", " << pos.y() << ", " << pos.z() << ")" << endl;
+
     } else {
         if (!obj) {
             res.result_msg = "Object with id " + req.id + " does not exist";
