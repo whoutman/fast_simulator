@@ -9,7 +9,7 @@ if __name__ == "__main__":
 
     W = client.SimWorld()
 
-    person1 = W.add_object("loy", "person", 2, 0.1, 0)
+    person1 = W.add_object("loy", "person", 2.5, 0.1, 0)
     coke = W.add_object("coke-1", "coke")
     coke.set_position(4, 1, 0)
 
