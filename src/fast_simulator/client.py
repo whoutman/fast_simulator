@@ -15,6 +15,16 @@ class SimWorld(object):
 
 		self.pub_speech = rospy.Publisher("/speech/output", std_msgs.msg.String)
 
+		self.sub_amigo_speech = rospy.Subscriber("/amigo_speech_sim", std_msgs.msg.String, self.callback_amigo_speech)
+		self.amigo_sentence = ""
+		self.t_amigo_sentence = rospy.Time.now()
+
+		# init all amigo hear publishers
+		self.output_publishers = {} 
+		output_topics = ["/speech/output", "/speech_room/output", "/speech_yesno/output"]
+		for output_topic in output_topics:
+			self.output_publishers[output_topic] = rospy.Publisher(output_topic, std_msgs.msg.String)
+
 	def add_object(self, id, type, x=None, y=None, z=None):
 		obj = SimObject(id, type, self)
 
@@ -23,8 +33,18 @@ class SimWorld(object):
 
 		return obj
 
-	def speak(self, text):
-		self.pub_speech.publish(text)
+	def speak(self, text, topic="/speech/output"):
+		if not self.output_publishers.has_key(topic):
+			rospy.logerror("Unknown amigo speak topic: %s" % topic)
+		self.output_publishers[topic].publish(text)
+
+	def callback_amigo_speech(self, string_msg):
+		rospy.loginfo("AMIGO says:  %s" % string_msg.data)
+		self.amigo_sentence = string_msg.data
+		self.t_amigo_sentence = rospy.Time.now()
+
+	def amigo_speech_contains(self, substr, max_dt = rospy.Duration(2.0)):
+			return substr in self.amigo_sentence and rospy.Time.now() - self.t_amigo_sentence < max_dt
 
 class SimObject(object):
 	def __init__(self, id, type, world):
