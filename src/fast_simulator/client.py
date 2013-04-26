@@ -9,7 +9,7 @@ import std_msgs.msg
 
 class SimWorld(object):
 	def __init__(self):
-		rospy.wait_for_service("/fast_simulator/set_object")
+		#rospy.wait_for_service("/fast_simulator/set_object")
 
 		self.srv_set = rospy.ServiceProxy("/fast_simulator/set_object", fast_simulator.srv.SetObject)
 
@@ -35,8 +35,9 @@ class SimWorld(object):
 
 	def speak(self, text, topic="/speech/output"):
 		if not self.output_publishers.has_key(topic):
-			rospy.logerror("Unknown amigo speak topic: %s" % topic)
-		self.output_publishers[topic].publish(text)
+			rospy.logerr("Unknown amigo speak topic: %s" % topic)
+		else:
+			self.output_publishers[topic].publish(text)
 
 	def callback_amigo_speech(self, string_msg):
 		rospy.loginfo("AMIGO says:  %s" % string_msg.data)
