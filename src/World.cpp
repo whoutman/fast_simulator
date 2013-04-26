@@ -23,6 +23,7 @@ World::World() {
     [ INFO] [1366965147.293481815]: Setting pose: 7.772 5.019 -0.708 [frame=/map]
     */
 
+    /*
     Object* large_table = new Object("table");
     large_table->setShape(Box(tf::Vector3(-1.9, -0.7, 0), tf::Vector3(1.9, 0.7, 1)));
     large_table->setPose(tf::Vector3(5.9, 7.7, 0.5), tf::Quaternion(0, 0, 0, 1));
@@ -37,6 +38,7 @@ World::World() {
     chairs_and_table->setShape(Box(tf::Vector3(-0.5, -1.2, 0), tf::Vector3(0.5, 1.2, 0.6)));
     chairs_and_table->setPose(tf::Vector3(8.2, 3.8, 0.3), tf::Quaternion(0, 0, 0, 1));
     addObject("chairs-and-table-1", chairs_and_table);
+    */
 
 
 }

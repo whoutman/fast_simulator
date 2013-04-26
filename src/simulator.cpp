@@ -251,7 +251,7 @@ int main(int argc, char **argv) {
         WORLD->step(1 / freq);
 
         if (count % 10 == 0) {
-            //visualizeObjects();
+            visualizeObjects();
         }
 
         ++count;

@@ -16,15 +16,15 @@ if __name__ == "__main__":
     next_step = False
     while not rospy.is_shutdown() and not next_step:
     	rospy.sleep(0.5)
-    	if W.amigo_speech_contains("Which room") or W.amigo_speech_contains("What room"):
+    	if W.amigo_speech_contains("Which room") or W.amigo_speech_contains("What room") or W.amigo_speech_contains("which room"):
     		rospy.sleep(2.0)
-    		W.speak("livingroom", "/speech_room/output")
+    		W.speak("kitchen", "/speech_room/output")
     		next_step = True
 
     next_step = False
     while not rospy.is_shutdown() and not next_step:
     	rospy.sleep(0.5)
-    	if W.amigo_speech_contains("Am I right"):
+    	if W.amigo_speech_contains("Am I right") or W.amigo_speech_contains("okay"):
     		rospy.sleep(2.0)
     		W.speak("yes", "/speech_yesno/output")
     		next_step = True
