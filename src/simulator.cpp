@@ -231,7 +231,7 @@ int main(int argc, char **argv) {
         tf_base_link_to_kinect.setRotation(tf::Quaternion(0, 0, 0, 1));
         Kinect* top_kinect = new Kinect("/camera/rgb/image_rect_color", "/camera/depth_registered/image", "/camera/rgb/camera_info", "/openni_rgb_optical_frame");
         //top_kinect->addModel("loy", MODEL_DIR + "/kinect/loy");
-        //top_kinect->addModel("coke", MODEL_DIR + "/kinect/coke");
+        top_kinect->addModel("coke", MODEL_DIR + "/kinect/coke");
 
         amigo->addSensor(top_kinect, tf_base_link_to_kinect);
 
@@ -251,7 +251,7 @@ int main(int argc, char **argv) {
         WORLD->step(1 / freq);
 
         if (count % 10 == 0) {
-            visualizeObjects();
+            //visualizeObjects();
         }
 
         ++count;
