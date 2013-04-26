@@ -188,6 +188,7 @@ void visualizeObjects() {
 
         marker_array.markers.push_back(m);
         marker_array.markers.push_back(m_text);
+
     }
 
     PUB_MARKER.publish(marker_array);

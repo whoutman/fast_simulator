@@ -110,7 +110,7 @@ Amigo::Amigo(ros::NodeHandle& nh, bool publish_localization) : nh_(nh), publish_
 }
 
 Amigo::~Amigo() {
-    for(vector<Sensor*>::iterator it_sensor = sensors_.begin(); it_sensor != sensors_.end(); it_sensor) {
+    for(vector<Sensor*>::iterator it_sensor = sensors_.begin(); it_sensor != sensors_.end(); ++it_sensor) {
         delete *it_sensor;
     }
 }

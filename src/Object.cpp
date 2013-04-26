@@ -6,7 +6,8 @@
 using namespace std;
 
 Object::Object(const string& type) : type_(type), parent_(0), bounding_box_(0), shape_(0), has_pose_(false) {
-
+    pose_.setOrigin(tf::Vector3(0, 0, 0));
+    pose_.setRotation(tf::Quaternion(0, 0, 0, 1));
 }
 
 Object::~Object() {

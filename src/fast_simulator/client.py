@@ -21,7 +21,13 @@ class SimWorld(object):
 
 		# init all amigo hear publishers
 		self.output_publishers = {} 
-		output_topics = ["/speech/output", "/speech_room/output", "/speech_yesno/output"]
+		output_topics = [	"/speech/output", "/speech_appliance/output", "/speech_cleanup/output", "/speech_continue/output",
+							"/speech_decoration/output", "/speech_diningroom/output", "/speech_drink/output", "/speech_drink_cocktail/output",
+							"/speech_food/output", "/speech_kitchen/output", "/speech_livingroom/output", "/speech_medicine/output",
+							"/speech_name/output", "/speech_open_challenge/output", "/speech_room/output", "/speech_seat/output",
+							"/speech_sentences/output", "/speech_storage/output", "/speech_stuff/output", "/speech_table/output",
+							"/speech_yesno/output"]
+
 		for output_topic in output_topics:
 			self.output_publishers[output_topic] = rospy.Publisher(output_topic, std_msgs.msg.String)
 
@@ -33,7 +39,13 @@ class SimWorld(object):
 
 		return obj
 
-	def speak(self, text, topic="/speech/output"):
+	def speak(self, text, type=None):
+
+		if type == None:
+			topic = "/speech/output"
+		else:
+			topic = "/speech_" + type + "/output"
+
 		if not self.output_publishers.has_key(topic):
 			rospy.logerr("Unknown amigo speak topic: %s" % topic)
 		else:

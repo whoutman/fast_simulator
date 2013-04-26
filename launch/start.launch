@@ -2,6 +2,11 @@
 <launch>
 
     <arg name="teleport" default="false"/>
+    <arg name="localization" default="true"/>
+
+    <arg if="$(arg localization)" name="simulator_args" value=""/>
+    <arg unless="$(arg localization)" name="simulator_args" value="no-loc"/>
+
 
     <!-- load robot -->
     <param name="robot_description" command="$(find xacro)/xacro.py '$(find amigo_robot_model)/description/robot_complex.urdf.xacro' " />
@@ -11,7 +16,7 @@
 
     <!-- SIMULATION -->
 
-    <node name="fast_simulator" pkg="fast_simulator" type="simulator" output="screen" launch-prefix=""/>
+    <node name="fast_simulator" pkg="fast_simulator" type="simulator" args="$(arg simulator_args)" output="screen" launch-prefix=""/>
 
     <node if="$(arg teleport)" name="amigo_teleporter" pkg="fast_simulator" type="amigo_teleporter"/>
 

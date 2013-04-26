@@ -1,0 +1,4 @@
+world.speak('Carrysomestufftoaseat', 'sentences')
+world.speak("drink", "stuff")
+world.speak("yes", "yesno")
+world.speak("no", "yesno")

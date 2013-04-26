@@ -5,13 +5,15 @@ import rospy
 from fast_simulator import client
 
 if __name__ == "__main__":
-    rospy.init_node('cleanup_tester')
+    rospy.init_node('egpsr_tester')
 
     W = client.SimWorld()
 
     #person1 = W.add_object("loy", "person", 2.5, 0.1, 0)
     #coke = W.add_object("coke-1", "coke")
     #coke.set_position(4, 1, 0)
+
+    input_sentences = []
 
     next_step = False
     while not rospy.is_shutdown() and not next_step:
