@@ -4,6 +4,10 @@
 
 #include "fast_simulator/util.h"
 
+#include <ros/ros.h>
+#include <pcl_ros/point_cloud.h>
+#include <pcl/point_types.h>
+
 using namespace std;
 
 Kinect::Kinect(const string& rgb_topic, const string& depth_topic, const string& info_topic, const string& frame_id) {
@@ -67,20 +71,24 @@ Kinect::Kinect(const string& rgb_topic, const string& depth_topic, const string&
     cam_info_.roi.do_rectify = false;
 
     image_rgb_.header.frame_id = frame_id;
-    image_rgb_.height = 480;
-    image_rgb_.width = 640;
     image_rgb_.encoding = "rgb8";
-    image_rgb_.is_bigendian = false;
-    image_rgb_.step = 1920;
+    image_rgb_.image = cv::Mat(480, 64, CV_8UC3, cv::Scalar(0,0,255));
 
-    for (int i = 0; i < 640 * 480 * 3; ++i) {
-        image_rgb_.data.push_back(0);
+    image_depth_.header.frame_id = frame_id;
+    image_depth_.encoding = "32FC1";
+    image_depth_.image = cv::Mat(480, 640, CV_32FC1, 3);
+
+/*
+    for (int i = 0; i < 640 * 480 * 4; ++i) {
+        image_depth_.data.push_back(0);
     }
+    */
 
     ros::NodeHandle nh;
-    pub_rgb = nh.advertise<sensor_msgs::Image>(rgb_topic, 1000);
-    pub_depth = nh.advertise<sensor_msgs::Image>(depth_topic, 1000);
-    pub_cam_info = nh.advertise<sensor_msgs::CameraInfo>(info_topic, 1000);
+    pub_rgb_ = nh.advertise<sensor_msgs::Image>(rgb_topic, 10);
+    pub_depth_ = nh.advertise<sensor_msgs::Image>(depth_topic, 10);
+    pub_cam_info_ = nh.advertise<sensor_msgs::CameraInfo>(info_topic, 10);
+    pub_point_cloud_ = nh.advertise<pcl::PointCloud<pcl::PointXYZ> >("points2", 1);
 }
 
 Kinect::~Kinect() {
@@ -92,182 +100,97 @@ void Kinect::addModel(const std::string& type, const std::string& filename) {
 }
 
 void Kinect::publish() {
-    World& world = World::getInstance();
-    map<string, Object*> objects = world.getObjects();
 
-    string filename = "";
-    for(map<string, Object*>::const_iterator it_obj = objects.begin(); it_obj != objects.end(); ++it_obj) {
-        Object& obj = *it_obj->second;
+    if (pub_cam_info_.getNumSubscribers() > 0 || pub_rgb_.getNumSubscribers() || pub_depth_.getNumSubscribers() > 0) {
 
-        map<string, string>::const_iterator it_filename = type_to_filename_.find(obj.getType());
-        if (it_filename == type_to_filename_.end()) {
-            it_filename = type_to_filename_.find(obj.getID());
-        }
+        World& world = World::getInstance();
+        map<string, Object*> objects = world.getObjects();
 
-        if (it_filename != type_to_filename_.end()) {
-            tf::Transform tf_kinect_to_object = getAbsolutePose().inverseTimes(obj.getAbsolutePose());
+        string filename = "";
+        for(map<string, Object*>::const_iterator it_obj = objects.begin(); it_obj != objects.end(); ++it_obj) {
+            Object& obj = *it_obj->second;
 
-            double x = tf_kinect_to_object.getOrigin().getX();
-            double y = tf_kinect_to_object.getOrigin().getY();
+            map<string, string>::const_iterator it_filename = type_to_filename_.find(obj.getType());
+            if (it_filename == type_to_filename_.end()) {
+                it_filename = type_to_filename_.find(obj.getID());
+            }
 
-            if (x > 0 && x < 2 && abs(y) < x / 2) {
-                filename = it_filename->second;
+            if (it_filename != type_to_filename_.end()) {
+                tf::Transform tf_kinect_to_object = getAbsolutePose().inverseTimes(obj.getAbsolutePose());
+
+                double x = tf_kinect_to_object.getOrigin().getX();
+                double y = tf_kinect_to_object.getOrigin().getY();
+
+                if (x > 0 && x < 2 && abs(y) < x / 2) {
+                    filename = it_filename->second;
+                }
             }
         }
-    }
 
-    if (filename != "") {
-        if (filename != loaded_file_) {
-            image_loader_->load(filename);
-            loaded_file_ = filename;
+        if (filename != "") {
+            if (filename != loaded_file_) {
+                image_loader_->load(filename);
+                loaded_file_ = filename;
+            }
+            image_loader_->publish();
+        } else {
+
+            ros::Time time = ros::Time::now();
+            cam_info_.header.stamp = time;
+            image_rgb_.header.stamp = time;
+            image_depth_.header.stamp = time;
+
+            pcl::PointCloud<pcl::PointXYZ>::Ptr msg(new pcl::PointCloud<pcl::PointXYZ>);
+            msg->header.frame_id = image_rgb_.header.frame_id;
+            msg->header.stamp = time;
+            msg->width  = 640;
+            msg->height = 480;
+
+            for(int y = 0; y < 480; ++y) {
+                for(int x = 0; x < 640; ++x) {
+                    image_depth_.image.at<float>(y, x) = (double)x / 640;
+
+                    msg->points.push_back(pcl::PointXYZ((double)x / 640, (double)y / 480, 3.0));
+                }
+            }
+
+
+
+            pub_cam_info_.publish(cam_info_);
+            pub_rgb_.publish(image_rgb_.toImageMsg());
+            pub_depth_.publish(image_depth_.toImageMsg());
+            pub_point_cloud_.publish (msg);
         }
-        image_loader_->publish();
-    } else {
-        pub_cam_info.publish(cam_info_);
-        pub_rgb.publish(image_rgb_);
+
     }
 
 }
 
 /*
 #include <ros/ros.h>
+#include <pcl_ros/point_cloud.h>
+#include <pcl/point_types.h>
 
-#include <sensor_msgs/CameraInfo.h>
-#include <sensor_msgs/Image.h>
-#include <geometry_msgs/Twist.h>
+typedef pcl::PointCloud<pcl::PointXYZ> PointCloud;
 
-#include <tf/transform_broadcaster.h>
+int main(int argc, char** argv)
+{
+  ros::init (argc, argv, "pub_pcl");
+  ros::NodeHandle nh;
+  ros::Publisher pub = nh.advertise<PointCloud> ("points2", 1);
 
-using namespace std;
+  PointCloud::Ptr msg (new PointCloud);
+  msg->header.frame_id = "some_tf_frame";
+  msg->height = msg->width = 1;
+  msg->points.push_back (pcl::PointXYZ(1.0, 2.0, 3.0));
 
-string FRAME_ID = "/director/camera1";
-
-tf::Vector3 vel_trans_;
-
-tf::Vector3 cam_pos_;
-
-void twistCallback(const geometry_msgs::TwistConstPtr& twist) {
-    tf::vector3MsgToTF(twist->linear, vel_trans_);
+  ros::Rate loop_rate(4);
+  while (nh.ok())
+  {
+    msg->header.stamp = ros::Time::now ();
+    pub.publish (msg);
+    ros::spinOnce ();
+    loop_rate.sleep ();
+  }
 }
-
-int main(int argc, char **argv) {
-    // Initialize node
-    ros::init(argc, argv, "");
-    ros::NodeHandle nh;
-
-    vel_trans_.setZero();
-    cam_pos_.setZero();
-
-    // advertising a topic to send data
-    ros::Publisher pub_cam_info = nh.advertise<sensor_msgs::CameraInfo>("/director/camera1/camera_info", 10);
-    ros::Publisher pub_cam_image = nh.advertise<sensor_msgs::Image>("/director/camera1/image", 10);
-
-    ros::Subscriber sub_twist = nh.subscribe("/director/camera1/twist", 1, twistCallback);
-
-    sensor_msgs::CameraInfo cam_info;
-    cam_info.header.frame_id = FRAME_ID;
-    cam_info.height = 480;
-    cam_info.width = 640;
-    cam_info.distortion_model = "plumb_bob";
-
-    // D: [0.0, 0.0, 0.0, 0.0, 0.0]
-    cam_info.D.push_back(0);
-    cam_info.D.push_back(0);
-    cam_info.D.push_back(0);
-    cam_info.D.push_back(0);
-    cam_info.D.push_back(0);
-
-    // K: [554.2559327880068, 0.0, 320.5, 0.0, 554.2559327880068, 240.5, 0.0, 0.0, 1.0]
-    cam_info.K[0] = 554.2559327880068;
-    cam_info.K[1] = 0;
-    cam_info.K[2] = 320.5;
-    cam_info.K[3] = 0;
-    cam_info.K[4] = 554.2559327880068;
-    cam_info.K[5] = 240.5;
-    cam_info.K[6] = 0;
-    cam_info.K[7] = 0;
-    cam_info.K[8] = 1;
-
-    // R: [1.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 1.0]
-    cam_info.R[0] = 1;
-    cam_info.R[1] = 0;
-    cam_info.R[2] = 0;
-    cam_info.R[3] = 0;
-    cam_info.R[4] = 1;
-    cam_info.R[5] = 0;
-    cam_info.R[6] = 0;
-    cam_info.R[7] = 0;
-    cam_info.R[8] = 1;
-
-    // P: [554.2559327880068, 0.0, 320.5, -0.0, 0.0, 554.2559327880068, 240.5, 0.0, 0.0, 0.0, 1.0, 0.0]
-    cam_info.P[0] = 554.2559327880068;
-    cam_info.P[1] = 0;
-    cam_info.P[2] = 320.5;
-    cam_info.P[3] = 0;
-    cam_info.P[4] = 0;
-    cam_info.P[5] = 554.2559327880068;
-    cam_info.P[6] = 240.5;
-    cam_info.P[7] = 0;
-    cam_info.P[8] = 0;
-    cam_info.P[9] = 0;
-    cam_info.P[10] = 1;
-    cam_info.P[11] = 0;
-
-    cam_info.binning_x = 0;
-    cam_info.binning_y = 0;
-
-    cam_info.roi.x_offset = 0;
-    cam_info.roi.y_offset = 0;
-    cam_info.roi.height = 0;
-    cam_info.roi.width = 0;
-    cam_info.roi.do_rectify = false;
-
-    sensor_msgs::Image image;
-    image.header.frame_id = FRAME_ID;
-    image.height = 480;
-    image.width = 640;
-    image.encoding = "rgb8";
-    image.is_bigendian = false;
-    image.step = 1920;
-
-    for (int i = 0; i < 640 * 480 * 3; ++i) {
-        image.data.push_back(0);
-    }
-
-    tf::TransformBroadcaster tf_broadcaster;
-
-    tf::StampedTransform t;
-    t.child_frame_id_ = FRAME_ID;
-    t.frame_id_ = "/map";
-
-    double yaw = 0;
-
-    double rate = 25;
-    double dt = 1 / rate;
-
-
-    ros::Rate r(rate);
-    while (ros::ok()) {
-        pub_cam_info.publish(cam_info);
-        pub_cam_image.publish(image);
-
-        t.stamp_ = ros::Time::now();
-        tf::Quaternion q;
-        q.setRPY(-1.54 - 0.3, 0.0, yaw);
-        t.setData(tf::Transform(q, cam_pos_));
-
-        tf_broadcaster.sendTransform(t);
-
-        r.sleep();
-
-        cam_pos_ += dt * vel_trans_;
-
-        yaw += dt * 0.1;
-
-        ros::spinOnce();
-    }
-
-
-    return 0;
-}
-*/
+ */

@@ -5,6 +5,11 @@
 
 #include <ros/ros.h>
 
+#include <cv_bridge/cv_bridge.h>
+#include <sensor_msgs/image_encodings.h>
+#include <opencv2/imgproc/imgproc.hpp>
+#include <opencv2/highgui/highgui.hpp>
+
 #include <sensor_msgs/Image.h>
 #include <sensor_msgs/CameraInfo.h>
 
@@ -30,13 +35,14 @@ protected:
 
     std::map<std::string, std::string> type_to_filename_;
 
-    ros::Publisher pub_rgb;
-    ros::Publisher pub_depth;
-    ros::Publisher pub_cam_info;
+    ros::Publisher pub_rgb_;
+    ros::Publisher pub_depth_;
+    ros::Publisher pub_cam_info_;
+    ros::Publisher pub_point_cloud_;
 
     sensor_msgs::CameraInfo cam_info_;
-    sensor_msgs::Image image_rgb_;
-    sensor_msgs::Image depth_image_;
+    cv_bridge::CvImage image_rgb_;
+    cv_bridge::CvImage image_depth_;    
 
 };
 

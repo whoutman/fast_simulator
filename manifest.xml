@@ -20,8 +20,11 @@
 
   <depend package="amigo_msgs"/>
 
-  <!-- For sprite shape -->
+  <!-- For Kinect -->
   <depend package="opencv2"/>
+  <depend package="cv_bridge"/>
+  <depend package="image_transport"/>
+  <depend package="pcl_ros"/>
 
   <!-- For amigo_teleporter -->
   <depend package="tue_move_base_msgs"/>
