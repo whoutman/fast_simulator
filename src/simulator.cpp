@@ -31,7 +31,10 @@ bool setObject(fast_simulator::SetObject::Request& req, fast_simulator::SetObjec
             if (req.type == "person") {
                 obj->setBoundingBox(Box(tf::Vector3(-0.4, -0.4, 0.5), tf::Vector3(0.4, 0.4, 1.5)));
                 obj->setShape(Sprite(MODEL_DIR + "/laser/body.pgm", 0.025, 0.5, 1.5));
+            } else if (req.type == "box") {
+                obj->setShape(Box(tf::Vector3(-0.4, -0.4, 0), tf::Vector3(0.4, 0.4, 1)));
             }
+
             WORLD->addObject(req.id, obj);
         }
 
@@ -215,7 +218,7 @@ int main(int argc, char **argv) {
     WORLD = &World::getInstance();
     WORLD->initFromTopic("/fast_simulator/map");
 
-    // PUBLISHERS    
+    // PUBLISHERS
 
     PUB_MARKER = nh.advertise<visualization_msgs::MarkerArray>("/fast_simulator/visualization", 10);
 

@@ -3,6 +3,11 @@
 
 #include "Sensor.h"
 
+#include <ros/ros.h>
+
+#include <sensor_msgs/Image.h>
+#include <sensor_msgs/CameraInfo.h>
+
 class ImageLoader;
 
 class Kinect : public Sensor {
@@ -24,6 +29,14 @@ protected:
     std::string loaded_file_;
 
     std::map<std::string, std::string> type_to_filename_;
+
+    ros::Publisher pub_rgb;
+    ros::Publisher pub_depth;
+    ros::Publisher pub_cam_info;
+
+    sensor_msgs::CameraInfo cam_info_;
+    sensor_msgs::Image image_rgb_;
+    sensor_msgs::Image depth_image_;
 
 };
 

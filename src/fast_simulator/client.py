@@ -91,7 +91,8 @@ class SimObject(object):
 		req.pose.orientation.z = 0
 		req.pose.orientation.w = 1		
 
-		self.world.srv_set(req)
+		if not self.world.srv_set(req):
+			rospy.roserr("Service call failed")
 
 
 	def set_path(self, path, frame_id="/map"):
