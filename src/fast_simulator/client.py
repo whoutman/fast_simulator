@@ -49,10 +49,13 @@ class SimWorld(object):
 		if not self.output_publishers.has_key(topic):
 			rospy.logerr("Unknown amigo speak topic: %s" % topic)
 		else:
+			print "I say:      " + str(text)
+			print
 			self.output_publishers[topic].publish(text)
 
 	def callback_amigo_speech(self, string_msg):
-		rospy.loginfo("AMIGO says:  %s" % string_msg.data)
+		print "AMIGO says: %s" % string_msg.data
+		print
 		self.amigo_sentence = string_msg.data
 		self.t_amigo_sentence = rospy.Time.now()
 
