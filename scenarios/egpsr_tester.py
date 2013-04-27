@@ -25,8 +25,8 @@ if __name__ == "__main__":
 
     W = client.SimWorld()
 
-#    W.wait_for_amigo_speech(["What can I do for you"])    
-    rospy.sleep(1)
+    W.wait_for_amigo_speech(["What can I do for you"])    
+#    rospy.sleep(1)
 
     if sentence == 'Pointataseat':
         W.speak('Pointataseat', 'sentences')
