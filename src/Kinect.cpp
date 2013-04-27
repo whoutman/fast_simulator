@@ -89,6 +89,24 @@ Kinect::Kinect(const string& rgb_topic, const string& depth_topic, const string&
     pub_depth_ = nh.advertise<sensor_msgs::Image>(depth_topic, 10);
     pub_cam_info_ = nh.advertise<sensor_msgs::CameraInfo>(info_topic, 10);
     pub_point_cloud_ = nh.advertise<pcl::PointCloud<pcl::PointXYZ> >("points2", 1);
+
+    double width = 3.2;
+    double height = 2.4;
+
+    double x = -width / 2;
+    double y = -height / 2;
+
+    double dx = width / 64;
+    double dy = width / 48;
+
+    for(int iy = 0; iy < 48; ++iy) {
+        for(int ix = 0; ix < 64; ++ix) {
+            ray_deltas_.push_back(tf::Vector3(x, y, 1).normalize());
+            x += dx;
+        }
+        y += dy;
+    }
+
 }
 
 Kinect::~Kinect() {
@@ -135,6 +153,7 @@ void Kinect::publish() {
             image_loader_->publish();
         } else {
 
+
             ros::Time time = ros::Time::now();
             cam_info_.header.stamp = time;
             image_rgb_.header.stamp = time;
@@ -143,11 +162,16 @@ void Kinect::publish() {
             pcl::PointCloud<pcl::PointXYZ>::Ptr msg(new pcl::PointCloud<pcl::PointXYZ>);
             msg->header.frame_id = image_rgb_.header.frame_id;
             msg->header.stamp = time;
-            msg->width  = 640;
-            msg->height = 480;
+            msg->width  = 64;
+            msg->height = 48;
 
-            for(int y = 0; y < 480; ++y) {
-                for(int x = 0; x < 640; ++x) {
+
+            tf::Transform tf_map_to_kinect = getAbsolutePose();
+
+            tf::Vector3 kinect_origin = tf_map_to_kinect.getOrigin();
+
+            for(int y = 0; y < 480; y += 10) {
+                for(int x = 0; x < 640; x += 10) {
                     image_depth_.image.at<float>(y, x) = (double)x / 640;
 
                     msg->points.push_back(pcl::PointXYZ((double)x / 640, (double)y / 480, 3.0));

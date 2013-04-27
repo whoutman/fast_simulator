@@ -42,7 +42,11 @@ protected:
 
     sensor_msgs::CameraInfo cam_info_;
     cv_bridge::CvImage image_rgb_;
-    cv_bridge::CvImage image_depth_;    
+    cv_bridge::CvImage image_depth_;
+
+
+    std::vector<tf::Vector3> ray_deltas_;
+
 
 };
 
