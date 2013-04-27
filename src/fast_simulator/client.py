@@ -59,6 +59,14 @@ class SimWorld(object):
 	def amigo_speech_contains(self, substr, max_dt = rospy.Duration(2.0)):
 			return substr in self.amigo_sentence and rospy.Time.now() - self.t_amigo_sentence < max_dt
 
+	def wait_for_amigo_speech(self, texts):
+	    while not rospy.is_shutdown():
+	        rospy.sleep(0.5)
+	        for text in texts:
+	            if self.amigo_speech_contains(text):
+	                return
+
+
 class SimObject(object):
 	def __init__(self, id, type, world):
 		self.id = id
