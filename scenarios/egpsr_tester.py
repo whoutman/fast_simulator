@@ -47,13 +47,6 @@ if __name__ == "__main__":
 
     if sentence == 'Carrysomestufftoaseat':
 
-        W.speak('Carrysomestufftoaseat', 'sentences')
-        W.speak("drink", "stuff")
-        W.speak("yes", "yesno")
-        W.speak("no", "yesno")
-
-        input_sentences = []
-
         # What can I do for you
         W.wait_for_amigo_speech(["What can I do for you"])
         rospy.sleep(2.0)
@@ -89,3 +82,7 @@ if __name__ == "__main__":
         W.wait_for_amigo_speech(["Am I right", "Is that corect"]) # corect MUST be with 1 r
         rospy.sleep(2.0)
         W.speak('yes', 'yesno')   
+
+    if sentence == 'Getmeadrink':
+
+        
