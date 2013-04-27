@@ -83,6 +83,6 @@ if __name__ == "__main__":
         rospy.sleep(2.0)
         W.speak('yes', 'yesno')   
 
-    if sentence == 'Getmeadrink':
+    #if sentence == 'Getmeadrink':
 
         
