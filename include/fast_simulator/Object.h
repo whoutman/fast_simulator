@@ -10,6 +10,7 @@
 #include <geometry_msgs/Twist.h>
 
 #include "fast_simulator/Box.h"
+#include "fast_simulator/Event.h"
 
 class World;
 
@@ -64,6 +65,11 @@ protected:
     std::vector<Object*> parts_;
 
     geometry_msgs::Twist velocity_;
+
+    // scheduler
+
+    std::map<std::string, ros::Time> scheduled_events_;
+
 
     /*
 

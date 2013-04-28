@@ -223,7 +223,7 @@ int main(int argc, char **argv) {
             max_cycle_time = cycle_time;
         }
 
-        cout << "Max main cycle duration: " << max_cycle_time << " seconds" << endl;
+        //cout << "Max main cycle duration: " << max_cycle_time << " seconds" << endl;
 
         ++count;
         r.sleep();

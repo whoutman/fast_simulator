@@ -185,7 +185,6 @@ void Kinect::publish() {
                 for(int ix = 0; ix < grid_height_; ++ix) {
                     //image_depth_.image.at<float>(y, x) = (double)x / 640;
 
-
                     tf::Vector3 dir = tf::Transform(tf_map_to_kinect.getRotation()) * ray_deltas_[i];
 
                     Ray r(kinect_origin, dir);
@@ -211,5 +210,5 @@ void Kinect::publish() {
 
    // }
 
-        cout << "Kinect::publish() took " << ros::Time::now() - t_start << endl;
+        //cout << "Kinect::publish() took " << ros::Time::now() - t_start << endl;
 }

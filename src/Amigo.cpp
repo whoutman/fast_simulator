@@ -2,38 +2,36 @@
 
 using namespace std;
 
-Amigo::Amigo(ros::NodeHandle& nh, bool publish_localization) : nh_(nh), publish_localization_(publish_localization) {
-    // joint_states
-    pub_joint_states = nh.advertise<sensor_msgs::JointState>("/joint_states", 10);
+Amigo::Amigo(ros::NodeHandle& nh, bool publish_localization) : Robot(nh, publish_localization) {
 
-    joints_["spindle_joint"] = new Joint(0.351846521684684, 0.1);
-    joints_["shoulder_yaw_joint_left"] = new Joint(-0.010038043598955326);
-    joints_["shoulder_pitch_joint_left"] = new Joint(-0.39997462399515005);
-    joints_["shoulder_roll_joint_left"] = new Joint(2.0889754646091774e-06);
-    joints_["elbow_pitch_joint_left"] = new Joint(1.1999600775244508);
-    joints_["elbow_roll_joint_left"] = new Joint(4.330400908969523e-07);
-    joints_["wrist_yaw_joint_left"] = new Joint(1.7639288287796262e-06);
-    joints_["wrist_pitch_joint_left"] = new Joint(0.7999636309384188);
-    joints_["finger1_joint_left"] = new Joint(0.6000396498469334);
-    joints_["finger2_joint_left"] = new Joint(0.6000510112333535);
-    joints_["finger1_tip_joint_left"] = new Joint(-0.20000170842812892);
-    joints_["finger2_tip_joint_left"] = new Joint(-0.1999984035736233);
-    joints_["shoulder_yaw_joint_right"] = new Joint(-0.01004552338080078);
-    joints_["shoulder_pitch_joint_right"] = new Joint(-0.39998108009563715);
-    joints_["shoulder_roll_joint_right"] = new Joint(9.422008346859911e-06);
-    joints_["elbow_pitch_joint_right"] = new Joint(1.1999679974909059);
-    joints_["elbow_roll_joint_right"] = new Joint(2.5800741013881634e-05);
-    joints_["wrist_yaw_joint_right"] = new Joint(4.025142829355843e-05);
-    joints_["wrist_pitch_joint_right"] = new Joint(0.7999828748945985);
-    joints_["finger1_joint_right"] = new Joint(0.6000464445187825);
-    joints_["finger2_joint_right"] = new Joint(0.6000300525013822);
-    joints_["finger1_tip_joint_right"] = new Joint(-0.1999953219398023);
-    joints_["finger2_tip_joint_right"] = new Joint(-0.20000480019727807);
-    joints_["base_phi_joint"] = new Joint(-1.9961446717786657e-07);
-    joints_["base_x_joint"] = new Joint(-3.771623482909497e-05);
-    joints_["base_y_joint"] = new Joint(-7.877193603413587e-08);
-    joints_["neck_pan_joint"] = new Joint(-3.033573445776483e-07);
-    joints_["neck_tilt_joint"] = new Joint(0.00029286782768789266);
+    setJointPosition("spindle_joint", 0.351846521684684);
+    setJointPosition("shoulder_yaw_joint_left", -0.010038043598955326);
+    setJointPosition("shoulder_pitch_joint_left", -0.39997462399515005);
+    setJointPosition("shoulder_roll_joint_left", 2.0889754646091774e-06);
+    setJointPosition("elbow_pitch_joint_left", 1.1999600775244508);
+    setJointPosition("elbow_roll_joint_left", 4.330400908969523e-07);
+    setJointPosition("wrist_yaw_joint_left", 1.7639288287796262e-06);
+    setJointPosition("wrist_pitch_joint_left", 0.7999636309384188);
+    setJointPosition("finger1_joint_left", 0.6000396498469334);
+    setJointPosition("finger2_joint_left", 0.6000510112333535);
+    setJointPosition("finger1_tip_joint_left", -0.20000170842812892);
+    setJointPosition("finger2_tip_joint_left", -0.1999984035736233);
+    setJointPosition("shoulder_yaw_joint_right", -0.01004552338080078);
+    setJointPosition("shoulder_pitch_joint_right", -0.39998108009563715);
+    setJointPosition("shoulder_roll_joint_right", 9.422008346859911e-06);
+    setJointPosition("elbow_pitch_joint_right", 1.1999679974909059);
+    setJointPosition("elbow_roll_joint_right", 2.5800741013881634e-05);
+    setJointPosition("wrist_yaw_joint_right", 4.025142829355843e-05);
+    setJointPosition("wrist_pitch_joint_right", 0.7999828748945985);
+    setJointPosition("finger1_joint_right", 0.6000464445187825);
+    setJointPosition("finger2_joint_right", 0.6000300525013822);
+    setJointPosition("finger1_tip_joint_right", -0.1999953219398023);
+    setJointPosition("finger2_tip_joint_right", -0.20000480019727807);
+    setJointPosition("base_phi_joint", -1.9961446717786657e-07);
+    setJointPosition("base_x_joint", -3.771623482909497e-05);
+    setJointPosition("base_y_joint", -7.877193603413587e-08);
+    setJointPosition("neck_pan_joint", -3.033573445776483e-07);
+    setJointPosition("neck_tilt_joint", 0.00029286782768789266);
 
     left_arm_joint_names.push_back("shoulder_yaw_joint_left");
     left_arm_joint_names.push_back("shoulder_pitch_joint_left");
@@ -97,31 +95,21 @@ Amigo::Amigo(ros::NodeHandle& nh, bool publish_localization) : nh_(nh), publish_
 
     sub_right_gripper = nh.subscribe("/arm_right_controller/gripper_command", 10, &Amigo::callbackRightGripper, this);
 
-    // TF
-    tf_map_to_odom.setOrigin(tf::Vector3(0, 0, 0));
-    tf_map_to_odom.setRotation(tf::Quaternion(0, 0, 0, 1));
-    tf_map_to_odom.frame_id_ = "/map";
-    tf_map_to_odom.child_frame_id_ = "/odom";
+
 
     tf_odom_to_base_link.frame_id_ = "/odom";
     tf_odom_to_base_link.child_frame_id_ = "/base_link";
 
-    count_ = 0;
+    event_odom_pub_.scheduleRecurring(50);
+    event_refs_pub_.scheduleRecurring(100);
 }
 
 Amigo::~Amigo() {
-    for(vector<Sensor*>::iterator it_sensor = sensors_.begin(); it_sensor != sensors_.end(); ++it_sensor) {
-        delete *it_sensor;
-    }
+
 }
 
 void Amigo::step(double dt) {
-    Object::step(dt);
-
-    for(map<string, Joint*>::iterator it_joint = joints_.begin(); it_joint != joints_.end(); ++it_joint) {
-        Joint* joint = it_joint->second;
-        joint->step(dt);
-    }
+    Robot::step(dt);
 
     if (ros::Time::now() - t_last_cmd_vel_ > ros::Duration(0.5)) {
         this->velocity_.angular.x = 0;
@@ -133,46 +121,15 @@ void Amigo::step(double dt) {
         this->velocity_.linear.z = 0;
     }
 
-    if (count_ % 4 == 0) {
+    if (event_odom_pub_.isScheduled()) {
         tf_odom_to_base_link.stamp_ = ros::Time::now();
         tf_odom_to_base_link.setOrigin(this->pose_.getOrigin());
         tf_odom_to_base_link.setRotation(this->pose_.getRotation());
         tf_broadcaster_.sendTransform(tf_odom_to_base_link);
-
-        if (publish_localization_) {
-            tf_map_to_odom.stamp_ = ros::Time::now();
-            tf_broadcaster_.sendTransform(tf_map_to_odom);
-        }
-    }
-
-    if (count_ % 4 == 0) {
-        sensor_msgs::JointState joint_states = getJointStates();
-        pub_joint_states.publish(joint_states);
     }
 
     publishControlRefs();
 
-    if (count_ % 10 == 0) {
-        for(vector<Sensor*>::iterator it_sensor = sensors_.begin(); it_sensor != sensors_.end(); ++it_sensor) {
-            Sensor* sensor = *it_sensor;
-            sensor->publish();
-        }
-    }
-
-    count_++;
-}
-
-void Amigo::addSensor(Sensor* sensor, const tf::Transform& rel_pose) {
-    this->addChild(sensor, rel_pose);
-    sensors_.push_back(sensor);
-}
-
-void Amigo::setJointReference(const string& joint_name, double position) {
-    joints_[joint_name]->reference_ = position;
-}
-
-double Amigo::getJointPosition(const string& joint_name) {
-    return joints_[joint_name]->position_;
 }
 
 void Amigo::callbackCmdVel(const geometry_msgs::Twist::ConstPtr& msg) {
@@ -277,15 +234,3 @@ void Amigo::publishControlRefs() {
     pub_right_gripper_.publish(right_gripper);
 }
 
-sensor_msgs::JointState Amigo::getJointStates() {
-    sensor_msgs::JointState joint_states;
-    joint_states.header.stamp = ros::Time::now();
-
-    for(map<string, Joint*>::iterator it_joint = joints_.begin(); it_joint != joints_.end(); ++it_joint) {
-        Joint* joint = it_joint->second;
-        joint_states.name.push_back(it_joint->first);
-        joint_states.position.push_back(joint->position_);
-    }
-
-    return joint_states;
-}

@@ -32,6 +32,7 @@ file(GLOB_RECURSE HEADER_FILES include/*.h)
 #rosbuild_link_boost(${PROJECT_NAME} thread)
 rosbuild_add_executable(simulator src/simulator.cpp
                                   src/Object.cpp
+                                  src/Robot.cpp
                                   src/Joint.cpp
                                   src/World.cpp
                                   src/Amigo.cpp
@@ -44,6 +45,7 @@ rosbuild_add_executable(simulator src/simulator.cpp
                                   src/Kinect.cpp
                                   src/Sprite.cpp
                                   src/Shape.cpp
+                                  src/Event.cpp
                                   src/util.cpp ${HEADER_FILES})
 rosbuild_add_executable(amigo_teleporter src/amigo_teleporter.cpp)
 #target_link_libraries(example ${PROJECT_NAME})

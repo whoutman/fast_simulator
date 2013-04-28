@@ -35,6 +35,7 @@ public:
 
     bool intersect(const Ray& r, float t0, float t1, double& distance) const;
 
+
 protected:
 
     static World* instance_;
