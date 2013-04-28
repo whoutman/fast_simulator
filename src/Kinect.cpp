@@ -93,15 +93,24 @@ Kinect::Kinect(const string& rgb_topic, const string& depth_topic, const string&
     double width = 3.2;
     double height = 2.4;
 
+    grid_width_ = 128;
+    grid_height_ = 96;
+
     double x = -width / 2;
     double y = -height / 2;
 
-    double dx = width / 64;
-    double dy = width / 48;
+    double dx = width / grid_width_;
+    double dy = height / grid_height_;
 
-    for(int iy = 0; iy < 48; ++iy) {
-        for(int ix = 0; ix < 64; ++ix) {
+    for(int iy = 0; iy < grid_width_; ++iy) {
+        x = -width / 2;
+        for(int ix = 0; ix < grid_height_; ++ix) {
+            // x, 1, y      X
+            // 1, x, y      X
+            // x, y, 1      OK
+
             ray_deltas_.push_back(tf::Vector3(x, y, 1).normalize());
+            //std::cout << x << ", " << y << std::endl;
             x += dx;
         }
         y += dy;
@@ -119,7 +128,7 @@ void Kinect::addModel(const std::string& type, const std::string& filename) {
 
 void Kinect::publish() {
 
-    if (pub_cam_info_.getNumSubscribers() > 0 || pub_rgb_.getNumSubscribers() || pub_depth_.getNumSubscribers() > 0) {
+    //if (pub_cam_info_.getNumSubscribers() > 0 || pub_rgb_.getNumSubscribers() || pub_depth_.getNumSubscribers() > 0) {
 
         World& world = World::getInstance();
         map<string, Object*> objects = world.getObjects();
@@ -162,23 +171,41 @@ void Kinect::publish() {
             pcl::PointCloud<pcl::PointXYZ>::Ptr msg(new pcl::PointCloud<pcl::PointXYZ>);
             msg->header.frame_id = image_rgb_.header.frame_id;
             msg->header.stamp = time;
-            msg->width  = 64;
-            msg->height = 48;
+            msg->width  = grid_width_;
+            msg->height = grid_height_;
 
 
             tf::Transform tf_map_to_kinect = getAbsolutePose();
-
             tf::Vector3 kinect_origin = tf_map_to_kinect.getOrigin();
 
-            for(int y = 0; y < 480; y += 10) {
-                for(int x = 0; x < 640; x += 10) {
+            int i = 0;
+            for(int y = 0; y < 480; y += (480 / grid_width_)) {
+                for(int x = 0; x < 640; x += (640 / grid_height_)) {
                     image_depth_.image.at<float>(y, x) = (double)x / 640;
 
-                    msg->points.push_back(pcl::PointXYZ((double)x / 640, (double)y / 480, 3.0));
+                    tf::Vector3 dir = tf::Transform(tf_map_to_kinect.getRotation()) * ray_deltas_[i];
+
+                    Ray r(kinect_origin, dir);
+                    double distance;
+                    if (!getWorldHandle()->intersect(r, 0, 50, distance)) {
+                        //distance = 100;
+                        msg->points.push_back(pcl::PointXYZ(0, 0, 0));
+                    } else {
+                        tf::Vector3 intersect_pos_kinect = ray_deltas_[i] * distance;
+                        msg->points.push_back(pcl::PointXYZ(intersect_pos_kinect.x(), intersect_pos_kinect.y(), intersect_pos_kinect.z()));
+                    }
+
+                    //distance = 1;
+
+
+                   //f::Vector3 intersect_pos_kinect = tf_map_to_kinect.inverse() * intersect_pos_map;
+
+
+                    // <-->, UP, (.)
+
+                    i++;
                 }
             }
-
-
 
             pub_cam_info_.publish(cam_info_);
             pub_rgb_.publish(image_rgb_.toImageMsg());
@@ -186,7 +213,7 @@ void Kinect::publish() {
             pub_point_cloud_.publish (msg);
         }
 
-    }
+   // }
 
 }
 

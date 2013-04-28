@@ -44,6 +44,9 @@ protected:
     cv_bridge::CvImage image_rgb_;
     cv_bridge::CvImage image_depth_;
 
+    int grid_width_;
+    int grid_height_;
+
 
     std::vector<tf::Vector3> ray_deltas_;
 
