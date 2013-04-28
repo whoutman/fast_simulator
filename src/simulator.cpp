@@ -4,7 +4,7 @@
 
     TODO:
        - Get rid of counting and replace with event queue
-
+       - Parallelize controllers from sensors
 
 
 
@@ -190,6 +190,8 @@ int main(int argc, char **argv) {
 
     ros::ServiceServer srv_set_object_ = nh.advertiseService("/fast_simulator/set_object", &setObject);
 
+    double real_time_factor = 1;
+
     double freq = 100;
     ros::Rate r(freq);
 
@@ -202,7 +204,7 @@ int main(int argc, char **argv) {
     while(ros::ok()) {
         double dt = 0;
         if (t > ros::Time(0)) {
-            dt = (ros::Time::now() - t).toSec() * 2;
+            dt = (ros::Time::now() - t).toSec() * real_time_factor;
         }
         t = ros::Time::now();
 

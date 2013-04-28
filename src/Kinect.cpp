@@ -181,9 +181,10 @@ void Kinect::publish() {
             tf::Vector3 kinect_origin = tf_map_to_kinect.getOrigin();
 
             int i = 0;
-            for(int y = 0; y < 480; y += (480 / grid_width_)) {
-                for(int x = 0; x < 640; x += (640 / grid_height_)) {
-                    image_depth_.image.at<float>(y, x) = (double)x / 640;
+            for(int iy = 0; iy < grid_width_; ++iy) {
+                for(int ix = 0; ix < grid_height_; ++ix) {
+                    //image_depth_.image.at<float>(y, x) = (double)x / 640;
+
 
                     tf::Vector3 dir = tf::Transform(tf_map_to_kinect.getRotation()) * ray_deltas_[i];
 
@@ -197,17 +198,10 @@ void Kinect::publish() {
                         msg->points.push_back(pcl::PointXYZ(intersect_pos_kinect.x(), intersect_pos_kinect.y(), intersect_pos_kinect.z()));
                     }
 
-                    //distance = 1;
-
-
-                   //f::Vector3 intersect_pos_kinect = tf_map_to_kinect.inverse() * intersect_pos_map;
-
-
-                    // <-->, UP, (.)
-
                     i++;
                 }
             }
+
 
             pub_cam_info_.publish(cam_info_);
             pub_rgb_.publish(image_rgb_.toImageMsg());
