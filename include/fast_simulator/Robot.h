@@ -11,6 +11,9 @@
 
 #include "geometry_msgs/PoseWithCovarianceStamped.h"
 
+#include <kdl/tree.hpp>
+#include <kdl_parser/kdl_parser.hpp>
+
 #include "fast_simulator/Joint.h"
 #include "fast_simulator/Object.h"
 #include "fast_simulator/World.h"
@@ -24,6 +27,8 @@ public:
     Robot(ros::NodeHandle& nh, bool publish_localization);
 
     virtual ~Robot();
+
+    void addChildren(Object& obj, const KDL::SegmentMap::const_iterator segment);
 
     //virtual Robot* clone() const = 0;
 
@@ -47,6 +52,8 @@ protected:
 
 private:
 
+    KDL::Tree tree;
+
     bool publish_localization_;
 
     tf::StampedTransform tf_map_to_odom;
@@ -56,6 +63,10 @@ private:
     std::vector<Sensor*> sensors_;
 
     ros::Publisher pub_joint_states;
+
+    std::map<std::string, Object*> links_;
+
+    std::map<std::string, Object*> joint_to_link_;
 
     Event event_loc_pub_;
     Event event_joint_states_pub_;

@@ -1,5 +1,7 @@
 #include "fast_simulator/Robot.h"
 
+#include <tf_conversions/tf_kdl.h>
+
 using namespace std;
 
 Robot::Robot(ros::NodeHandle& nh, bool publish_localization) : nh_(nh), publish_localization_(publish_localization) {
@@ -15,11 +17,56 @@ Robot::Robot(ros::NodeHandle& nh, bool publish_localization) : nh_(nh), publish_
     event_loc_pub_.scheduleRecurring(100);
     event_joint_states_pub_.scheduleRecurring(100);
     event_sensors_pub_.scheduleRecurring(10);
+
+    // gets the location of the robot description on the parameter server
+    if (!kdl_parser::treeFromParam("/robot_description", tree)){
+      ROS_ERROR("Failed to extract kdl tree from xml robot description");
+    }
+    addChildren(*this, tree.getRootSegment());
+
 }
 
 Robot::~Robot() {
     for(vector<Sensor*>::iterator it_sensor = sensors_.begin(); it_sensor != sensors_.end(); ++it_sensor) {
         delete *it_sensor;
+    }
+}
+
+void Robot::addChildren(Object& obj, const KDL::SegmentMap::const_iterator segment) {
+    //const std::string& root = segment->second.segment.getName();
+
+    const std::vector<KDL::SegmentMap::const_iterator>& children = segment->second.children;
+    for (unsigned int i=0; i<children.size(); i++){
+        const KDL::Segment& child_kdl = children[i]->second.segment;
+
+        tf::Transform rel_pose;
+        tf::TransformKDLToTF(child_kdl.pose(0), rel_pose);
+
+        Object* child = new Object("robot_link");
+        obj.addChild(child, rel_pose);
+
+        links_[child_kdl.getName()] = child;
+
+        joint_to_link_[child_kdl.getJoint().getName()] = child;
+
+        // ALMOST THERE!
+        // Just update the pose of a link whenever a joints position is set
+
+        /*
+        SegmentPair s(children[i]->second.segment, root, child.getName());
+        if (child.getJoint().getType() == KDL::Joint::None){
+            segments_fixed_.insert(make_pair(child.getJoint().getName(), s));
+            ROS_DEBUG("Adding fixed segment from %s to %s", root.c_str(), child.getName().c_str());
+        }
+        else{
+            segments_.insert(make_pair(child.getJoint().getName(), s));
+            ROS_DEBUG("Adding moving segment from %s to %s", root.c_str(), child.getName().c_str());
+        }*/
+
+        cout << child_kdl.getName() << endl;
+
+
+        addChildren(*child, children[i]);
     }
 }
 
