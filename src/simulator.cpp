@@ -1,3 +1,15 @@
+/*
+
+    By Sjoerd van den Dries (2013)
+
+    TODO:
+       - Get rid of counting and replace with event queue
+
+
+
+
+*/
+
 #include <ros/ros.h>
 #include <ros/package.h>
 
@@ -62,73 +74,6 @@ bool setObject(fast_simulator::SetObject::Request& req, fast_simulator::SetObjec
     return true;
 
 
-
-    /*
-    map<string, Object*>::iterator it_obj = id_to_object_.find(req.id);
-
-    if (req.action == gazebo_life::Set::Request::DELETE) {
-        if (it_obj != id_to_object_.end()) {
-            delete it_obj->second;
-            id_to_object_.erase(it_obj);
-        } else {
-            res.result_msg = "Could not find object for deletion";
-        }
-    } else if (req.action == gazebo_life::Set::Request::SET_PARAMS) {
-        if (it_obj == id_to_object_.end()) {
-            res.result_msg = "Could not find object for setting path";
-            return true;
-        }
-
-        Object* obj = it_obj->second;
-
-        for(unsigned int i = 0; i < req.param_names.size(); ++i) {
-            if (req.param_names[i] == "velocity") {
-                obj->velocity_ = req.param_values[i];
-            } else {
-                res.result_msg = "Unknown parameter: " + req.param_names[i];
-                return true;
-            }
-        }
-    } else if (req.action == gazebo_life::Set::Request::SET_POSE) {
-        Object* obj = 0;
-        if (it_obj == id_to_object_.end()) {
-            obj = new Object();
-            obj->id_ = req.id;
-            id_to_object_[req.id] = obj;
-
-            if (req.type == "person") {
-                obj->addChild("face", 0, 0, 0.8);
-                obj->addChild("leg", 0,  0.1, -0.8);
-                obj->addChild("leg", 0, -0.1, -0.8);
-            }
-
-        } else {
-            obj = it_obj->second;
-        }
-
-        obj->type_ = req.type;
-        obj->current_goal_ = -1;
-        tf::poseStampedMsgToTF(req.pose, obj->pose_);
-    } else if (req.action == gazebo_life::Set::Request::SET_PATH) {
-        if (it_obj == id_to_object_.end()) {
-            res.result_msg = "Could not find object for setting path";
-            return true;
-        }
-
-        Object* obj = it_obj->second;
-
-        obj->current_goal_ = 0;
-        for(unsigned int i = 0; i < req.path.size(); ++i) {
-            tf::Stamped<tf::Pose> waypoint;
-            tf::poseStampedMsgToTF(req.path[i], waypoint);
-            obj->path_.push_back(waypoint);
-        }
-    }
-
-    res.result_msg = "";
-
-    return true;
-    */
 }
 
 void visualizeObjects() {
@@ -233,7 +178,7 @@ int main(int argc, char **argv) {
         tf::Transform tf_base_link_to_kinect;
         tf_base_link_to_kinect.setOrigin(tf::Vector3(0.07,  0,   1.33));
         tf_base_link_to_kinect.setRotation(tf::Quaternion(-0.51,   0.485,    -0.49,   0.514));
-        Kinect* top_kinect = new Kinect("/camera/rgb/image_rect_color", "/camera/depth_registered/image", "/camera/rgb/camera_info", "/openni_rgb_optical_frame");
+        Kinect* top_kinect = new Kinect("/camera/rgb/image_rect_color", "/camera/depth_registered/image", "/camera/rgb/camera_info", "/camera/rgb/points", "/openni_rgb_optical_frame");
         //top_kinect->addModel("loy", MODEL_DIR + "/kinect/loy");
         top_kinect->addModel("coke", MODEL_DIR + "/kinect/coke");
 
@@ -248,15 +193,35 @@ int main(int argc, char **argv) {
     double freq = 100;
     ros::Rate r(freq);
 
+    ros::Duration max_cycle_time(0);
+
     long count = 0;
+
+    ros::Time t = ros::Time(0);
+
     while(ros::ok()) {
+        double dt = 0;
+        if (t > ros::Time(0)) {
+            dt = (ros::Time::now() - t).toSec() * 2;
+        }
+        t = ros::Time::now();
+
+        ros::Time t_start = ros::Time::now();
+
         ros::spinOnce();
 
-        WORLD->step(1 / freq);
+        WORLD->step(dt);
 
         if (count % 10 == 0) {
             visualizeObjects();
         }
+
+        ros::Duration cycle_time = ros::Time::now() - t_start;
+        if (cycle_time > max_cycle_time) {
+            max_cycle_time = cycle_time;
+        }
+
+        cout << "Max main cycle duration: " << max_cycle_time << " seconds" << endl;
 
         ++count;
         r.sleep();

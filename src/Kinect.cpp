@@ -10,7 +10,7 @@
 
 using namespace std;
 
-Kinect::Kinect(const string& rgb_topic, const string& depth_topic, const string& info_topic, const string& frame_id) {
+Kinect::Kinect(const string& rgb_topic, const string& depth_topic, const string& info_topic, const string& point_cloud_topic, const string& frame_id) {
     image_loader_ = new ImageLoader(rgb_topic, depth_topic, info_topic, frame_id);
 
     cam_info_.header.frame_id = frame_id;
@@ -88,7 +88,7 @@ Kinect::Kinect(const string& rgb_topic, const string& depth_topic, const string&
     pub_rgb_ = nh.advertise<sensor_msgs::Image>(rgb_topic, 10);
     pub_depth_ = nh.advertise<sensor_msgs::Image>(depth_topic, 10);
     pub_cam_info_ = nh.advertise<sensor_msgs::CameraInfo>(info_topic, 10);
-    pub_point_cloud_ = nh.advertise<pcl::PointCloud<pcl::PointXYZ> >("points2", 1);
+    pub_point_cloud_ = nh.advertise<pcl::PointCloud<pcl::PointXYZ> >(point_cloud_topic, 1);
 
     double width = 3.2;
     double height = 2.4;
@@ -128,7 +128,9 @@ void Kinect::addModel(const std::string& type, const std::string& filename) {
 
 void Kinect::publish() {
 
-    //if (pub_cam_info_.getNumSubscribers() > 0 || pub_rgb_.getNumSubscribers() || pub_depth_.getNumSubscribers() > 0) {
+    ros::Time t_start = ros::Time::now();
+
+    //if (pub_cam_info_.getNumSubscribers() > 0 || pub_rgb_.getNumSubscribers() > 0 || pub_depth_.getNumSubscribers() > 0) {
 
         World& world = World::getInstance();
         map<string, Object*> objects = world.getObjects();
@@ -215,33 +217,5 @@ void Kinect::publish() {
 
    // }
 
+        cout << "Kinect::publish() took " << ros::Time::now() - t_start << endl;
 }
-
-/*
-#include <ros/ros.h>
-#include <pcl_ros/point_cloud.h>
-#include <pcl/point_types.h>
-
-typedef pcl::PointCloud<pcl::PointXYZ> PointCloud;
-
-int main(int argc, char** argv)
-{
-  ros::init (argc, argv, "pub_pcl");
-  ros::NodeHandle nh;
-  ros::Publisher pub = nh.advertise<PointCloud> ("points2", 1);
-
-  PointCloud::Ptr msg (new PointCloud);
-  msg->header.frame_id = "some_tf_frame";
-  msg->height = msg->width = 1;
-  msg->points.push_back (pcl::PointXYZ(1.0, 2.0, 3.0));
-
-  ros::Rate loop_rate(4);
-  while (nh.ok())
-  {
-    msg->header.stamp = ros::Time::now ();
-    pub.publish (msg);
-    ros::spinOnce ();
-    loop_rate.sleep ();
-  }
-}
- */

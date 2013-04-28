@@ -19,7 +19,7 @@ class Kinect : public Sensor {
 
 public:
 
-    Kinect(const std::string& rgb_topic, const std::string& depth_topic, const std::string& info_topic, const std::string& frame_id);
+    Kinect(const std::string& rgb_topic, const std::string& depth_topic, const std::string& info_topic, const std::string& point_cloud_topic, const std::string& frame_id);
 
     virtual ~Kinect();
 
