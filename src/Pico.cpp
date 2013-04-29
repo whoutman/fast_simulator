@@ -60,13 +60,15 @@ void Pico::step(double dt) {
     }
 
     if (ros::Time::now() - t_last_cmd_vel_ > ros::Duration(0.5)) {
-        this->velocity_.angular.x = 0;
-        this->velocity_.angular.y = 0;
-        this->velocity_.angular.z = 0;
+        geometry_msgs::Twist& vel = this->description_->velocity_;
 
-        this->velocity_.linear.x = 0;
-        this->velocity_.linear.y = 0;
-        this->velocity_.linear.z = 0;
+        vel.angular.x = 0;
+        vel.angular.y = 0;
+        vel.angular.z = 0;
+
+        vel.linear.x = 0;
+        vel.linear.y = 0;
+        vel.linear.z = 0;
     }
 
     if (count_ % 4 == 0) {
@@ -89,7 +91,7 @@ void Pico::step(double dt) {
     publishControlRefs();
 
     if (count_ % 10 == 0) {
-        laser_range_finder_->publish();
+        //laser_range_finder_->publish();
         front_sonar_->publishScan();
     }
 
@@ -105,7 +107,7 @@ double Pico::getJointPosition(const string& joint_name) {
 }
 
 void Pico::callbackCmdVel(const geometry_msgs::Twist::ConstPtr& msg) {
-    this->velocity_ = *msg;
+    this->description_->velocity_ = *msg;
     t_last_cmd_vel_ = ros::Time::now();
 }
 

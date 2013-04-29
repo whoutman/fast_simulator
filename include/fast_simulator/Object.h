@@ -5,6 +5,7 @@
 
 #include <string>
 #include <vector>
+#include <boost/shared_ptr.hpp>
 
 // TODO: better data structure
 #include <geometry_msgs/Twist.h>
@@ -13,16 +14,47 @@
 #include "fast_simulator/Event.h"
 
 class World;
+class Object;
+
+class ObjectDescription {
+
+public:
+
+    ObjectDescription();
+
+    virtual ~ObjectDescription();
+
+    std::string id_;
+
+    std::string type_;
+
+    Object* parent_;
+
+    Box* bounding_box_;
+
+    Shape* shape_;
+
+    geometry_msgs::Twist velocity_;
+
+    // scheduler
+
+    std::map<std::string, ros::Time> scheduled_events_;
+
+};
 
 class Object {
 
     friend class World;
+
+    friend class Kinect; // for testing
 
 public:
 
     Object(const std::string& type = "");
 
     virtual ~Object();
+
+    Object(const Object& orig);
 
     void addChild(Object* child);
 
@@ -46,33 +78,19 @@ public:
 
     bool intersect(const Ray &r, float t0, float t1, double& distance) const;
 
+    std::string toString(const std::string &indent = "") const;
+
 protected:
-
-    std::string id_;
-
-    std::string type_;
-
-    Object* parent_;
-
-    Box* bounding_box_;
-
-    Shape* shape_;
 
     bool has_pose_;
 
     tf::Transform pose_;
 
-    std::vector<Object*> parts_;
+    boost::shared_ptr<ObjectDescription> description_;
 
-    geometry_msgs::Twist velocity_;
-
-    // scheduler
-
-    std::map<std::string, ros::Time> scheduled_events_;
-
+    std::vector<Object> parts_;
 
     /*
-
 
     int current_goal_;
 

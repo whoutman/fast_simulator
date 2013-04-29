@@ -25,7 +25,7 @@ public:
 
     void addModel(const std::string& type, const std::string& filename);
 
-    void publish();
+    void step(World& world);
 
 protected:
 
@@ -46,7 +46,6 @@ protected:
 
     int grid_width_;
     int grid_height_;
-
 
     std::vector<tf::Vector3> ray_deltas_;
 

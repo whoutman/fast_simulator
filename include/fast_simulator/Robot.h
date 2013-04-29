@@ -34,15 +34,17 @@ public:
 
     void step(double dt);
 
-    void addSensor(Sensor *sensor, const tf::Transform& rel_pose);
+    void registerSensor(Sensor *sensor);
 
     void setJointPosition(const std::string& joint_name, double position);
 
     void setJointReference(const std::string& joint_name, double position);
 
-    double getJointPosition(const std::string& joint_name);
+    double getJointPosition(const std::string& joint_name) const;
 
     sensor_msgs::JointState getJointStates();
+
+    Object* getLink(const std::string& name) const;
 
 protected:
 
@@ -65,8 +67,6 @@ private:
     ros::Publisher pub_joint_states;
 
     std::map<std::string, Object*> links_;
-
-    std::map<std::string, Object*> joint_to_link_;
 
     Event event_loc_pub_;
     Event event_joint_states_pub_;

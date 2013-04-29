@@ -14,8 +14,6 @@ World* World::instance_ = 0;
 */
 
 World::World() {
-
-
     /*
 
 
@@ -39,12 +37,18 @@ World::World() {
     chairs_and_table->setPose(tf::Vector3(8.2, 3.8, 0.3), tf::Quaternion(0, 0, 0, 1));
     addObject("chairs-and-table-1", chairs_and_table);
     */
-
-
 }
 
 World::~World() {
+    for(map<string, Object*>::const_iterator it_obj = objects_.begin(); it_obj != objects_.end(); ++it_obj) {
+        delete it_obj->second;
+    }
+}
 
+World::World(const World& orig) {
+    for(map<string, Object*>::const_iterator it_obj = orig.objects_.begin(); it_obj != orig.objects_.end(); ++it_obj) {
+        objects_[it_obj->first] = new Object(*it_obj->second);
+    }
 }
 
 World& World::getInstance() {
@@ -62,7 +66,7 @@ void World::step(double dt) {
 }
 
 void World::addObject(const std::string& id, Object* obj) {
-    obj->id_ = id;
+    obj->description_->id_ = id;
     objects_[id] = obj;
 }
 
@@ -104,8 +108,7 @@ void World::createQuadTree(const nav_msgs::OccupancyGrid& map, unsigned int mx_m
     tf::Vector3 max_map((double)mx_max * map.info.resolution,
                         (double)my_max * map.info.resolution, 0.5);
     obj->setBoundingBox(Box(map_transform_ * min_map, map_transform_ * max_map));
-    // parent->addChild(obj, tf::Transform(tf::Quaternion(0, 0, 0, 1), tf::Vector3(0, 0, 0)));
-    parent->addChild(obj);
+    // parent->addChild(obj, tf::Transform(tf::Quaternion(0, 0, 0, 1), tf::Vector3(0, 0, 0)));  
 
     //cout << indent << mx_min << " - " << mx_max << ", " << my_min << " - " << my_max << endl;
 
@@ -139,6 +142,8 @@ void World::createQuadTree(const nav_msgs::OccupancyGrid& map, unsigned int mx_m
         createQuadTree(map, mx_min, cy , cx, my_max, obj, indent + "    ");
         createQuadTree(map, cx , cy , mx_max, my_max, obj, indent + "    ");
     }
+
+    parent->addChild(obj);
 }
 
 void World::initFromTopic(const std::string &topic) {
@@ -154,9 +159,18 @@ void World::initFromTopic(const std::string &topic) {
 
     Object* root = new Object("world");
     //root->pose_ = tf::Transform(tf::Quaternion(0, 0, 0, 1), tf::Vector3(1, 2, 3));
-    addObject("world", root);
+
+
 
     createQuadTree(world_map_, 0, 0, world_map_.info.width, world_map_.info.height, root);
+
+    Object* floor = new Object();
+    floor->setShape(Box(tf::Vector3(-100, -100, -0.2), tf::Vector3(100, 100, 0)));
+    root->addChild(floor);
+
+    addObject("world", root);
+
+
 
 }
 

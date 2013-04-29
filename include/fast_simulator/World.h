@@ -16,6 +16,10 @@ public:
 
     virtual ~World();
 
+    World(const World& orig);
+
+    World getCopy() const;
+
     void createQuadTree(const nav_msgs::OccupancyGrid& map, unsigned int mx_min, unsigned int my_min,
              unsigned int mx_max, unsigned int my_max, Object* parent, std::string indent = "");
 
@@ -34,7 +38,6 @@ public:
     bool isOccupied(const tf::Vector3& pos) const;
 
     bool intersect(const Ray& r, float t0, float t1, double& distance) const;
-
 
 protected:
 

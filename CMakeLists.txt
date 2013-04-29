@@ -25,6 +25,8 @@ rosbuild_gensrv()
 # to show include files in Qt Creator
 file(GLOB_RECURSE HEADER_FILES include/*.h)
 
+rosbuild_add_boost_directories()
+
 #common commands for building c++ executables and libraries
 #rosbuild_add_library(${PROJECT_NAME} src/example.cpp)
 #target_link_libraries(${PROJECT_NAME} another_library)
@@ -39,6 +41,7 @@ rosbuild_add_executable(simulator src/simulator.cpp
                                   src/Pico.cpp
                                   src/Box.cpp
                                   src/Ray.cpp
+                                  src/Sensor.cpp
                                   src/Sonar.cpp
                                   src/LRF.cpp
                                   src/Sonar.cpp
@@ -47,5 +50,7 @@ rosbuild_add_executable(simulator src/simulator.cpp
                                   src/Shape.cpp
                                   src/Event.cpp
                                   src/util.cpp ${HEADER_FILES})
+rosbuild_link_boost(simulator system)
+
 rosbuild_add_executable(amigo_teleporter src/amigo_teleporter.cpp)
 #target_link_libraries(example ${PROJECT_NAME})

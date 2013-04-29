@@ -175,14 +175,30 @@ int main(int argc, char **argv) {
         Amigo* amigo = new Amigo(nh, publish_localization);
 
         // add kinect
-        tf::Transform tf_base_link_to_kinect;
-        tf_base_link_to_kinect.setOrigin(tf::Vector3(0.07,  0,   1.33));
-        tf_base_link_to_kinect.setRotation(tf::Quaternion(-0.51,   0.485,    -0.49,   0.514));
+        //tf::Transform tf_base_link_to_kinect;
+        //tf_base_link_to_kinect.setOrigin(tf::Vector3(0.07,  0,   1.33));
+        //tf_base_link_to_kinect.setRotation(tf::Quaternion(-0.51,   0.485,    -0.49,   0.514));
         Kinect* top_kinect = new Kinect("/camera/rgb/image_rect_color", "/camera/depth_registered/image", "/camera/rgb/camera_info", "/camera/rgb/points", "/openni_rgb_optical_frame");
         //top_kinect->addModel("loy", MODEL_DIR + "/kinect/loy");
         top_kinect->addModel("coke", MODEL_DIR + "/kinect/coke");
 
-        amigo->addSensor(top_kinect, tf_base_link_to_kinect);
+        amigo->registerSensor(top_kinect);
+        amigo->getLink("openni_rgb_optical_frame")->addChild(top_kinect);
+
+
+        //tf::Transform tf_base_link_to_front_laser;
+        //tf_base_link_to_front_laser.setOrigin(tf::Vector3(0.31, 0, 0.3));
+        //tf_base_link_to_front_laser.setRotation(tf::Quaternion(0, 0, 0, 1));
+        LRF* laser_range_finder_ = new LRF("/base_scan", "/front_laser");
+        amigo->registerSensor(laser_range_finder_);
+        amigo->getLink("front_laser")->addChild(laser_range_finder_);
+
+        //tf::Transform tf_base_link_to_top_laser;
+        //tf_base_link_to_top_laser.setOrigin(tf::Vector3(0.31, 0, 1.0));
+        //tf_base_link_to_top_laser.setRotation(tf::Quaternion(0, 0, 0, 1));
+        //LRF* laser_range_finder_top_ = new LRF("/top_scan", "/front_laser");
+        //this->registerSensor(laser_range_finder_top_, tf_base_link_to_top_laser);
+
 
         amigo->setPose(tf::Vector3(-0.6, 0, 0), tf::Quaternion(0, 0, 0, 1));
         WORLD->addObject("amigo", amigo);
@@ -223,7 +239,7 @@ int main(int argc, char **argv) {
             max_cycle_time = cycle_time;
         }
 
-        //cout << "Max main cycle duration: " << max_cycle_time << " seconds" << endl;
+        cout << "Max main cycle duration: " << max_cycle_time << " seconds" << endl;
 
         ++count;
         r.sleep();

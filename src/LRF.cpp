@@ -35,7 +35,7 @@ LRF::~LRF() {
 
 }
 
-void LRF::publish() {
+void LRF::step(World& world) {
     scan.header.stamp = ros::Time::now();
 
     scan.ranges.clear();
@@ -49,7 +49,7 @@ void LRF::publish() {
         tf::Vector3 dir = tf::Transform(tf_map_to_laser.getRotation()) * laser_ray_deltas_[i];
         Ray r(laser_origin, dir);
         double distance;
-        if (!getWorldHandle()->intersect(r, 0, 9, distance)) {
+        if (!world.intersect(r, 0, 9, distance)) {
             distance = 9;
         }
 

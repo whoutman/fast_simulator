@@ -3,6 +3,10 @@
 
 #include <string>
 
+#include <kdl/segment.hpp>
+
+class Object;
+
 class Joint {
 
 public:
@@ -20,6 +24,13 @@ public:
     double reference_;
 
     double max_velocity_;
+
+    Object* link_;
+
+    // easiest for now. TODO: get rid of this (maybe KDL in general
+    // by creating new class Pose which can be configured with a joint
+    // position
+    KDL::Segment kdl_segment_;
 
 };
 

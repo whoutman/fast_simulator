@@ -116,6 +116,7 @@ Kinect::Kinect(const string& rgb_topic, const string& depth_topic, const string&
         y += dy;
     }
 
+
 }
 
 Kinect::~Kinect() {
@@ -126,14 +127,13 @@ void Kinect::addModel(const std::string& type, const std::string& filename) {
     type_to_filename_[type] = filename;
 }
 
-void Kinect::publish() {
+void Kinect::step(World& world) {
 
     ros::Time t_start = ros::Time::now();
 
     //if (pub_cam_info_.getNumSubscribers() > 0 || pub_rgb_.getNumSubscribers() > 0 || pub_depth_.getNumSubscribers() > 0) {
 
-        World& world = World::getInstance();
-        map<string, Object*> objects = world.getObjects();
+    map<string, Object*> objects = world.getObjects();
 
         string filename = "";
         for(map<string, Object*>::const_iterator it_obj = objects.begin(); it_obj != objects.end(); ++it_obj) {
@@ -165,6 +165,7 @@ void Kinect::publish() {
         } else {
 
 
+
             ros::Time time = ros::Time::now();
             cam_info_.header.stamp = time;
             image_rgb_.header.stamp = time;
@@ -180,24 +181,32 @@ void Kinect::publish() {
             tf::Transform tf_map_to_kinect = getAbsolutePose();
             tf::Vector3 kinect_origin = tf_map_to_kinect.getOrigin();
 
+            double step_x = (double)640 / grid_width_;
+            double step_y = (double)480 / grid_height_;
+
             int i = 0;
             for(int iy = 0; iy < grid_width_; ++iy) {
                 for(int ix = 0; ix < grid_height_; ++ix) {
                     //image_depth_.image.at<float>(y, x) = (double)x / 640;
 
                     tf::Vector3 dir = tf::Transform(tf_map_to_kinect.getRotation()) * ray_deltas_[i];
-
                     Ray r(kinect_origin, dir);
-                    double distance;
-                    if (!getWorldHandle()->intersect(r, 0, 50, distance)) {
-                        //distance = 100;
-                        msg->points.push_back(pcl::PointXYZ(0, 0, 0));
-                    } else {
+
+                    double distance = 0;
+                    if (world.intersect(r, 0, 5, distance)) {
                         tf::Vector3 intersect_pos_kinect = ray_deltas_[i] * distance;
                         msg->points.push_back(pcl::PointXYZ(intersect_pos_kinect.x(), intersect_pos_kinect.y(), intersect_pos_kinect.z()));
+                    } else {
+                        msg->points.push_back(pcl::PointXYZ(0, 0, 0));
                     }
 
                     i++;
+
+                    for(int y = iy * step_y; y < min(480.0, (iy + 1) * step_y); ++y) {
+                       for(int x = ix * step_x; x < min(640.0, (ix + 1) * step_x); ++x) {
+                            image_depth_.image.at<float>(y, x) = distance;
+                        }
+                    }
                 }
             }
 

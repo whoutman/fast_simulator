@@ -14,7 +14,7 @@ public:
 
     virtual ~LRF();
 
-    void publish();
+    void step(World& world);
 
 protected:
 

@@ -27,9 +27,6 @@ Amigo::Amigo(ros::NodeHandle& nh, bool publish_localization) : Robot(nh, publish
     setJointPosition("finger2_joint_right", 0.6000300525013822);
     setJointPosition("finger1_tip_joint_right", -0.1999953219398023);
     setJointPosition("finger2_tip_joint_right", -0.20000480019727807);
-    setJointPosition("base_phi_joint", -1.9961446717786657e-07);
-    setJointPosition("base_x_joint", -3.771623482909497e-05);
-    setJointPosition("base_y_joint", -7.877193603413587e-08);
     setJointPosition("neck_pan_joint", -3.033573445776483e-07);
     setJointPosition("neck_tilt_joint", 0.00029286782768789266);
 
@@ -59,18 +56,6 @@ Amigo::Amigo(ros::NodeHandle& nh, bool publish_localization) : Robot(nh, publish
 
     pub_left_gripper_ = nh.advertise<amigo_msgs::AmigoGripperMeasurement>("/arm_left_controller/gripper_measurement", 10);
     pub_right_gripper_ = nh.advertise<amigo_msgs::AmigoGripperMeasurement>("/arm_right_controller/gripper_measurement", 10);
-
-    tf::Transform tf_base_link_to_front_laser;
-    tf_base_link_to_front_laser.setOrigin(tf::Vector3(0.31, 0, 0.3));
-    tf_base_link_to_front_laser.setRotation(tf::Quaternion(0, 0, 0, 1));
-    LRF* laser_range_finder_ = new LRF("/base_scan", "/front_laser");
-    this->addSensor(laser_range_finder_, tf_base_link_to_front_laser);
-
-    tf::Transform tf_base_link_to_top_laser;
-    tf_base_link_to_top_laser.setOrigin(tf::Vector3(0.31, 0, 1.0));
-    tf_base_link_to_top_laser.setRotation(tf::Quaternion(0, 0, 0, 1));
-    LRF* laser_range_finder_top_ = new LRF("/top_scan", "/front_laser");
-    this->addSensor(laser_range_finder_top_, tf_base_link_to_top_laser);
 
     // SUBSCRIBERS
 
@@ -112,13 +97,15 @@ void Amigo::step(double dt) {
     Robot::step(dt);
 
     if (ros::Time::now() - t_last_cmd_vel_ > ros::Duration(0.5)) {
-        this->velocity_.angular.x = 0;
-        this->velocity_.angular.y = 0;
-        this->velocity_.angular.z = 0;
+        geometry_msgs::Twist& vel = this->description_->velocity_;
 
-        this->velocity_.linear.x = 0;
-        this->velocity_.linear.y = 0;
-        this->velocity_.linear.z = 0;
+        vel.angular.x = 0;
+        vel.angular.y = 0;
+        vel.angular.z = 0;
+
+        vel.linear.x = 0;
+        vel.linear.y = 0;
+        vel.linear.z = 0;
     }
 
     if (event_odom_pub_.isScheduled()) {
@@ -133,7 +120,7 @@ void Amigo::step(double dt) {
 }
 
 void Amigo::callbackCmdVel(const geometry_msgs::Twist::ConstPtr& msg) {
-    this->velocity_ = *msg;
+    this->description_->velocity_ = *msg;
     t_last_cmd_vel_ = ros::Time::now();
 }
 

@@ -39,15 +39,20 @@ void Robot::addChildren(Object& obj, const KDL::SegmentMap::const_iterator segme
     for (unsigned int i=0; i<children.size(); i++){
         const KDL::Segment& child_kdl = children[i]->second.segment;
 
+        Joint* joint = new Joint(0);
+        joints_[child_kdl.getJoint().getName()] = joint;
+
         tf::Transform rel_pose;
-        tf::TransformKDLToTF(child_kdl.pose(0), rel_pose);
+        tf::TransformKDLToTF(child_kdl.pose(joint->position_), rel_pose);
 
         Object* child = new Object("robot_link");
+        addChildren(*child, children[i]);
+
         obj.addChild(child, rel_pose);
 
         links_[child_kdl.getName()] = child;
-
-        joint_to_link_[child_kdl.getJoint().getName()] = child;
+        joint->link_ = child;
+        joint->kdl_segment_ = child_kdl;
 
         // ALMOST THERE!
         // Just update the pose of a link whenever a joints position is set
@@ -66,7 +71,7 @@ void Robot::addChildren(Object& obj, const KDL::SegmentMap::const_iterator segme
         cout << child_kdl.getName() << endl;
 
 
-        addChildren(*child, children[i]);
+
     }
 }
 
@@ -76,6 +81,11 @@ void Robot::step(double dt) {
     for(map<string, Joint*>::iterator it_joint = joints_.begin(); it_joint != joints_.end(); ++it_joint) {
         Joint* joint = it_joint->second;
         joint->step(dt);
+
+        // TODO: make this much nicer (see Joint::kdl_segment_)
+        tf::Transform rel_pose;
+        tf::TransformKDLToTF(joint->kdl_segment_.pose(joint->position_), rel_pose);
+        joint->link_->setPose(rel_pose.getOrigin(), rel_pose.getRotation());
     }
 
     if (event_loc_pub_.isScheduled()) {
@@ -90,25 +100,30 @@ void Robot::step(double dt) {
         pub_joint_states.publish(joint_states);
     }
 
+    /*
     if (event_sensors_pub_.isScheduled()) {
         for(vector<Sensor*>::iterator it_sensor = sensors_.begin(); it_sensor != sensors_.end(); ++it_sensor) {
             Sensor* sensor = *it_sensor;
             sensor->publish();
         }
     }
+    */
 }
 
-void Robot::addSensor(Sensor* sensor, const tf::Transform& rel_pose) {
-    this->addChild(sensor, rel_pose);
+void Robot::registerSensor(Sensor* sensor) {
+    //this->addChild(sensor, rel_pose);
     sensors_.push_back(sensor);
+    sensor->start();
 }
 
 void Robot::setJointPosition(const string& joint_name, double position) {
     map<std::string, Joint*>::iterator it_jnt = joints_.find(joint_name);
     if (it_jnt == joints_.end()) {
-        joints_[joint_name] = new Joint(position);
+        ROS_ERROR("Joint %s does not exist", joint_name.c_str());
     } else {
         it_jnt->second->position_ = position;
+        it_jnt->second->reference_ = position;
+        cout << "Setting " << joint_name << " to " << it_jnt->second->position_ << endl;
     }
 }
 
@@ -116,8 +131,13 @@ void Robot::setJointReference(const string& joint_name, double position) {
     joints_[joint_name]->reference_ = position;
 }
 
-double Robot::getJointPosition(const string& joint_name) {
-    return joints_[joint_name]->position_;
+double Robot::getJointPosition(const string& joint_name) const {
+    map<std::string, Joint*>::const_iterator it_jnt = joints_.find(joint_name);
+    if (it_jnt == joints_.end()) {
+        ROS_ERROR("Joint %s does not exist", joint_name.c_str());
+        return 0;
+    }
+    return it_jnt->second->position_;
 }
 
 sensor_msgs::JointState Robot::getJointStates() {
@@ -131,4 +151,14 @@ sensor_msgs::JointState Robot::getJointStates() {
     }
 
     return joint_states;
+}
+
+Object* Robot::getLink(const std::string& name) const {
+    std::map<std::string, Object*>::const_iterator it = links_.find(name);
+    if (it != links_.end()) {
+        return it->second;
+    } else {
+        ROS_ERROR("Link %s does not exist", name.c_str());
+        return 0;
+    }
 }
