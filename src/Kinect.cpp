@@ -90,28 +90,21 @@ Kinect::Kinect(const string& rgb_topic, const string& depth_topic, const string&
     pub_cam_info_ = nh.advertise<sensor_msgs::CameraInfo>(info_topic, 10);
     pub_point_cloud_ = nh.advertise<pcl::PointCloud<pcl::PointXYZ> >(point_cloud_topic, 1);
 
-    double width = 3.2;
-    double height = 2.4;
+    double width = 2.172;
+    double height = width * 0.75;
 
-    //grid_width_ = 128;
-    //grid_height_ = 96;
-    grid_width_ = 320;
-    grid_height_ = 240;
-
-
-    double x = -width / 2;
-    double y = -height / 2;
+    grid_width_ = 128;
+    grid_height_ = 96;
+    //grid_width_ = 320;
+    //grid_height_ = 240;
 
     double dx = width / grid_width_;
     double dy = height / grid_height_;
 
-    for(int iy = 0; iy < grid_width_; ++iy) {
-        x = -width / 2;
-        for(int ix = 0; ix < grid_height_; ++ix) {
-            // x, 1, y      X
-            // 1, x, y      X
-            // x, y, 1      OK
-
+    double y = -height / 2;
+    for(int iy = 0; iy < grid_height_; ++iy) {
+        double x = -width / 2;
+        for(int ix = 0; ix < grid_width_; ++ix) {
             ray_deltas_.push_back(tf::Vector3(x, y, 1).normalize());
             //std::cout << x << ", " << y << std::endl;
             x += dx;
@@ -188,8 +181,8 @@ void Kinect::step(World& world) {
             double step_y = (double)480 / grid_height_;
 
             int i = 0;
-            for(int iy = 0; iy < grid_width_; ++iy) {
-                for(int ix = 0; ix < grid_height_; ++ix) {
+            for(int iy = 0; iy < grid_height_; ++iy) {
+                for(int ix = 0; ix < grid_width_; ++ix) {
                     //image_depth_.image.at<float>(y, x) = (double)x / 640;
 
                     tf::Vector3 dir = tf::Transform(tf_map_to_kinect.getRotation()) * ray_deltas_[i];
