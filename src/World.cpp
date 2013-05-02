@@ -115,7 +115,7 @@ void World::createQuadTree(const nav_msgs::OccupancyGrid& map, unsigned int mx_m
     // cout << indent << toString(min_map) << ", " << toString(max_map) << endl;
 
 
-    if (mx_max - mx_min < 10 || my_max - my_min < 10) {
+    if (mx_max - mx_min <= 2 || my_max - my_min <= 2) {
         for(unsigned int mx = mx_min; mx < mx_max; ++mx) {
             for(unsigned int my = my_min; my < my_max; ++my) {
                 if (map.data[map.info.width * my + mx] > 10 ) {

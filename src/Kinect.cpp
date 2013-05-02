@@ -93,10 +93,10 @@ Kinect::Kinect(const string& rgb_topic, const string& depth_topic, const string&
     double width = 2.172;
     double height = width * 0.75;
 
-    grid_width_ = 128;
-    grid_height_ = 96;
-    //grid_width_ = 320;
-    //grid_height_ = 240;
+    //grid_width_ = 128;
+    //grid_height_ = 96;
+    grid_width_ = 320;
+    grid_height_ = 240;
 
     double dx = width / grid_width_;
     double dy = height / grid_height_;
