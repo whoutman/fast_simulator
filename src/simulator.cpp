@@ -175,9 +175,9 @@ int main(int argc, char **argv) {
         pico->registerSensor(laser_range_finder_);
         pico->getLink("laser")->addChild(laser_range_finder_);
 
-        Sonar* front_sonar_ = new Sonar("/robot/body/sonar_front", "/laser");
+        Sonar* front_sonar_ = new Sonar("/robot/body/sonar_front", "/sonar_front");
         pico->registerSensor(front_sonar_);
-        pico->getLink("laser")->addChild(front_sonar_);
+        pico->getLink("sonar_front")->addChild(front_sonar_);
 
         /*
          *
