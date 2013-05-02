@@ -28,7 +28,7 @@ Sonar::~Sonar() {
 
 }
 
-void Sonar::publishScan() {
+void Sonar::step(World& world) {
     output_.header.stamp = ros::Time::now();
 
     tf::Transform tf_map_to_sonar = getAbsolutePose();
@@ -41,7 +41,7 @@ void Sonar::publishScan() {
         Ray r(sonar_origin, dir);
 
         double distance;
-        if (getWorldHandle()->intersect(r, 0, 9, distance)) {
+        if (world.intersect(r, 0, 9, distance)) {
             if (distance < output_.range) {
                 output_.range = distance;
             }

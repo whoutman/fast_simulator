@@ -19,7 +19,9 @@
 #include "fast_simulator/LRF.h"
 #include "fast_simulator/Sonar.h"
 
-class Pico : public Object {
+#include "fast_simulator/Robot.h"
+
+class Pico : public Robot {
 
 public:
 
@@ -31,10 +33,6 @@ public:
 
 protected:
 
-    ros::NodeHandle& nh_;
-
-    bool publish_localization_;
-
     tf::StampedTransform tf_map_to_odom;
     tf::StampedTransform tf_odom_to_base_link;
 
@@ -43,26 +41,12 @@ protected:
     ros::Publisher pub_head_pan_;
     ros::Publisher pub_head_tilt_;
 
-    ros::Publisher pub_joint_states;
-
     ros::Subscriber sub_cmd_vel;
 
     ros::Subscriber sub_init_pose;
 
     ros::Subscriber sub_head_pan_;
     ros::Subscriber sub_head_tilt_;
-
-    tf::TransformBroadcaster tf_broadcaster_;
-
-    std::map<std::string, Joint*> joints_;
-
-    LRF* laser_range_finder_;
-
-    Sonar* front_sonar_;
-
-    void setJointReference(const std::string& joint_name, double position);
-
-    double getJointPosition(const std::string& joint_name);
 
     void callbackCmdVel(const geometry_msgs::Twist::ConstPtr& msg);
 
@@ -74,9 +58,7 @@ protected:
 
     void publishControlRefs();
 
-    sensor_msgs::JointState getJointStates();
-
-    long count_;
+    Event event_odom_pub_;
 
 };
 

@@ -80,11 +80,15 @@ public:
 
     std::string toString(const std::string &indent = "") const;
 
-protected:
+private:
 
     bool has_pose_;
 
     tf::Transform pose_;
+
+    tf::Transform pose_inv_;
+
+protected:
 
     boost::shared_ptr<ObjectDescription> description_;
 

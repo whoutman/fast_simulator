@@ -110,8 +110,8 @@ void Amigo::step(double dt) {
 
     if (event_odom_pub_.isScheduled()) {
         tf_odom_to_base_link.stamp_ = ros::Time::now();
-        tf_odom_to_base_link.setOrigin(this->pose_.getOrigin());
-        tf_odom_to_base_link.setRotation(this->pose_.getRotation());
+        tf_odom_to_base_link.setOrigin(getAbsolutePose().getOrigin());
+        tf_odom_to_base_link.setRotation(getAbsolutePose().getRotation());
         tf_broadcaster_.sendTransform(tf_odom_to_base_link);
     }
 
@@ -178,7 +178,9 @@ void Amigo::callbackRightArm(const amigo_msgs::arm_joints::ConstPtr& msg) {
 }
 
 void Amigo::callbackInitialPose(const geometry_msgs::PoseWithCovarianceStamped::ConstPtr& msg) {
-    tf::poseMsgToTF(msg->pose.pose, this->pose_);
+    tf::Transform pose;
+    tf::poseMsgToTF(msg->pose.pose, pose);
+    setPose(pose.getOrigin(), pose.getRotation());
 }
 
 void Amigo::publishControlRefs() {

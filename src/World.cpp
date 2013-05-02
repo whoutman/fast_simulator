@@ -166,12 +166,9 @@ void World::initFromTopic(const std::string &topic) {
 
     Object* floor = new Object();
     floor->setShape(Box(tf::Vector3(-100, -100, -0.2), tf::Vector3(100, 100, 0)));
-    root->addChild(floor);
+    //root->addChild(floor);
 
     addObject("world", root);
-
-
-
 }
 
 void World::callbackMap(const nav_msgs::OccupancyGrid::ConstPtr& msg) {

@@ -1,12 +1,12 @@
 #ifndef _FAST_SIMULATOR_SONAR_H_
 #define _FAST_SIMULATOR_SONAR_H_
 
-#include "Object.h"
+#include "Sensor.h"
 
 #include <ros/ros.h>
 #include <sensor_msgs/Range.h>
 
-class Sonar : public Object {
+class Sonar : public Sensor {
 
 public:
 
@@ -14,7 +14,7 @@ public:
 
     virtual ~Sonar();
 
-    void publishScan();
+    void step(World& world);
 
 protected:
 

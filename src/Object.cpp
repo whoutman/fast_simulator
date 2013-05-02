@@ -16,16 +16,16 @@ ObjectDescription::~ObjectDescription() {
 Object::Object(const string& type) : has_pose_(false), description_(new ObjectDescription()) {
     pose_.setOrigin(tf::Vector3(0, 0, 0));
     pose_.setRotation(tf::Quaternion(0, 0, 0, 1));
+    pose_inv_ = pose_.inverse();
     description_->type_ = type;
 }
 
 Object::~Object() {
 }
 
-Object::Object(const Object& orig) : has_pose_(orig.has_pose_), description_(orig.description_), parts_(orig.parts_) {
-    if (has_pose_) {
-        pose_ = orig.pose_;
-    }
+Object::Object(const Object& orig) : has_pose_(orig.has_pose_), pose_(orig.pose_), pose_inv_(orig.pose_inv_),
+        description_(orig.description_), parts_(orig.parts_) {
+
 }
 
 void Object::addChild(Object* child) {
@@ -35,6 +35,7 @@ void Object::addChild(Object* child) {
 
 void Object::addChild(Object* child, const tf::Transform& rel_pose) {
     child->pose_ = rel_pose;
+    child->pose_inv_ = pose_.inverse();
     child->has_pose_ = true;
     addChild(child);
 }
@@ -76,6 +77,7 @@ void Object::setShape(const Shape& shape) {
 void Object::setPose(const tf::Vector3& pos, const tf::Quaternion& rot) {
     pose_.setOrigin(pos);
     pose_.setRotation(rot);
+    pose_inv_ = pose_.inverse();
     has_pose_ = true;
 }
 
@@ -88,16 +90,18 @@ const string& Object::getType() const {
 }
 
 bool Object::intersect(const Ray &r, float t0, float t1, double& distance) const {
+    if (getID() == "amigo") {
+        return false;
+    }
+
     if (!description_->bounding_box_ && !description_->shape_ && parts_.empty()) {
         return false;
     }
 
     Ray r_transformed = r;
     if (has_pose_) {
-        tf::Transform inv = this->pose_.inverse();
-        tf::Transform inv_rot(inv.getRotation(), tf::Vector3(0, 0, 0));
-
-        r_transformed = Ray(inv * r.origin, inv_rot * r.direction);
+        tf::Transform inv_rot(pose_inv_.getRotation(), tf::Vector3(0, 0, 0));
+        r_transformed = Ray(pose_inv_ * r.origin, inv_rot * r.direction);
     }
 
     if (description_->bounding_box_ && !description_->bounding_box_->intersect(r_transformed, t0, t1, distance)) {
