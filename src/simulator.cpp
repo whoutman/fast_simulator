@@ -164,6 +164,7 @@ int main(int argc, char **argv) {
 
     // parse world
 
+    /*
     ModelParser parser(MODEL_DIR + "/models/table.xml");
     if (!parser.parse()) {
         ROS_ERROR("Could not parse models: %s", parser.getError().c_str());
@@ -171,6 +172,7 @@ int main(int argc, char **argv) {
     }
 
     return 0;
+    */
 
 
 

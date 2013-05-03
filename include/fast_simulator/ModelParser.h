@@ -3,6 +3,8 @@
 
 #include "Object.h"
 
+class TiXmlElement;
+
 class ModelParser {
 
 public:
@@ -11,7 +13,9 @@ public:
 
     virtual ~ModelParser();
 
-    Object* parse();
+    std::vector<double> parseArray(const TiXmlElement* xml_elem);
+
+    bool parse(std::vector<Object> &models);
 
     std::string getError() const;
 
