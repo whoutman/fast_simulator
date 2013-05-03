@@ -42,13 +42,19 @@ bool setObject(fast_simulator::SetObject::Request& req, fast_simulator::SetObjec
     if (req.action == fast_simulator::SetObject::Request::SET_POSE) {
 
         if (!obj) {
-            map<string, Object>::iterator it_model = MODELS.find(req.type);
-            if (it_model == MODELS.end()) {
-                cout << "Unknown model type: '" << req.type << "'" << endl;
-                return true;
+            if (req.type == "box") {
+                obj = new Object(req.type);
+                obj->setShape(Box(tf::Vector3(-0.4, -0.4, 0), tf::Vector3(0.4, 0.4, 1)));
+                WORLD->addObject(req.id, obj);
+            } else {
+                map<string, Object>::iterator it_model = MODELS.find(req.type);
+                if (it_model == MODELS.end()) {
+                    cout << "Unknown model type: '" << req.type << "'" << endl;
+                    return true;
+                }
+                obj = new Object(it_model->second);
+                WORLD->addObject(req.id, obj);
             }
-            obj = new Object(it_model->second);
-            WORLD->addObject(req.id, obj);
         }
 
         /*
@@ -179,7 +185,7 @@ int main(int argc, char **argv) {
     // parse world
 
     MODELS.clear();
-    ModelParser parser(MODEL_DIR + "/models/table.xml");
+    ModelParser parser(MODEL_DIR + "/models/models.xml");
     if (!parser.parse(MODELS)) {
         ROS_ERROR("Could not parse models: %s", parser.getError().c_str());
     }

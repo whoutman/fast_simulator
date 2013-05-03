@@ -78,6 +78,8 @@ public:
 
     bool intersect(const Ray &r, float t0, float t1, double& distance) const;
 
+    void getBoundingBox(tf::Vector3 &min, tf::Vector3 &max) const;
+
     std::string toString(const std::string &indent = "") const;
 
 private:

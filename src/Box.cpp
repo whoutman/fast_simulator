@@ -36,3 +36,8 @@ bool Box::intersect(const Ray &r, float t0, float t1, double& distance) const {
     return t0 < tmax && tmin < t1;
 }
 
+void Box::getBoundingBox(tf::Vector3 &min, tf::Vector3 &max) const {
+    min = bounds[0];
+    max = bounds[1];
+}
+

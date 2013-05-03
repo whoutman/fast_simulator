@@ -133,6 +133,24 @@ bool Object::intersect(const Ray &r, float t0, float t1, double& distance) const
     return has_intersect;
 }
 
+void Object::getBoundingBox(tf::Vector3& min, tf::Vector3& max) const {
+    description_->shape_->getBoundingBox(min, max);
+    for(vector<Object>::const_iterator it_part = parts_.begin(); it_part != parts_.end(); ++it_part) {
+        const Object& obj = *it_part;
+
+        tf::Vector3 min2, max2;
+        obj.getBoundingBox(min2, max2);
+        min.setX(std::min(min.x(), min2.x()));
+        min.setY(std::min(min.y(), min2.y()));
+        min.setZ(std::min(min.z(), min2.z()));
+
+        max.setX(std::max(max.x(), max2.x()));
+        max.setY(std::max(max.y(), max2.y()));
+        max.setZ(std::max(max.z(), max2.z()));
+    }
+}
+
+
 #include <sstream>
 #include "fast_simulator/util.h"
 

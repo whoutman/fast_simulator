@@ -79,15 +79,12 @@ bool ModelParser::parse(map<std::string, Object>& models) {
                         if (rpy.empty()) {
                             obj->setShape(Box(v_pos - v_size / 2, v_pos + v_size / 2));
                         } else {
-                            cout << "RPY" << endl;
                             obj->setShape(Box(-v_size / 2, v_size / 2));
                             tf::Quaternion q;
                             q.setRPY(rpy[0], rpy[1], rpy[2]);
                             obj->setPose(v_pos, q);
                         }
                         model.addChild(obj);
-
-
                     } else {
                         error_ << "In definition for model '" << name << "': shape '" << shape_type << "' has no size property" << endl;
                     }
@@ -103,10 +100,6 @@ bool ModelParser::parse(map<std::string, Object>& models) {
                 cout << "... Parsing successfully ..." << endl;
                 models[name] = model;
             }
-
-
-
-
         } else {
             error_ << "Encountered model without 'name' attribute." << endl;
         }

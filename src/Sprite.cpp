@@ -28,7 +28,6 @@ Sprite* Sprite::clone() const {
     return new Sprite(*this);
 }
 
-
 bool Sprite::intersect(const Ray& r, float t0, float t1, double& distance) const {
     tf::Vector3 delta = r.direction * resolution_ * 0.25;
 
@@ -48,4 +47,9 @@ bool Sprite::intersect(const Ray& r, float t0, float t1, double& distance) const
     }
 
     return false;
+}
+
+void Sprite::getBoundingBox(tf::Vector3 &min, tf::Vector3 &max) const {
+    min = tf::Vector3(-width_ / 2, -height_ / 2, z_min_);
+    max = tf::Vector3(width_ / 2, height_ / 2, z_max_);
 }

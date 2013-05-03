@@ -13,6 +13,8 @@ public:
 
     bool intersect(const Ray &, float t0, float t1, double& distance) const;
 
+    void getBoundingBox(tf::Vector3 &min, tf::Vector3 &max) const;
+
     tf::Vector3 bounds[2];
 
 };
