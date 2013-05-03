@@ -16,6 +16,9 @@ public:
     tf::Vector3 inv_direction;
 
     int sign[3];
+
+
+    mutable int nr_intersection_calcs_;
 };
 
 #endif

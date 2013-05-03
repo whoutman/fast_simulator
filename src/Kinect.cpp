@@ -180,6 +180,8 @@ void Kinect::step(World& world) {
             double step_x = (double)640 / grid_width_;
             double step_y = (double)480 / grid_height_;
 
+            double total_nr_intersects = 0;
+
             int i = 0;
             for(int iy = 0; iy < grid_height_; ++iy) {
                 for(int ix = 0; ix < grid_width_; ++ix) {
@@ -203,8 +205,14 @@ void Kinect::step(World& world) {
                             image_depth_.image.at<float>(y, x) = distance;
                         }
                     }
+
+
+
+                    total_nr_intersects += r.nr_intersection_calcs_;
                 }
             }
+
+            //cout << "Avg #intersections per ray = " << total_nr_intersects / i << endl;
 
 
             pub_cam_info_.publish(cam_info_);

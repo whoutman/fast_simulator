@@ -183,7 +183,7 @@ bool World::intersect(const Ray& r, float t0, float t1, double& distance) const 
     for(map<string, Object*>::const_iterator it_obj = objects_.begin(); it_obj != objects_.end(); ++it_obj) {
         Object* obj = it_obj->second;
         double dist;
-        if (obj->intersect(r, t0, t1, dist)) {
+        if (obj->intersect(r, t0, distance, dist)) {
             has_intersection = true;
             distance = min (dist, distance);
         }

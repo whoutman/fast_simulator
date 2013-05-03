@@ -104,7 +104,10 @@ bool Object::intersect(const Ray &r, float t0, float t1, double& distance) const
         r_transformed = Ray(pose_inv_ * r.origin, inv_rot * r.direction);
     }
 
+    r.nr_intersection_calcs_++;
+
     if (description_->bounding_box_ && !description_->bounding_box_->intersect(r_transformed, t0, t1, distance)) {
+        r.nr_intersection_calcs_ += r_transformed.nr_intersection_calcs_;
         return false;
     }
 
@@ -120,11 +123,13 @@ bool Object::intersect(const Ray &r, float t0, float t1, double& distance) const
 
     for(vector<Object>::const_iterator it_part = parts_.begin(); it_part != parts_.end(); ++it_part) {
         const Object& obj = *it_part;
-        if (obj.intersect(r_transformed, t0, t1, dist)) {
+        if (obj.intersect(r_transformed, t0, distance, dist)) {
             has_intersect = true;
             distance = min(distance, dist);
         }
     }
+
+    r.nr_intersection_calcs_ += r_transformed.nr_intersection_calcs_;
     return has_intersect;
 }
 
