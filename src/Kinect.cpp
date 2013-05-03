@@ -95,16 +95,16 @@ Kinect::Kinect(const string& rgb_topic, const string& depth_topic, const string&
 
     // calculate ray directions
 
-    double width = 2.172;
-    double height = width * 0.75;
+    double fov_width = 1.539864964;
+    double fov_height = 0.932515086;
 
-    double dx = width / width_;
-    double dy = height / height_;
+    double dx = fov_width / width_;
+    double dy = fov_height / height_;
 
     ray_deltas_.resize(height_);
-    double y = -height / 2;
+    double y = -fov_height / 2;
     for(int iy = 0; iy < height_; ++iy) {
-        double x = -width / 2;
+        double x = -fov_width / 2;
         for(int ix = 0; ix < width_; ++ix) {
             ray_deltas_[iy].push_back(tf::Vector3(x, y, 1).normalize());
             //std::cout << x << ", " << y << std::endl;

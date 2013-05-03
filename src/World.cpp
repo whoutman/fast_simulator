@@ -106,7 +106,7 @@ void World::createQuadTree(const nav_msgs::OccupancyGrid& map, unsigned int mx_m
     tf::Vector3 min_map((double)mx_min * map.info.resolution,
                         (double)my_min * map.info.resolution, 0);
     tf::Vector3 max_map((double)mx_max * map.info.resolution,
-                        (double)my_max * map.info.resolution, 0.5);
+                        (double)my_max * map.info.resolution, 1.5);
     obj->setBoundingBox(Box(map_transform_ * min_map, map_transform_ * max_map));
     // parent->addChild(obj, tf::Transform(tf::Quaternion(0, 0, 0, 1), tf::Vector3(0, 0, 0)));  
 
@@ -127,7 +127,7 @@ void World::createQuadTree(const nav_msgs::OccupancyGrid& map, unsigned int mx_m
                     Object* child = new Object();
                     child->setShape(Box(pos, tf::Vector3(pos.x() + map.info.resolution,
                                                        pos.y() + map.info.resolution,
-                                                       0.5)));
+                                                       1.5)));
                     obj->addChild(child, tf::Transform(tf::Quaternion(0, 0, 0, 1), tf::Vector3(0, 0, 0)));
                 }
             }
