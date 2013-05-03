@@ -26,7 +26,7 @@ vector<double> ModelParser::parseArray(const TiXmlElement* xml_elem) {
     return v;
 }
 
-bool ModelParser::parse(vector<Object>& models) {
+bool ModelParser::parse(map<std::string, Object>& models) {
     TiXmlDocument doc(filename_);
     doc.LoadFile();
 
@@ -49,6 +49,8 @@ bool ModelParser::parse(vector<Object>& models) {
             vector<double> rpy;
             vector<double> size;
 
+            Object model(name);
+
             const TiXmlElement* shape_xml = model_xml->FirstChildElement();
             while(shape_xml) {
                 string shape_type = shape_xml->Value();
@@ -61,21 +63,29 @@ bool ModelParser::parse(vector<Object>& models) {
                     const TiXmlElement* rpy_xml = shape_xml->FirstChildElement("rpy");
                     if (rpy_xml) {
                         rpy = parseArray(rpy_xml);
-                        /*
-                        if (abs(rpy[0] < 0.0001 && abs(rpy[0] < 0.0001 && abs(rpy[0] < 0.0001)) {
-
+                        if (fabs(rpy[0]) < 0.0001 && fabs(rpy[1]) < 0.0001 && fabs(rpy[2]) < 0.0001) {
+                            rpy.clear();
                         }
-                        */
                     }
 
                     const TiXmlElement* size_xml = shape_xml->FirstChildElement("size");
                     if (size_xml) {
                         size = parseArray(size_xml);
 
-                        tf::Vector3 pos(xyz[0], xyz[1], xyz[2]);
+                        tf::Vector3 v_pos(xyz[0], xyz[1], xyz[2]);
+                        tf::Vector3 v_size(size[0], size[1], size[2]);
 
-                        //Box b()
-
+                        Object* obj = new Object();
+                        if (rpy.empty()) {
+                            obj->setShape(Box(v_pos - v_size / 2, v_pos + v_size / 2));
+                        } else {
+                            cout << "RPY" << endl;
+                            obj->setShape(Box(-v_size / 2, v_size / 2));
+                            tf::Quaternion q;
+                            q.setRPY(rpy[0], rpy[1], rpy[2]);
+                            obj->setPose(v_pos, q);
+                        }
+                        model.addChild(obj);
 
 
                     } else {
@@ -87,6 +97,11 @@ bool ModelParser::parse(vector<Object>& models) {
                 }
 
                 shape_xml = shape_xml->NextSiblingElement();
+            }
+
+            if (error_.str().empty()) {
+                cout << "... Parsing successfully ..." << endl;
+                models[name] = model;
             }
 
 

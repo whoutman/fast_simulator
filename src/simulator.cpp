@@ -33,12 +33,25 @@ int UNIQUE_VIS_ID = 0;
 ros::Publisher PUB_MARKER;
 
 map<string, int> object_id_to_vis_id;
+map<string, Object> MODELS;
 
 bool setObject(fast_simulator::SetObject::Request& req, fast_simulator::SetObject::Response& res) {
 
     Object* obj = WORLD->getObject(req.id);
 
     if (req.action == fast_simulator::SetObject::Request::SET_POSE) {
+
+        if (!obj) {
+            map<string, Object>::iterator it_model = MODELS.find(req.type);
+            if (it_model == MODELS.end()) {
+                cout << "Unknown model type: '" << req.type << "'" << endl;
+                return true;
+            }
+            obj = new Object(it_model->second);
+            WORLD->addObject(req.id, obj);
+        }
+
+        /*
         if (!obj) {
             obj = new Object(req.type);
             if (req.type == "person") {
@@ -50,6 +63,7 @@ bool setObject(fast_simulator::SetObject::Request& req, fast_simulator::SetObjec
 
             WORLD->addObject(req.id, obj);
         }
+        */
 
         tf::Point pos;
         tf::pointMsgToTF(req.pose.position, pos);
@@ -164,17 +178,11 @@ int main(int argc, char **argv) {
 
     // parse world
 
-    /*
+    MODELS.clear();
     ModelParser parser(MODEL_DIR + "/models/table.xml");
-    if (!parser.parse()) {
+    if (!parser.parse(MODELS)) {
         ROS_ERROR("Could not parse models: %s", parser.getError().c_str());
-        exit(-1);
     }
-
-    return 0;
-    */
-
-
 
     WORLD = &World::getInstance();
     WORLD->initFromTopic("/fast_simulator/map");

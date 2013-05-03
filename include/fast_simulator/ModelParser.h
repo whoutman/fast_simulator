@@ -15,7 +15,7 @@ public:
 
     std::vector<double> parseArray(const TiXmlElement* xml_elem);
 
-    bool parse(std::vector<Object> &models);
+    bool parse(std::map<std::string, Object> &models);
 
     std::string getError() const;
 
