@@ -10,12 +10,15 @@
 
 using namespace std;
 
-Kinect::Kinect(const string& rgb_topic, const string& depth_topic, const string& info_topic, const string& point_cloud_topic, const string& frame_id) {
+Kinect::Kinect(const string& rgb_topic, const string& depth_topic, const string& info_topic, const string& point_cloud_topic, const string& frame_id)
+    : width_(640), height_(480), x_res_(2), y_res_(2) {
     image_loader_ = new ImageLoader(rgb_topic, depth_topic, info_topic, frame_id);
 
+    // Set camera info
+
     cam_info_.header.frame_id = frame_id;
-    cam_info_.height = 480;
-    cam_info_.width = 640;
+    cam_info_.height = height_;
+    cam_info_.width = width_;
     cam_info_.distortion_model = "plumb_bob";
 
     // D: [0.0, 0.0, 0.0, 0.0, 0.0]
@@ -70,19 +73,19 @@ Kinect::Kinect(const string& rgb_topic, const string& depth_topic, const string&
     cam_info_.roi.width = 0;
     cam_info_.roi.do_rectify = false;
 
+    // init rgb image
+
     image_rgb_.header.frame_id = frame_id;
     image_rgb_.encoding = "rgb8";
-    image_rgb_.image = cv::Mat(480, 64, CV_8UC3, cv::Scalar(0,0,255));
+    image_rgb_.image = cv::Mat(height_, width_, CV_8UC3, cv::Scalar(0,0,255));
+
+    // init depth image
 
     image_depth_.header.frame_id = frame_id;
     image_depth_.encoding = "32FC1";
-    image_depth_.image = cv::Mat(480, 640, CV_32FC1, 3);
+    image_depth_.image = cv::Mat(height_, width_, CV_32FC1, 0.0);
 
-/*
-    for (int i = 0; i < 640 * 480 * 4; ++i) {
-        image_depth_.data.push_back(0);
-    }
-    */
+    // create publishers
 
     ros::NodeHandle nh;
     pub_rgb_ = nh.advertise<sensor_msgs::Image>(rgb_topic, 10);
@@ -90,22 +93,20 @@ Kinect::Kinect(const string& rgb_topic, const string& depth_topic, const string&
     pub_cam_info_ = nh.advertise<sensor_msgs::CameraInfo>(info_topic, 10);
     pub_point_cloud_ = nh.advertise<pcl::PointCloud<pcl::PointXYZ> >(point_cloud_topic, 1);
 
+    // calculate ray directions
+
     double width = 2.172;
     double height = width * 0.75;
 
-    //grid_width_ = 128;
-    //grid_height_ = 96;
-    grid_width_ = 320;
-    grid_height_ = 240;
+    double dx = width / width_;
+    double dy = height / height_;
 
-    double dx = width / grid_width_;
-    double dy = height / grid_height_;
-
+    ray_deltas_.resize(height_);
     double y = -height / 2;
-    for(int iy = 0; iy < grid_height_; ++iy) {
+    for(int iy = 0; iy < height_; ++iy) {
         double x = -width / 2;
-        for(int ix = 0; ix < grid_width_; ++ix) {
-            ray_deltas_.push_back(tf::Vector3(x, y, 1).normalize());
+        for(int ix = 0; ix < width_; ++ix) {
+            ray_deltas_[iy].push_back(tf::Vector3(x, y, 1).normalize());
             //std::cout << x << ", " << y << std::endl;
             x += dx;
         }
@@ -131,97 +132,120 @@ void Kinect::step(World& world) {
 
     map<string, Object*> objects = world.getObjects();
 
-        string filename = "";
-        for(map<string, Object*>::const_iterator it_obj = objects.begin(); it_obj != objects.end(); ++it_obj) {
-            Object& obj = *it_obj->second;
+    string filename = "";
+    for(map<string, Object*>::const_iterator it_obj = objects.begin(); it_obj != objects.end(); ++it_obj) {
+        Object& obj = *it_obj->second;
 
-            map<string, string>::const_iterator it_filename = type_to_filename_.find(obj.getType());
-            if (it_filename == type_to_filename_.end()) {
-                it_filename = type_to_filename_.find(obj.getID());
-            }
-
-            if (it_filename != type_to_filename_.end()) {
-                tf::Transform tf_kinect_to_object = getAbsolutePose().inverseTimes(obj.getAbsolutePose());
-
-                double x = tf_kinect_to_object.getOrigin().getX();
-                double y = tf_kinect_to_object.getOrigin().getY();
-
-                if (x > 0 && x < 2 && abs(y) < x / 2) {
-                    filename = it_filename->second;
-                }
-            }
+        map<string, string>::const_iterator it_filename = type_to_filename_.find(obj.getType());
+        if (it_filename == type_to_filename_.end()) {
+            it_filename = type_to_filename_.find(obj.getID());
         }
 
-        if (filename != "") {
-            if (filename != loaded_file_) {
-                image_loader_->load(filename);
-                loaded_file_ = filename;
+        if (it_filename != type_to_filename_.end()) {
+            tf::Transform tf_kinect_to_object = getAbsolutePose().inverseTimes(obj.getAbsolutePose());
+
+            double x = tf_kinect_to_object.getOrigin().getX();
+            double y = tf_kinect_to_object.getOrigin().getY();
+
+            if (x > 0 && x < 2 && abs(y) < x / 2) {
+                filename = it_filename->second;
             }
-            image_loader_->publish();
-        } else {
+        }
+    }
 
+    if (filename != "") {
+        if (filename != loaded_file_) {
+            image_loader_->load(filename);
+            loaded_file_ = filename;
+        }
+        image_loader_->publish();
+    } else {
 
+        ros::Time time = ros::Time::now();
+        cam_info_.header.stamp = time;
+        image_rgb_.header.stamp = time;
+        image_depth_.header.stamp = time;
 
-            ros::Time time = ros::Time::now();
-            cam_info_.header.stamp = time;
-            image_rgb_.header.stamp = time;
-            image_depth_.header.stamp = time;
+        tf::Transform tf_map_to_kinect = getAbsolutePose();
+        tf::Vector3 kinect_origin = tf_map_to_kinect.getOrigin();
 
-            pcl::PointCloud<pcl::PointXYZ>::Ptr msg(new pcl::PointCloud<pcl::PointXYZ>);
-            msg->header.frame_id = image_rgb_.header.frame_id;
-            msg->header.stamp = time;
-            msg->width  = grid_width_;
-            msg->height = grid_height_;
+        double total_nr_intersects = 0;
 
+        int x_res = 2;
+        int y_res = 2;
 
-            tf::Transform tf_map_to_kinect = getAbsolutePose();
-            tf::Vector3 kinect_origin = tf_map_to_kinect.getOrigin();
+        for(int y = 0; y < height_; y += y_res) {
+            for(int x = 0; x < width_; x += x_res) {
+                tf::Vector3 dir_transformed = tf::Transform(tf_map_to_kinect.getRotation()) * ray_deltas_[y][x];
+                Ray r_transformed(kinect_origin, dir_transformed);
 
-            double step_x = (double)640 / grid_width_;
-            double step_y = (double)480 / grid_height_;
+                double distance = 0;
+                if (!world.intersect(r_transformed, 0, 5, distance)) {
+                    distance = 0;
+                }
 
-            double total_nr_intersects = 0;
+                image_depth_.image.at<float>(y, x) = distance;
 
-            int i = 0;
-            for(int iy = 0; iy < grid_height_; ++iy) {
-                for(int ix = 0; ix < grid_width_; ++ix) {
-                    //image_depth_.image.at<float>(y, x) = (double)x / 640;
+                //cout << "distance = " << distance << endl;
 
-                    tf::Vector3 dir = tf::Transform(tf_map_to_kinect.getRotation()) * ray_deltas_[i];
-                    Ray r(kinect_origin, dir);
+               // cout << "********" << endl;
 
-                    double distance = 0;
-                    if (world.intersect(r, 0, 5, distance)) {
-                        tf::Vector3 intersect_pos_kinect = ray_deltas_[i] * distance;
-                        msg->points.push_back(pcl::PointXYZ(intersect_pos_kinect.x(), intersect_pos_kinect.y(), intersect_pos_kinect.z()));
-                    } else {
-                        msg->points.push_back(pcl::PointXYZ(0, 0, 0));
-                    }
+                if (x > 0 && y > 0) {
+                    float dist00 = image_depth_.image.at<float>(y - y_res , x - x_res);
+                    float dist10 = image_depth_.image.at<float>(y - y_res , x);
+                    float dist01 = image_depth_.image.at<float>(y, x - x_res);
+                    float dist11 = image_depth_.image.at<float>(y, x);
 
-                    i++;
+                    // perform interpolation
 
-                    for(int y = iy * step_y; y < min(480.0, (iy + 1) * step_y); ++y) {
-                       for(int x = ix * step_x; x < min(640.0, (ix + 1) * step_x); ++x) {
-                            image_depth_.image.at<float>(y, x) = distance;
+                    for(int dy = 0; dy < y_res; ++dy) {
+                        for(int dx = 0; dx < x_res; ++dx) {
+                            if (dx > 0 || dy > 0) {
+
+                                //cout << x - x_res + dx << ", " << y - y_res + dy << endl;
+                                double wx = ((double)dx / x_res);
+                                double wy = ((double)dy / y_res);
+
+                                double dist = 0;
+                                if ((dx == 0 || (abs(dist00 - dist10) < 0.1 && abs(dist01 - dist11) < 0.1))
+                                        && (dy == 0 || (abs(dist00 - dist01) < 0.1 && abs(dist10 - dist11) < 0.1))) {
+                                    dist = (1 - wy) * ((1 - wx) * dist00 + wx * dist10)
+                                            +   wy  * ((1 - wx) * dist01 + wx * dist11);
+                                }
+
+                                image_depth_.image.at<float>(y - y_res + dy, x - x_res + dx) = dist;
+                            }
                         }
                     }
-
-
-
-                    total_nr_intersects += r.nr_intersection_calcs_;
                 }
+
+                total_nr_intersects += r_transformed.nr_intersection_calcs_;
             }
-
-            //cout << "Avg #intersections per ray = " << total_nr_intersects / i << endl;
-
-
-            pub_cam_info_.publish(cam_info_);
-            pub_rgb_.publish(image_rgb_.toImageMsg());
-            pub_depth_.publish(image_depth_.toImageMsg());
-            pub_point_cloud_.publish (msg);
         }
 
-   // }
+        pcl::PointCloud<pcl::PointXYZ>::Ptr msg(new pcl::PointCloud<pcl::PointXYZ>);
+        msg->header.frame_id = image_rgb_.header.frame_id;
+        msg->header.stamp = time;
+        msg->width  = height_;
+        msg->height = width_;
 
-        //cout << "Kinect::publish() took " << ros::Time::now() - t_start << endl;
+        for(int iy = 0; iy < height_; ++iy) {
+            for(int ix = 0; ix < width_; ++ix) {
+                tf::Vector3 intersect_pos_kinect = ray_deltas_[iy][ix] * image_depth_.image.at<float>(iy, ix);
+                msg->points.push_back(pcl::PointXYZ(intersect_pos_kinect.x(), intersect_pos_kinect.y(), intersect_pos_kinect.z()));
+            }
+        }
+
+        //cout << "Avg #intersections per ray = " << total_nr_intersects / i << endl;
+
+
+        pub_cam_info_.publish(cam_info_);
+        pub_rgb_.publish(image_rgb_.toImageMsg());
+        pub_depth_.publish(image_depth_.toImageMsg());
+        pub_point_cloud_.publish (msg);
+    }
+
+    // }
+
+    //cout << "Kinect::publish() took " << ros::Time::now() - t_start << endl;
 }

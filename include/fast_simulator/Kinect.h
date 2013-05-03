@@ -29,6 +29,12 @@ public:
 
 protected:
 
+    int width_;
+    int height_;
+
+    int x_res_;
+    int y_res_;
+
     ImageLoader* image_loader_;
 
     std::string loaded_file_;
@@ -44,10 +50,9 @@ protected:
     cv_bridge::CvImage image_rgb_;
     cv_bridge::CvImage image_depth_;
 
-    int grid_width_;
-    int grid_height_;
 
-    std::vector<tf::Vector3> ray_deltas_;
+
+    std::vector<std::vector<tf::Vector3> > ray_deltas_;
 
 
 };
