@@ -19,6 +19,7 @@
 #include "fast_simulator/Sprite.h"
 #include "fast_simulator/Amigo.h"
 #include "fast_simulator/Pico.h"
+#include "fast_simulator/ModelParser.h"
 
 #include "fast_simulator/SetObject.h"
 
@@ -159,6 +160,19 @@ int main(int argc, char **argv) {
     }
 
     bool publish_localization = (args.find("no-loc") == args.end());
+
+
+    // parse world
+
+    ModelParser parser(MODEL_DIR + "/models/table.xml");
+    if (!parser.parse()) {
+        ROS_ERROR("Could not parse models: %s", parser.getError().c_str());
+        exit(-1);
+    }
+
+    return 0;
+
+
 
     WORLD = &World::getInstance();
     WORLD->initFromTopic("/fast_simulator/map");

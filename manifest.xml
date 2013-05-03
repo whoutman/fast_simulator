@@ -31,6 +31,8 @@
   <!-- For amigo_teleporter -->
   <depend package="tue_move_base_msgs"/>
 
+  <rosdep name="tinyxml" />
+
 </package>
 
 
