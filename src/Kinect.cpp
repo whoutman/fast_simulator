@@ -231,7 +231,12 @@ void Kinect::step(World& world) {
 
         for(int iy = 0; iy < height_; ++iy) {
             for(int ix = 0; ix < width_; ++ix) {
-                tf::Vector3 intersect_pos_kinect = ray_deltas_[iy][ix] * image_depth_.image.at<float>(iy, ix);
+                double distance = image_depth_.image.at<float>(iy, ix);
+                if (distance == 0) {
+                    distance = 0.0 / 0.0; // create NaN
+                }
+
+                tf::Vector3 intersect_pos_kinect = ray_deltas_[iy][ix] * distance;
                 msg->points.push_back(pcl::PointXYZ(intersect_pos_kinect.x(), intersect_pos_kinect.y(), intersect_pos_kinect.z()));
             }
         }
