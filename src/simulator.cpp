@@ -25,6 +25,8 @@
 
 #include <visualization_msgs/MarkerArray.h>
 
+#include <boost/program_options.hpp>
+
 using namespace std;
 
 World* WORLD;
@@ -163,6 +165,8 @@ void visualizeObjects() {
     PUB_MARKER.publish(marker_array);
 }
 
+namespace po = boost::program_options;
+
 int main(int argc, char **argv) {
     // Initialize node
     ros::init(argc, argv, "fast_simulator");
@@ -174,13 +178,55 @@ int main(int argc, char **argv) {
         exit(-1);
     }
 
-    set<string> args;
-    for(int i = 1; i < argc; ++i) {
-        args.insert(argv[i]);
+    tf::Vector3 robot_pos(0, 0, 0);
+    double robot_ori_x = 0;
+    double robot_ori_y = 0;
+    double robot_ori_z = 0;
+
+    // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+    // PARSE COMMAND-LINE ARGUMENTS
+
+    po::options_description desc("Allowed options");
+    desc.add_options()
+        ("help", "Show this")
+        ("robot", po::value<string>(), "Type of robot: pico or amigo")
+        ("x", po::value<double>(), "X-value of robot intial pose")
+        ("y", po::value<double>(), "Y-value of robot intial pose")
+        ("z", po::value<double>(), "Z-value of robot intial pose")
+        ("rx", po::value<double>(), "X-value of robot intial rotation")
+        ("ry", po::value<double>(), "Y-value of robot intial rotation")
+        ("rz", po::value<double>(), "Z-value of robot intial rotation")
+        ("no-localization", "Set if no transformation from /map to /odom should be published")
+    ;
+
+    po::variables_map vm;
+    po::store(po::parse_command_line(argc, argv, desc), vm);
+    po::notify(vm);
+
+    if (vm.count("help")) {
+        cout << desc << "\n";
+        return 1;
     }
 
-    bool publish_localization = (args.find("no-loc") == args.end());
+    if (vm.count("x")) { robot_pos.setX(vm["x"].as<double>()); }
+    if (vm.count("y")) { robot_pos.setY(vm["y"].as<double>()); }
+    if (vm.count("z")) { robot_pos.setZ(vm["z"].as<double>()); }
 
+    if (vm.count("rx")) { robot_ori_x = vm["rx"].as<double>(); }
+    if (vm.count("ry")) { robot_ori_y = vm["ry"].as<double>(); }
+    if (vm.count("rz")) { robot_ori_z = vm["rz"].as<double>(); }
+
+    bool publish_localization = !(vm.count("no-localization"));
+
+    string robot_name = "";
+    if (vm.count("robot")) {
+        robot_name = vm["robot"].as<string>();
+    }
+
+    tf::Quaternion robot_ori;
+    robot_ori.setEuler(robot_ori_x, robot_ori_y, robot_ori_z);
+
+    // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 
     // parse world
 
@@ -197,7 +243,7 @@ int main(int argc, char **argv) {
 
     PUB_MARKER = nh.advertise<visualization_msgs::MarkerArray>("/fast_simulator/visualization", 10);
 
-    if (args.find("pico") != args.end()) {
+    if (robot_name == "pico") {
         Pico* pico = new Pico(nh, publish_localization);
 
         // add laser
@@ -209,17 +255,7 @@ int main(int argc, char **argv) {
         pico->registerSensor(front_sonar_);
         pico->getLink("sonar_front")->addChild(front_sonar_);
 
-        /*
-         *
-        // add sonar
-        tf::Transform tf_base_link_to_front_sonar;
-        tf_base_link_to_front_sonar.setOrigin(tf::Vector3(0.1, 0, 0.37));
-        tf_base_link_to_front_sonar.setRotation(tf::Quaternion(0, 0, 0, 1));
-        front_sonar_ = new Sonar("/robot/body/sonar_front", "/laser");
-        this->addChild(front_sonar_, tf_base_link_to_front_sonar);
-        */
-
-        pico->setPose(tf::Vector3(0, 0, 0), tf::Quaternion(0, 0, 0, 1));
+        pico->setPose(robot_pos, robot_ori);
         WORLD->addObject("pico", pico);
     } else {
         Amigo* amigo = new Amigo(nh, publish_localization);
@@ -243,8 +279,7 @@ int main(int argc, char **argv) {
         //LRF* laser_range_finder_top_ = new LRF("/top_scan", "/front_laser");
         //this->registerSensor(laser_range_finder_top_, tf_base_link_to_top_laser);
 
-
-        amigo->setPose(tf::Vector3(-0.6, 0, 0), tf::Quaternion(0, 0, 0, 1));
+        amigo->setPose(robot_pos, robot_ori);
         WORLD->addObject("amigo", amigo);
     }
 

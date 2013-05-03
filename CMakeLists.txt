@@ -51,7 +51,7 @@ rosbuild_add_executable(simulator src/simulator.cpp
                                   src/Event.cpp
                                   src/ModelParser.cpp
                                   src/util.cpp ${HEADER_FILES})
-rosbuild_link_boost(simulator system)
+rosbuild_link_boost(simulator system program_options)
 target_link_libraries(simulator tinyxml)
 
 rosbuild_add_executable(amigo_teleporter src/amigo_teleporter.cpp)

@@ -4,9 +4,15 @@
     <arg name="teleport" default="false"/>
     <arg name="localization" default="true"/>
 
-    <arg if="$(arg localization)" name="simulator_args" value=""/>
-    <arg unless="$(arg localization)" name="simulator_args" value="no-loc"/>
+    <arg name="env" default="$(optenv ROBOT_ENV robotics_testlab_A)" />
+    <arg name="robot_init_x" default="$(optenv ROBOT_INIT_X 0)"/>
+    <arg name="robot_init_y" default="$(optenv ROBOT_INIT_Y 0)"/>
+    <arg name="robot_init_phi" default="$(optenv ROBOT_INIT_PHI 0)"/>
 
+    <arg name="init_pos_args" value="--x $(arg robot_init_x) --y $(arg robot_init_y) --rz $(arg robot_init_phi)"/>
+
+    <arg if="$(arg localization)" name="simulator_args" value="$(arg init_pos_args)"/>
+    <arg unless="$(arg localization)" name="simulator_args" value="no-loc $(arg init_pos_args)"/>
 
     <!-- load robot -->
     <param name="robot_description" command="$(find xacro)/xacro.py '$(find amigo_robot_model)/description/robot_complex.urdf.xacro' " />
@@ -27,7 +33,7 @@
         <param name="tf_prefix" type="string" value="" />
     </node>
      
-    <node name="fast_simulator_map_server" pkg="map_server" type="map_server" args="$(find amigo_maps)/maps/rgo2013/loc/yaml" output="screen">
+    <node name="fast_simulator_map_server" pkg="map_server" type="map_server" args="$(find amigo_maps)/maps/$(arg env)/loc/yaml" output="screen">
     	<remap from="/map" to="/fast_simulator/map"/>
     </node>
 
