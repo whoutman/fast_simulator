@@ -228,16 +228,26 @@ int main(int argc, char **argv) {
 
     // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 
-    // parse world
+    // parse models
 
     MODELS.clear();
-    ModelParser parser(MODEL_DIR + "/models/models.xml");
-    if (!parser.parse(MODELS)) {
-        ROS_ERROR("Could not parse models: %s", parser.getError().c_str());
+    ModelParser model_parser(MODEL_DIR + "/models/models.xml");
+    if (!model_parser.parse(MODELS)) {
+        ROS_ERROR("Could not parse models: %s", model_parser.getError().c_str());
+    }
+
+    // parse world
+
+    map<string, Object> world;
+    ModelParser world_parser(MODEL_DIR + "/models/world.xml");
+    if (!world_parser.parse(world)) {
+        ROS_ERROR("Could not parse world: %s", model_parser.getError().c_str());
     }
 
     WORLD = &World::getInstance();
-    WORLD->initFromTopic("/fast_simulator/map");
+    WORLD->addObject("world", new Object(world["world"]));
+
+    //WORLD->initFromTopic("/fast_simulator/map");
 
     // PUBLISHERS
 

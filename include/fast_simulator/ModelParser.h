@@ -3,6 +3,13 @@
 
 #include "Object.h"
 
+#include <nav_msgs/OccupancyGrid.h>
+#include <tf/tf.h>
+#include <string>
+
+#include "fast_simulator/Object.h"
+#include "fast_simulator/Box.h"
+
 class TiXmlElement;
 
 class ModelParser {
@@ -19,11 +26,25 @@ public:
 
     std::string getError() const;
 
+    Object* parseHeightMap(const TiXmlElement* xml_elem);
+
+    void createQuadTree(const nav_msgs::OccupancyGrid& map, unsigned int mx_min, unsigned int my_min,
+             unsigned int mx_max, unsigned int my_max, double height, Object* parent, std::string indent = "");
+
+    //void initFromTopic(const std::string& topic);
+
 protected:
 
     std::string filename_;
 
     std::stringstream error_;
+
+    nav_msgs::OccupancyGrid world_map_;
+
+    tf::Transform map_transform_;
+    tf::Transform map_transform_inverse_;
+
+    void callbackMap(const nav_msgs::OccupancyGrid::ConstPtr& msg);
 
 };
 
