@@ -228,13 +228,14 @@ void Kinect::step(World& world) {
         msg->header.stamp = time;
         msg->width  = height_;
         msg->height = width_;
-	msg->is_dense = false;
+        msg->is_dense = true;
 
         for(int iy = 0; iy < height_; ++iy) {
             for(int ix = 0; ix < width_; ++ix) {
                 double distance = image_depth_.image.at<float>(iy, ix);
                 if (distance == 0) {
                     distance = 0.0 / 0.0; // create NaN
+                    msg->is_dense = false;
                 }
 
                 tf::Vector3 intersect_pos_kinect = ray_deltas_[iy][ix] * distance;
