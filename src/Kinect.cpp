@@ -228,6 +228,7 @@ void Kinect::step(World& world) {
         msg->header.stamp = time;
         msg->width  = height_;
         msg->height = width_;
+	msg->is_dense = false;
 
         for(int iy = 0; iy < height_; ++iy) {
             for(int ix = 0; ix < width_; ++ix) {
