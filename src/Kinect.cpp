@@ -72,6 +72,9 @@ Kinect::Kinect(const string& rgb_topic, const string& depth_topic, const string&
     cam_info_.roi.width = 0;
     cam_info_.roi.do_rectify = false;
 
+    // initialize pinhole model
+    pinhole_model_.fromCameraInfo(cam_info_);
+
     // init rgb image
 
     image_rgb_.header.frame_id = frame_id;
@@ -268,32 +271,51 @@ void Kinect::step(World& world) {
             double z = tf_kinect_to_object.getOrigin().getZ();
 
             if (z > 0 && z < 3) {
-                Image& image = it_image->second;
-                cv::Mat mask = image.getMaskImage();
-                cv::Mat rgb_img = image.getRGBImage();
-                cv::Mat depth_img = image.getDepthImage();
+                cv::Point2d pos2d = pinhole_model_.project3dToPixel(cv::Point3d(x, y, z));
 
-                for(int y = 0; y < mask.rows; ++y) {
-                    for(int x = 0; x < mask.cols; ++x) {
-                        unsigned char alpha = mask.at<unsigned char>(y, x);
-                        if (alpha > 0) {
-                            image_depth_.image.at<float>(100 + y, 100 + x) = depth_img.at<float>(y, x);
+                if (pos2d.x > 0 && pos2d.x < width_ && pos2d.y > 0 && pos2d.y < height_) {
 
-                            cv::Vec3b image_clr =  image_rgb_.image.at<cv::Vec3b>(100 + y, 100 + x);
-                            cv::Vec3b object_clr = rgb_img.at<cv::Vec3b>(y, x);
+                    Image& image = it_image->second;
+                    cv::Mat mask = image.getMaskImage();
+                    cv::Mat rgb_img = image.getRGBImage();
+                    cv::Mat depth_img = image.getDepthImage();
 
-                            cv::Vec3b color;
-                            color[0] = (image_clr[0] * (255 - alpha) + object_clr[0] * alpha) / 255;
-                            color[1] = (image_clr[1] * (255 - alpha) + object_clr[1] * alpha) / 255;
-                            color[2] = (image_clr[2] * (255 - alpha) + object_clr[2] * alpha) / 255;
+                    int x_tl = pos2d.x - mask.cols / 2;
+                    int y_tl = pos2d.y - mask.rows / 2;
 
-                            image_rgb_.image.at<cv::Vec3b>(100 + y, 100 + x) = color;
+                    for(int y = 0; y < mask.rows; ++y) {
+                        for(int x = 0; x < mask.cols; ++x) {
+
+                            int ix = x_tl + x;
+                            int iy = y_tl + y;
+
+                            if (ix >=0 && iy >= 0 && ix < width_ && iy < height_) {
+
+                                unsigned char alpha = mask.at<unsigned char>(y, x);
+                                if (alpha > 0) {
+                                    image_depth_.image.at<float>(100 + y, 100 + x) = depth_img.at<float>(y, x);
+
+                                    cv::Vec3b image_clr =  image_rgb_.image.at<cv::Vec3b>(iy, ix);
+                                    cv::Vec3b object_clr = rgb_img.at<cv::Vec3b>(y, x);
+
+                                    cv::Vec3b color;
+                                    color[0] = (image_clr[0] * (255 - alpha) + object_clr[0] * alpha) / 255;
+                                    color[1] = (image_clr[1] * (255 - alpha) + object_clr[1] * alpha) / 255;
+                                    color[2] = (image_clr[2] * (255 - alpha) + object_clr[2] * alpha) / 255;
+
+                                    image_rgb_.image.at<cv::Vec3b>(iy, ix) = color;
+                                }
+                            }
                         }
                     }
-                }
-            }
-        }
-    }
+
+                } // check if in view
+
+            } // check if close enough
+
+        } // check if known object type
+
+    } // loop over objects
 
 
 

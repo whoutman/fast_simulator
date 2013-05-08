@@ -13,6 +13,8 @@
 #include <sensor_msgs/Image.h>
 #include <sensor_msgs/CameraInfo.h>
 
+#include <image_geometry/pinhole_camera_model.h>
+
 #include <virtual_cam/Image.h>
 
 class Kinect : public Sensor {
@@ -47,6 +49,8 @@ protected:
     sensor_msgs::CameraInfo cam_info_;
     cv_bridge::CvImage image_rgb_;
     cv_bridge::CvImage image_depth_;
+
+    image_geometry::PinholeCameraModel pinhole_model_;
 
     std::vector<std::vector<tf::Vector3> > ray_deltas_;
 
