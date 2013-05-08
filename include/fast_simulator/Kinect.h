@@ -13,7 +13,7 @@
 #include <sensor_msgs/Image.h>
 #include <sensor_msgs/CameraInfo.h>
 
-class ImageLoader;
+#include <virtual_cam/Image.h>
 
 class Kinect : public Sensor {
 
@@ -35,11 +35,9 @@ protected:
     int x_res_;
     int y_res_;
 
-    ImageLoader* image_loader_;
-
     std::string loaded_file_;
 
-    std::map<std::string, std::string> type_to_filename_;
+    std::map<std::string, Image> type_to_image_;
 
     ros::Publisher pub_rgb_;
     ros::Publisher pub_depth_;
@@ -49,8 +47,6 @@ protected:
     sensor_msgs::CameraInfo cam_info_;
     cv_bridge::CvImage image_rgb_;
     cv_bridge::CvImage image_depth_;
-
-
 
     std::vector<std::vector<tf::Vector3> > ray_deltas_;
 

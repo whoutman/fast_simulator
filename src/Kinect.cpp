@@ -12,7 +12,6 @@ using namespace std;
 
 Kinect::Kinect(const string& rgb_topic, const string& depth_topic, const string& info_topic, const string& point_cloud_topic, const string& frame_id)
     : width_(640), height_(480), x_res_(2), y_res_(2) {
-    image_loader_ = new ImageLoader(rgb_topic, depth_topic, info_topic, frame_id);
 
     // Set camera info
 
@@ -76,8 +75,8 @@ Kinect::Kinect(const string& rgb_topic, const string& depth_topic, const string&
     // init rgb image
 
     image_rgb_.header.frame_id = frame_id;
-    image_rgb_.encoding = "rgb8";
-    image_rgb_.image = cv::Mat(height_, width_, CV_8UC3, cv::Scalar(0,0,255));
+    image_rgb_.encoding = "bgr8";
+    image_rgb_.image = cv::Mat(height_, width_, CV_8UC3, cv::Scalar(255,255,255));
 
     // init depth image
 
@@ -117,11 +116,10 @@ Kinect::Kinect(const string& rgb_topic, const string& depth_topic, const string&
 }
 
 Kinect::~Kinect() {
-    delete image_loader_;
 }
 
 void Kinect::addModel(const std::string& type, const std::string& filename) {
-    type_to_filename_[type] = filename;
+    type_to_image_[type] = Image::loadFromFile(filename);
 }
 
 void Kinect::step(World& world) {
@@ -130,6 +128,7 @@ void Kinect::step(World& world) {
 
     //if (pub_cam_info_.getNumSubscribers() > 0 || pub_rgb_.getNumSubscribers() > 0 || pub_depth_.getNumSubscribers() > 0) {
 
+    /*
     map<string, Object*> objects = world.getObjects();
 
     string filename = "";
@@ -160,97 +159,131 @@ void Kinect::step(World& world) {
         }
         image_loader_->publish();
     } else {
+    */
 
-        ros::Time time = ros::Time::now();
-        cam_info_.header.stamp = time;
-        image_rgb_.header.stamp = time;
-        image_depth_.header.stamp = time;
+    ros::Time time = ros::Time::now();
+    cam_info_.header.stamp = time;
+    image_rgb_.header.stamp = time;
+    image_depth_.header.stamp = time;
 
-        tf::Transform tf_map_to_kinect = getAbsolutePose();
-        tf::Vector3 kinect_origin = tf_map_to_kinect.getOrigin();
+    tf::Transform tf_map_to_kinect = getAbsolutePose();
+    tf::Vector3 kinect_origin = tf_map_to_kinect.getOrigin();
 
-        double total_nr_intersects = 0;
+    double total_nr_intersects = 0;
 
-        int x_res = 2;
-        int y_res = 2;
+    int x_res = 2;
+    int y_res = 2;
 
-        for(int y = 0; y < height_; y += y_res) {
-            for(int x = 0; x < width_; x += x_res) {
-                tf::Vector3 dir_transformed = tf::Transform(tf_map_to_kinect.getRotation()) * ray_deltas_[y][x];
-                Ray r_transformed(kinect_origin, dir_transformed);
+    for(int y = 0; y < height_; y += y_res) {
+        for(int x = 0; x < width_; x += x_res) {
+            tf::Vector3 dir_transformed = tf::Transform(tf_map_to_kinect.getRotation()) * ray_deltas_[y][x];
+            Ray r_transformed(kinect_origin, dir_transformed);
 
-                double distance = 0;
-                if (!world.intersect(r_transformed, 0, 5, distance)) {
-                    distance = 0;
-                }
+            double distance = 0;
+            if (!world.intersect(r_transformed, 0, 5, distance)) {
+                distance = 0;
+            }
 
-                image_depth_.image.at<float>(y, x) = distance;
+            image_depth_.image.at<float>(y, x) = distance;
 
-                //cout << "distance = " << distance << endl;
+            //cout << "distance = " << distance << endl;
 
-               // cout << "********" << endl;
+            // cout << "********" << endl;
 
-                if (x > 0 && y > 0) {
-                    float dist00 = image_depth_.image.at<float>(y - y_res , x - x_res);
-                    float dist10 = image_depth_.image.at<float>(y - y_res , x);
-                    float dist01 = image_depth_.image.at<float>(y, x - x_res);
-                    float dist11 = image_depth_.image.at<float>(y, x);
+            if (x > 0 && y > 0) {
+                float dist00 = image_depth_.image.at<float>(y - y_res , x - x_res);
+                float dist10 = image_depth_.image.at<float>(y - y_res , x);
+                float dist01 = image_depth_.image.at<float>(y, x - x_res);
+                float dist11 = image_depth_.image.at<float>(y, x);
 
-                    // perform interpolation
+                // perform interpolation
 
-                    for(int dy = 0; dy < y_res; ++dy) {
-                        for(int dx = 0; dx < x_res; ++dx) {
-                            if (dx > 0 || dy > 0) {
+                for(int dy = 0; dy < y_res; ++dy) {
+                    for(int dx = 0; dx < x_res; ++dx) {
+                        if (dx > 0 || dy > 0) {
 
-                                //cout << x - x_res + dx << ", " << y - y_res + dy << endl;
-                                double wx = ((double)dx / x_res);
-                                double wy = ((double)dy / y_res);
+                            //cout << x - x_res + dx << ", " << y - y_res + dy << endl;
+                            double wx = ((double)dx / x_res);
+                            double wy = ((double)dy / y_res);
 
-                                double dist = 0;
-                                if ((dx == 0 || (abs(dist00 - dist10) < 0.1 && abs(dist01 - dist11) < 0.1))
-                                        && (dy == 0 || (abs(dist00 - dist01) < 0.1 && abs(dist10 - dist11) < 0.1))) {
-                                    dist = (1 - wy) * ((1 - wx) * dist00 + wx * dist10)
-                                            +   wy  * ((1 - wx) * dist01 + wx * dist11);
-                                }
-
-                                image_depth_.image.at<float>(y - y_res + dy, x - x_res + dx) = dist;
+                            double dist = 0;
+                            if ((dx == 0 || (abs(dist00 - dist10) < 0.1 && abs(dist01 - dist11) < 0.1))
+                                    && (dy == 0 || (abs(dist00 - dist01) < 0.1 && abs(dist10 - dist11) < 0.1))) {
+                                dist = (1 - wy) * ((1 - wx) * dist00 + wx * dist10)
+                                        +   wy  * ((1 - wx) * dist01 + wx * dist11);
                             }
+
+                            image_depth_.image.at<float>(y - y_res + dy, x - x_res + dx) = dist;
                         }
                     }
                 }
-
-                total_nr_intersects += r_transformed.nr_intersection_calcs_;
             }
+
+            total_nr_intersects += r_transformed.nr_intersection_calcs_;
         }
-
-        pcl::PointCloud<pcl::PointXYZ>::Ptr msg(new pcl::PointCloud<pcl::PointXYZ>);
-        msg->header.frame_id = image_rgb_.header.frame_id;
-        msg->header.stamp = time;
-        msg->width  = height_;
-        msg->height = width_;
-        msg->is_dense = true;
-
-        for(int iy = 0; iy < height_; ++iy) {
-            for(int ix = 0; ix < width_; ++ix) {
-                double distance = image_depth_.image.at<float>(iy, ix);
-                if (distance == 0) {
-                    distance = 0.0 / 0.0; // create NaN
-                    msg->is_dense = false;
-                }
-
-                tf::Vector3 intersect_pos_kinect = ray_deltas_[iy][ix] * distance;
-                msg->points.push_back(pcl::PointXYZ(intersect_pos_kinect.x(), intersect_pos_kinect.y(), intersect_pos_kinect.z()));
-            }
-        }
-
-        //cout << "Avg #intersections per ray = " << total_nr_intersects / i << endl;
-
-
-        pub_cam_info_.publish(cam_info_);
-        pub_rgb_.publish(image_rgb_.toImageMsg());
-        pub_depth_.publish(image_depth_.toImageMsg());
-        pub_point_cloud_.publish (msg);
     }
+
+    // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+
+    image_rgb_.image = cv::Mat(height_, width_, CV_8UC3, cv::Scalar(255,255,255));
+
+    map<string, Image>::iterator it_image = type_to_image_.find("coke");
+    if (it_image != type_to_image_.end()) {
+        Image& image = it_image->second;
+        cv::Mat mask = image.getMaskImage();
+        cv::Mat rgb_img = image.getRGBImage();
+        cv::Mat depth_img = image.getDepthImage();
+
+        for(int y = 0; y < mask.rows; ++y) {
+            for(int x = 0; x < mask.cols; ++x) {
+                unsigned char alpha = mask.at<unsigned char>(y, x);
+                if (alpha > 0) {
+                    image_depth_.image.at<float>(100 + y, 100 + x) = depth_img.at<float>(y, x);
+
+                    cv::Vec3b image_clr =  image_rgb_.image.at<cv::Vec3b>(100 + y, 100 + x);
+                    cv::Vec3b object_clr = rgb_img.at<cv::Vec3b>(y, x);
+
+                    cv::Vec3b color;
+                    color[0] = (image_clr[0] * (255 - alpha) + object_clr[0] * alpha) / 255;
+                    color[1] = (image_clr[1] * (255 - alpha) + object_clr[1] * alpha) / 255;
+                    color[2] = (image_clr[2] * (255 - alpha) + object_clr[2] * alpha) / 255;
+
+                    image_rgb_.image.at<cv::Vec3b>(100 + y, 100 + x) = color;
+                }
+            }
+        }
+    }
+
+    // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+
+    pcl::PointCloud<pcl::PointXYZ>::Ptr msg(new pcl::PointCloud<pcl::PointXYZ>);
+    msg->header.frame_id = image_rgb_.header.frame_id;
+    msg->header.stamp = time;
+    msg->width  = height_;
+    msg->height = width_;
+    msg->is_dense = true;
+
+    for(int iy = 0; iy < height_; ++iy) {
+        for(int ix = 0; ix < width_; ++ix) {
+            double distance = image_depth_.image.at<float>(iy, ix);
+            if (distance == 0) {
+                distance = 0.0 / 0.0; // create NaN
+                msg->is_dense = false;
+            }
+
+            tf::Vector3 intersect_pos_kinect = ray_deltas_[iy][ix] * distance;
+            msg->points.push_back(pcl::PointXYZ(intersect_pos_kinect.x(), intersect_pos_kinect.y(), intersect_pos_kinect.z()));
+        }
+    }
+
+    //cout << "Avg #intersections per ray = " << total_nr_intersects / i << endl;
+
+
+    pub_cam_info_.publish(cam_info_);
+    pub_rgb_.publish(image_rgb_.toImageMsg());
+    pub_depth_.publish(image_depth_.toImageMsg());
+    pub_point_cloud_.publish (msg);
+
 
     // }
 
