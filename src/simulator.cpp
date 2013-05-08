@@ -47,16 +47,18 @@ bool setObject(fast_simulator::SetObject::Request& req, fast_simulator::SetObjec
             if (req.type == "box") {
                 obj = new Object(req.type);
                 obj->setShape(Box(tf::Vector3(-0.4, -0.4, 0), tf::Vector3(0.4, 0.4, 1)));
-                WORLD->addObject(req.id, obj);
             } else {
                 map<string, Object>::iterator it_model = MODELS.find(req.type);
-                if (it_model == MODELS.end()) {
-                    cout << "Unknown model type: '" << req.type << "'" << endl;
-                    return true;
+                if (it_model != MODELS.end()) {
+                    obj = new Object(it_model->second);
+                } else {
+                    obj = new Object(req.type);
+                    //cout << "Unknown model type: '" << req.type << "'" << endl;
+                    //return true;
                 }
-                obj = new Object(it_model->second);
-                WORLD->addObject(req.id, obj);
+
             }
+            WORLD->addObject(req.id, obj);
         }
 
         /*

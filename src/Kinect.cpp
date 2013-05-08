@@ -223,39 +223,6 @@ void Kinect::step(World& world) {
         }
     }
 
-    // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
-
-    image_rgb_.image = cv::Mat(height_, width_, CV_8UC3, cv::Scalar(255,255,255));
-
-    map<string, Image>::iterator it_image = type_to_image_.find("coke");
-    if (it_image != type_to_image_.end()) {
-        Image& image = it_image->second;
-        cv::Mat mask = image.getMaskImage();
-        cv::Mat rgb_img = image.getRGBImage();
-        cv::Mat depth_img = image.getDepthImage();
-
-        for(int y = 0; y < mask.rows; ++y) {
-            for(int x = 0; x < mask.cols; ++x) {
-                unsigned char alpha = mask.at<unsigned char>(y, x);
-                if (alpha > 0) {
-                    image_depth_.image.at<float>(100 + y, 100 + x) = depth_img.at<float>(y, x);
-
-                    cv::Vec3b image_clr =  image_rgb_.image.at<cv::Vec3b>(100 + y, 100 + x);
-                    cv::Vec3b object_clr = rgb_img.at<cv::Vec3b>(y, x);
-
-                    cv::Vec3b color;
-                    color[0] = (image_clr[0] * (255 - alpha) + object_clr[0] * alpha) / 255;
-                    color[1] = (image_clr[1] * (255 - alpha) + object_clr[1] * alpha) / 255;
-                    color[2] = (image_clr[2] * (255 - alpha) + object_clr[2] * alpha) / 255;
-
-                    image_rgb_.image.at<cv::Vec3b>(100 + y, 100 + x) = color;
-                }
-            }
-        }
-    }
-
-    // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
-
     pcl::PointCloud<pcl::PointXYZ>::Ptr msg(new pcl::PointCloud<pcl::PointXYZ>);
     msg->header.frame_id = image_rgb_.header.frame_id;
     msg->header.stamp = time;
@@ -277,6 +244,61 @@ void Kinect::step(World& world) {
     }
 
     //cout << "Avg #intersections per ray = " << total_nr_intersects / i << endl;
+
+    // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+
+    image_rgb_.image = cv::Mat(height_, width_, CV_8UC3, cv::Scalar(255,255,255));
+
+    map<string, Object*> objects = world.getObjects();
+
+    string filename = "";
+    for(map<string, Object*>::const_iterator it_obj = objects.begin(); it_obj != objects.end(); ++it_obj) {
+        Object& obj = *it_obj->second;
+
+        map<string, Image>::iterator it_image = type_to_image_.find(obj.getType());
+        if (it_image == type_to_image_.end()) {
+            it_image = type_to_image_.find(obj.getID());
+        }
+
+        if (it_image != type_to_image_.end()) {
+            tf::Transform tf_kinect_to_object = getAbsolutePose().inverseTimes(obj.getAbsolutePose());
+
+            double x = tf_kinect_to_object.getOrigin().getX();
+            double y = tf_kinect_to_object.getOrigin().getY();
+            double z = tf_kinect_to_object.getOrigin().getZ();
+
+            if (z > 0 && z < 3) {
+                Image& image = it_image->second;
+                cv::Mat mask = image.getMaskImage();
+                cv::Mat rgb_img = image.getRGBImage();
+                cv::Mat depth_img = image.getDepthImage();
+
+                for(int y = 0; y < mask.rows; ++y) {
+                    for(int x = 0; x < mask.cols; ++x) {
+                        unsigned char alpha = mask.at<unsigned char>(y, x);
+                        if (alpha > 0) {
+                            image_depth_.image.at<float>(100 + y, 100 + x) = depth_img.at<float>(y, x);
+
+                            cv::Vec3b image_clr =  image_rgb_.image.at<cv::Vec3b>(100 + y, 100 + x);
+                            cv::Vec3b object_clr = rgb_img.at<cv::Vec3b>(y, x);
+
+                            cv::Vec3b color;
+                            color[0] = (image_clr[0] * (255 - alpha) + object_clr[0] * alpha) / 255;
+                            color[1] = (image_clr[1] * (255 - alpha) + object_clr[1] * alpha) / 255;
+                            color[2] = (image_clr[2] * (255 - alpha) + object_clr[2] * alpha) / 255;
+
+                            image_rgb_.image.at<cv::Vec3b>(100 + y, 100 + x) = color;
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+
+
+    // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+
 
 
     pub_cam_info_.publish(cam_info_);
