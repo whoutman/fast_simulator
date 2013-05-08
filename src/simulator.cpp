@@ -278,6 +278,7 @@ int main(int argc, char **argv) {
         top_kinect->addModel("coke", MODEL_DIR + "/kinect/coke_cropped");
         top_kinect->addModel("cif", MODEL_DIR + "/kinect/cif_cropped");
         top_kinect->addModel("tea_pack", MODEL_DIR + "/kinect/tea_pack_cropped");
+        top_kinect->addModel("person", MODEL_DIR + "/kinect/loy_cropped");
 
         amigo->registerSensor(top_kinect);
         amigo->getLink("openni_rgb_optical_frame")->addChild(top_kinect);
