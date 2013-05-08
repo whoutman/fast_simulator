@@ -281,14 +281,16 @@ void Kinect::step(World& world) {
                     cv::Mat depth_img = image.getDepthImage();
 
                     // determine distance to object in prototype image
-                    float distance = 0;
+                    float distance = 1000;
                     for(int y = 0; y < depth_img.rows; ++y) {
                         for(int x = 0; x < depth_img.cols; ++x) {
-                            if (depth_img.at<float>(y, x) > distance) {
+                            if (depth_img.at<float>(y, x) > 0 && depth_img.at<float>(y, x) < distance) {
                                 distance = depth_img.at<float>(y, x);
                             }
                         }
                     }
+
+                    //cout << "Z = " << z << endl;
 
                     int x_tl = pos2d.x - mask.cols / 2;
                     int y_tl = pos2d.y - mask.rows / 2;
@@ -303,7 +305,8 @@ void Kinect::step(World& world) {
 
                                 unsigned char alpha = mask.at<unsigned char>(y, x);
                                 if (alpha > 0) {
-                                    image_depth_.image.at<float>(iy, ix) = depth_img.at<float>(y, x) / distance * z;
+                                    image_depth_.image.at<float>(iy, ix) = depth_img.at<float>(y, x) - distance + z;
+                                    //cout << "   " << image_depth_.image.at<float>(iy, ix);
 
                                     cv::Vec3b image_clr =  image_rgb_.image.at<cv::Vec3b>(iy, ix);
                                     cv::Vec3b object_clr = rgb_img.at<cv::Vec3b>(y, x);
@@ -318,6 +321,8 @@ void Kinect::step(World& world) {
                             }
                         }
                     }
+
+                    //cout << endl;
 
                 } // check if in view
 
