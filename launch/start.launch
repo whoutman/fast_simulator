@@ -38,18 +38,7 @@
     </node>
 
     <!-- Required simulation parameter -->
-    <!--param name="/use_sim_time" value="true"/ -->
     <param name="/use_sim_time" value="false"/>
-
-    <!-- launch node that converts sensor_msgs/JointState to amigo_msgs/arm_joints -->
-    <include file="$(find amigo_joint_interface_converter)/launch/start.launch"/>
-
-    <!-- Self filter (robots self removed from Kinect pointcloud on topic /camera/depth/points_self_filtered) -->
-    <!--<include file="$(find amigo_self_filter)/start_filter.launch"/>-->
-
-    <!-- Start ps3 teleop -->
-    <!--<include file="$(find amigo_launch_files)/launch/interaction/teleop_ps3_joystick.launch" />-->
-
 
  </launch>
   
