@@ -97,8 +97,8 @@ Kinect::Kinect(const string& rgb_topic, const string& depth_topic, const string&
 
     // calculate ray directions
 
-    double fov_width = 1.539864964;
-    double fov_height = 0.932515086;
+    double fov_width = 1.085911399;
+    double fov_height = 0.787820951;
 
     double dx = fov_width / width_;
     double dy = fov_height / height_;
