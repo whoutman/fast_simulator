@@ -97,24 +97,24 @@ Kinect::Kinect(const string& rgb_topic, const string& depth_topic, const string&
 
     // calculate ray directions
 
-    double fov_width = 1.085911399;
-    double fov_height = 0.787820951;
+    image_geometry::PinholeCameraModel cam_model;
+    cam_model.fromCameraInfo(cam_info_);
 
-    double dx = fov_width / width_;
-    double dy = fov_height / height_;
+    // calculate all all origin to pixel directions
+    ray_deltas_.resize(cam_info_.width);
+    for(unsigned int x = 0; x < cam_info_.width; ++x) {
+        ray_deltas_[x].resize(cam_info_.height);
+        for(unsigned int y = 0; y < cam_info_.height; ++y) {
+            // compute direction vector to pixel (x, y)
+            cv::Point3d dir_cv = cam_model.projectPixelTo3dRay(cv::Point2d(x, y));
 
-    ray_deltas_.resize(height_);
-    double y = -fov_height / 2;
-    for(int iy = 0; iy < height_; ++iy) {
-        double x = -fov_width / 2;
-        for(int ix = 0; ix < width_; ++ix) {
-            ray_deltas_[iy].push_back(tf::Vector3(x, y, 1).normalize());
-            //std::cout << x << ", " << y << std::endl;
-            x += dx;
+            // convert to tf vector
+            tf::Vector3 dir(dir_cv.x, dir_cv.y, dir_cv.z);
+
+            // normalize and store direction vector
+            ray_deltas_[x][y] = dir.normalize();
         }
-        y += dy;
     }
-
 
 }
 
@@ -179,7 +179,7 @@ void Kinect::step(World& world) {
 
     for(int y = 0; y < height_; y += y_res) {
         for(int x = 0; x < width_; x += x_res) {
-            tf::Vector3 dir_transformed = tf::Transform(tf_map_to_kinect.getRotation()) * ray_deltas_[y][x];
+            tf::Vector3 dir_transformed = tf::Transform(tf_map_to_kinect.getRotation()) * ray_deltas_[x][y];
             Ray r_transformed(kinect_origin, dir_transformed);
 
             double distance = 0;
@@ -241,7 +241,7 @@ void Kinect::step(World& world) {
                 msg->is_dense = false;
             }
 
-            tf::Vector3 intersect_pos_kinect = ray_deltas_[iy][ix] * distance;
+            tf::Vector3 intersect_pos_kinect = ray_deltas_[ix][iy] * distance;
             msg->points.push_back(pcl::PointXYZ(intersect_pos_kinect.x(), intersect_pos_kinect.y(), intersect_pos_kinect.z()));
         }
     }
