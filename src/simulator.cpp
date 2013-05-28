@@ -284,9 +284,13 @@ int main(int argc, char **argv) {
         amigo->getLink("openni_rgb_optical_frame")->addChild(top_kinect);
 
 
-        LRF* laser_range_finder_ = new LRF("/base_scan", "/front_laser");
-        amigo->registerSensor(laser_range_finder_);
-        amigo->getLink("front_laser")->addChild(laser_range_finder_);
+        LRF* base_lrf = new LRF("/base_scan", "/front_laser");
+        amigo->registerSensor(base_lrf);
+        amigo->getLink("front_laser")->addChild(base_lrf);
+
+        LRF* torso_lrf = new LRF("/top_scan", "/torso_laser");
+        amigo->registerSensor(torso_lrf);
+        amigo->getLink("torso_laser")->addChild(torso_lrf);
 
         //tf::Transform tf_base_link_to_top_laser;
         //tf_base_link_to_top_laser.setOrigin(tf::Vector3(0.31, 0, 1.0));
