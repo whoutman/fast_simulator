@@ -33,7 +33,7 @@
         <param name="tf_prefix" type="string" value="" />
     </node>
      
-    <node name="fast_simulator_map_server" pkg="map_server" type="map_server" args="$(find amigo_maps)/maps/$(arg env)/loc/yaml" output="screen">
+    <node name="fast_simulator_map_server" pkg="map_server" type="map_server" args="$(find fast_simulator_data)/worlds/$(arg env)/yaml" output="screen">
     	<remap from="/map" to="/fast_simulator/map"/>
     </node>
 
