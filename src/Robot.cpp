@@ -45,7 +45,7 @@ void Robot::addChildren(Object& obj, const KDL::SegmentMap::const_iterator segme
         tf::Transform rel_pose;
         tf::TransformKDLToTF(child_kdl.pose(joint->position_), rel_pose);
 
-        Object* child = new Object("robot_link");
+        Object* child = new Object("robot_link", child_kdl.getName());
         addChildren(*child, children[i]);
 
         obj.addChild(child, rel_pose);

@@ -10,100 +10,66 @@
 
 */
 
-#include <ros/ros.h>
+
 #include <ros/package.h>
 
-#include "fast_simulator/Object.h"
-#include "fast_simulator/Joint.h"
-#include "fast_simulator/World.h"
-#include "fast_simulator/Sprite.h"
+
 #include "fast_simulator/Amigo.h"
 #include "fast_simulator/Pico.h"
-#include "fast_simulator/ModelParser.h"
-
-#include "fast_simulator/SetObject.h"
-
-#include <visualization_msgs/MarkerArray.h>
 
 #include <boost/program_options.hpp>
 
+#include "fast_simulator/simulator.h"
+
+#include "fast_simulator/ModelParser.h"
+
 using namespace std;
 
-World* WORLD;
-string MODEL_DIR;
-int UNIQUE_VIS_ID = 0;
-ros::Publisher PUB_MARKER;
 
-map<string, int> object_id_to_vis_id;
-map<string, Object> MODELS;
-
-bool setObject(fast_simulator::SetObject::Request& req, fast_simulator::SetObject::Response& res) {
-
-    Object* obj = WORLD->getObject(req.id);
-
-    if (req.action == fast_simulator::SetObject::Request::SET_POSE) {
-
-        if (!obj) {
-            if (req.type == "box") {
-                obj = new Object(req.type);
-                obj->setShape(Box(tf::Vector3(-0.4, -0.4, 0), tf::Vector3(0.4, 0.4, 1)));
-            } else {
-                map<string, Object>::iterator it_model = MODELS.find(req.type);
-                if (it_model != MODELS.end()) {
-                    obj = new Object(it_model->second);
-                } else {
-                    obj = new Object(req.type);
-                    //cout << "Unknown model type: '" << req.type << "'" << endl;
-                    //return true;
-                }
-
-            }
-            WORLD->addObject(req.id, obj);
-        }
-
-        /*
-        if (!obj) {
-            obj = new Object(req.type);
-            if (req.type == "person") {
-                obj->setBoundingBox(Box(tf::Vector3(-0.4, -0.4, 0.5), tf::Vector3(0.4, 0.4, 1.5)));
-                obj->setShape(Sprite(MODEL_DIR + "/laser/body.pgm", 0.025, 0.5, 1.5));
-            } else if (req.type == "box") {
-                obj->setShape(Box(tf::Vector3(-0.4, -0.4, 0), tf::Vector3(0.4, 0.4, 1)));
-            }
-
-            WORLD->addObject(req.id, obj);
-        }
-        */
-
-        tf::Point pos;
-        tf::pointMsgToTF(req.pose.position, pos);
-        tf::Quaternion rot;
-        tf::quaternionMsgToTF(req.pose.orientation, rot);
-        obj->setPose(pos, rot);
-
-        cout << "Set " << req.id << " (type: " << req.type << ") at position (" << pos.x() << ", " << pos.y() << ", " << pos.z() << ")" << endl;
-
-    } else {
-        if (!obj) {
-            res.result_msg = "Object with id " + req.id + " does not exist";
-            return true;
-        }
-
-        if (req.action == fast_simulator::SetObject::Request::DELETE) {
-            WORLD->removeObject(req.id);
-        } else if (req.action == fast_simulator::SetObject::Request::SET_PARAMS) {
-
-        }
-    }
-
-    return true;
-
+Simulator::Simulator() : world_(World::getInstance()), UNIQUE_VIS_ID(0) {
 
 }
 
-void visualizeObjects() {
-    World& world = World::getInstance();
-    map<string, Object*> objects = world.getObjects();
+Simulator::~Simulator() {
+
+}
+
+void Simulator::step(double dt) {
+    world_.step(dt);
+}
+
+void Simulator::addObject(const std::string& id, Object* obj) {
+    world_.addObject(id, obj);
+}
+
+Object* Simulator::getObject(const std::string& id) const {
+    return world_.getObject(id);
+}
+
+void Simulator::removeObject(const std::string& id) {
+    world_.removeObject(id);
+}
+
+void Simulator::addModel(const std::string& name, const Object& obj) {
+    MODELS[name] = obj;
+}
+
+const Object* Simulator::getModel(const std::string& name) const {
+    map<string, Object>::const_iterator it = MODELS.find(name);
+    if (it == MODELS.end()) {
+        return 0;
+    }
+    return &it->second;
+}
+
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+//
+//                                      ROS VISUALIZATION
+//
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+
+visualization_msgs::MarkerArray Simulator::getROSVisualizationMessage() {
+    map<string, Object*> objects = world_.getObjects();
 
     visualization_msgs::MarkerArray marker_array;
     for(map<string, Object*>::const_iterator it_obj = objects.begin(); it_obj != objects.end(); ++it_obj) {
@@ -164,8 +130,83 @@ void visualizeObjects() {
 
     }
 
-    PUB_MARKER.publish(marker_array);
+    return marker_array;
 }
+
+
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+//
+//                                            MAIN
+//
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+
+Simulator* SIM;
+
+bool setObject(fast_simulator::SetObject::Request& req, fast_simulator::SetObject::Response& res) {
+
+    Object* obj = SIM->getObject(req.id);
+
+    if (req.action == fast_simulator::SetObject::Request::SET_POSE) {
+
+        if (!obj) {
+            if (req.type == "box") {
+                obj = new Object(req.type);
+                obj->setShape(Box(tf::Vector3(-0.4, -0.4, 0), tf::Vector3(0.4, 0.4, 1)));
+            } else {
+                const Object* model = SIM->getModel(req.type);
+                if (model) {
+                    obj = new Object(*model);
+                } else {
+                    obj = new Object(req.type);
+                    //cout << "Unknown model type: '" << req.type << "'" << endl;
+                    //return true;
+                }
+
+            }
+            SIM->addObject(req.id, obj);
+        }
+
+        /*
+        if (!obj) {
+            obj = new Object(req.type);
+            if (req.type == "person") {
+                obj->setBoundingBox(Box(tf::Vector3(-0.4, -0.4, 0.5), tf::Vector3(0.4, 0.4, 1.5)));
+                obj->setShape(Sprite(MODEL_DIR + "/laser/body.pgm", 0.025, 0.5, 1.5));
+            } else if (req.type == "box") {
+                obj->setShape(Box(tf::Vector3(-0.4, -0.4, 0), tf::Vector3(0.4, 0.4, 1)));
+            }
+
+            WORLD->addObject(req.id, obj);
+        }
+        */
+
+        tf::Point pos;
+        tf::pointMsgToTF(req.pose.position, pos);
+        tf::Quaternion rot;
+        tf::quaternionMsgToTF(req.pose.orientation, rot);
+        obj->setPose(pos, rot);
+
+        cout << "Set " << req.id << " (type: " << req.type << ") at position (" << pos.x() << ", " << pos.y() << ", " << pos.z() << ")" << endl;
+
+    } else {
+        if (!obj) {
+            res.result_msg = "Object with id " + req.id + " does not exist";
+            return true;
+        }
+
+        if (req.action == fast_simulator::SetObject::Request::DELETE) {
+            SIM->removeObject(req.id);
+        } else if (req.action == fast_simulator::SetObject::Request::SET_PARAMS) {
+
+        }
+    }
+
+    return true;
+
+
+}
+
+
 
 namespace po = boost::program_options;
 
@@ -174,7 +215,7 @@ int main(int argc, char **argv) {
     ros::init(argc, argv, "fast_simulator");
     ros::NodeHandle nh;
 
-    MODEL_DIR = ros::package::getPath("fast_simulator_data");
+    string MODEL_DIR = ros::package::getPath("fast_simulator_data");
     if (MODEL_DIR == "") {
         ROS_ERROR("Could not find package 'fast_simulator_data' for object models. Exiting..");
         exit(-1);
@@ -232,11 +273,11 @@ int main(int argc, char **argv) {
 
     // parse models
 
-    MODELS.clear();
+    std::map<std::string, Object> MODELS;
     ModelParser model_parser(MODEL_DIR + "/models/models.xml");
     if (!model_parser.parse(MODELS)) {
         ROS_ERROR("Could not parse models: %s", model_parser.getError().c_str());
-    }
+    }    
 
     // parse world
 
@@ -246,14 +287,19 @@ int main(int argc, char **argv) {
         ROS_ERROR("Could not parse world: %s", model_parser.getError().c_str());
     }
 
-    WORLD = &World::getInstance();
-    WORLD->addObject("world", new Object(world["world"]));
+    // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 
-    //WORLD->initFromTopic("/fast_simulator/map");
+    SIM = new Simulator();
+
+    for(map<string, Object>::iterator it = MODELS.begin(); it != MODELS.end(); ++it) {
+        SIM->addModel(it->first, it->second);
+    }
+
+    SIM->addObject("world", new Object(world["world"]));
 
     // PUBLISHERS
 
-    PUB_MARKER = nh.advertise<visualization_msgs::MarkerArray>("/fast_simulator/visualization", 10);
+    ros::Publisher PUB_MARKER = nh.advertise<visualization_msgs::MarkerArray>("/fast_simulator/visualization", 10);
 
     if (robot_name == "pico") {
         Pico* pico = new Pico(nh, publish_localization);
@@ -268,7 +314,7 @@ int main(int argc, char **argv) {
         pico->getLink("sonar_front")->addChild(front_sonar_);
 
         pico->setPose(robot_pos, robot_ori);
-        WORLD->addObject("pico", pico);
+        SIM->addObject("pico", pico);
     } else {
         Amigo* amigo = new Amigo(nh, publish_localization);
 
@@ -291,6 +337,7 @@ int main(int argc, char **argv) {
         LRF* torso_lrf = new LRF("/top_scan", "/torso_laser");
         amigo->registerSensor(torso_lrf);
         amigo->getLink("torso_laser")->addChild(torso_lrf);
+        cout << "TORSO_LASER " << amigo->getLink("torso_laser") << endl;
 
         //tf::Transform tf_base_link_to_top_laser;
         //tf_base_link_to_top_laser.setOrigin(tf::Vector3(0.31, 0, 1.0));
@@ -299,7 +346,15 @@ int main(int argc, char **argv) {
         //this->registerSensor(laser_range_finder_top_, tf_base_link_to_top_laser);
 
         amigo->setPose(robot_pos, robot_ori);
-        WORLD->addObject("amigo", amigo);
+
+
+        cout << "ADDING AMIGO" << endl;
+
+        SIM->addObject("amigo", amigo);
+
+       cout << "TORSO_LASER " << amigo->getLink("torso_laser") << endl;
+
+       cout << amigo->toString() << endl;
     }
 
     ros::ServiceServer srv_set_object_ = nh.advertiseService("/fast_simulator/set_object", &setObject);
@@ -326,10 +381,11 @@ int main(int argc, char **argv) {
 
         ros::spinOnce();
 
-        WORLD->step(dt);
+        SIM->step(dt);
 
         if (count % 10 == 0) {
-            visualizeObjects();
+            visualization_msgs::MarkerArray marker_array = SIM->getROSVisualizationMessage();
+            PUB_MARKER.publish(marker_array);
         }
 
         ros::Duration cycle_time = ros::Time::now() - t_start;
@@ -344,6 +400,8 @@ int main(int argc, char **argv) {
     }
 
     srv_set_object_.shutdown();
+
+    delete SIM;
 
     return 0;
 }

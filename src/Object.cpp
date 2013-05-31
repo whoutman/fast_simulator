@@ -13,11 +13,12 @@ ObjectDescription::~ObjectDescription() {
     delete shape_;
 }
 
-Object::Object(const string& type) : has_pose_(false), description_(new ObjectDescription()) {
+Object::Object(const string& type, const std::string& id) : has_pose_(false), description_(new ObjectDescription()) {
     pose_.setOrigin(tf::Vector3(0, 0, 0));
     pose_.setRotation(tf::Quaternion(0, 0, 0, 1));
     pose_inv_ = pose_.inverse();
     description_->type_ = type;
+    description_->id_ = id;
 }
 
 Object::~Object() {
@@ -38,10 +39,6 @@ void Object::addChild(Object* child, const tf::Transform& rel_pose) {
     child->pose_inv_ = pose_.inverse();
     child->has_pose_ = true;
     addChild(child);
-}
-
-World* Object::getWorldHandle() {
-    return &World::getInstance();
 }
 
 tf::Transform Object::getAbsolutePose() const {
@@ -149,7 +146,6 @@ void Object::getBoundingBox(tf::Vector3& min, tf::Vector3& max) const {
         max.setZ(std::max(max.z(), max2.z()));
     }
 }
-
 
 #include <sstream>
 #include "fast_simulator/util.h"

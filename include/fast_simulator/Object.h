@@ -50,7 +50,7 @@ class Object {
 
 public:
 
-    Object(const std::string& type = "");
+    Object(const std::string& type = "", const std::string& id = "");
 
     virtual ~Object();
 
@@ -63,8 +63,6 @@ public:
     tf::Transform getAbsolutePose() const;
 
     virtual void step(double dt);
-
-    World* getWorldHandle();
 
     const std::string& getID() const;
 
@@ -94,6 +92,7 @@ protected:
 
     boost::shared_ptr<ObjectDescription> description_;
 
+    // TODO: Maybe also moves this up to description_ ???
     std::vector<Object> parts_;
 
     /*
