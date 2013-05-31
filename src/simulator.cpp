@@ -347,14 +347,7 @@ int main(int argc, char **argv) {
 
         amigo->setPose(robot_pos, robot_ori);
 
-
-        cout << "ADDING AMIGO" << endl;
-
         SIM->addObject("amigo", amigo);
-
-       cout << "TORSO_LASER " << amigo->getLink("torso_laser") << endl;
-
-       cout << amigo->toString() << endl;
     }
 
     ros::ServiceServer srv_set_object_ = nh.advertiseService("/fast_simulator/set_object", &setObject);
