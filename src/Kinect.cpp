@@ -102,14 +102,19 @@ Kinect::Kinect(const string& rgb_topic, const string& depth_topic, const string&
 
     // calculate all all origin to pixel directions
     ray_deltas_.resize(cam_info_.width);
+    depth_ratios_.resize(cam_info_.width);
     for(unsigned int x = 0; x < cam_info_.width; ++x) {
         ray_deltas_[x].resize(cam_info_.height);
+        depth_ratios_[x].resize(cam_info_.height);
         for(unsigned int y = 0; y < cam_info_.height; ++y) {
             // compute direction vector to pixel (x, y)
             cv::Point3d dir_cv = cam_model.projectPixelTo3dRay(cv::Point2d(x, y));
 
             // convert to tf vector
             tf::Vector3 dir(dir_cv.x, dir_cv.y, dir_cv.z);
+
+            // store the depth ratio for this pixel
+            depth_ratios_[x][y] = dir.length();
 
             // normalize and store direction vector
             ray_deltas_[x][y] = dir.normalize();
@@ -184,10 +189,10 @@ void Kinect::step(World& world) {
 
             double distance = 0;
             if (!world.intersect(r_transformed, 0, 5, distance)) {
-                distance = 0;
+                distance =  0.0 / 0.0; // create NaN
             }
 
-            image_depth_.image.at<float>(y, x) = distance;
+            image_depth_.image.at<float>(y, x) = distance / depth_ratios_[x][y];
 
             //cout << "distance = " << distance << endl;
 
@@ -235,7 +240,7 @@ void Kinect::step(World& world) {
 
     for(int iy = 0; iy < height_; ++iy) {
         for(int ix = 0; ix < width_; ++ix) {
-            double distance = image_depth_.image.at<float>(iy, ix);
+            double distance = image_depth_.image.at<float>(iy, ix) * depth_ratios_[ix][iy];
             if (distance == 0) {
                 distance = 0.0 / 0.0; // create NaN
                 msg->is_dense = false;

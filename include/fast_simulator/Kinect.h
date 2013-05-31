@@ -54,6 +54,8 @@ protected:
 
     std::vector<std::vector<tf::Vector3> > ray_deltas_;
 
+    std::vector<std::vector<double> > depth_ratios_;
+
 
 };
 

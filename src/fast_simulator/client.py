@@ -33,13 +33,24 @@ class SimWorld(object):
         
         self.show_amigo_speech = True
 
+        self.objects = {}
+
     def add_object(self, id, type, x=None, y=None, z=None):
         obj = SimObject(id, type, self)
+        self.objects[id] = obj
 
         if x:
             obj.set_position(x, y, z)
 
         return obj
+
+    def get_object(self, id):
+        return SimObject(id, "", self)
+
+        #f not id in self.objects.keys():
+        #   return None
+        #lse:
+        #   return self.objects[id]
 
     def speak(self, text, type=None):
 
@@ -96,6 +107,16 @@ class SimObject(object):
 
         if not self.world.srv_set(req):
             rospy.roserr("Service call failed")
+
+    def remove(self):
+        req = fast_simulator.srv.SetObjectRequest()
+        req.id = self.id
+        req.type = self.type
+        req.action = fast_simulator.srv.SetObjectRequest.DELETE
+
+        if not self.world.srv_set(req):
+            rospy.roserr("Service call failed")
+
 
 
     def set_path(self, path, frame_id="/map"):
