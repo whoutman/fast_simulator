@@ -130,6 +130,14 @@ bool Object::intersect(const Ray &r, float t0, float t1, double& distance) const
     return has_intersect;
 }
 
+void Object::getChildrenRecursive(std::vector<Object*>& objects) {
+    for(vector<Object>::iterator it_part = parts_.begin(); it_part != parts_.end(); ++it_part) {
+        Object& obj = *it_part;
+        objects.push_back(&obj);
+        obj.getChildrenRecursive(objects);
+    }
+}
+
 void Object::getBoundingBox(tf::Vector3& min, tf::Vector3& max) const {
     description_->shape_->getBoundingBox(min, max);
     for(vector<Object>::const_iterator it_part = parts_.begin(); it_part != parts_.end(); ++it_part) {

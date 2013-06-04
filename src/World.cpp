@@ -78,8 +78,19 @@ Object* World::getObject(const std::string& id) const {
     return 0;
 }
 
+vector<Object*> World::getObjectsRecursive() const {
+    vector<Object*> objects;
+
+    for(map<string, Object*>::const_iterator it_obj = objects_.begin(); it_obj != objects_.end(); ++it_obj) {
+        objects.push_back(it_obj->second);
+        it_obj->second->getChildrenRecursive(objects);
+    }
+
+    return objects;
+}
+
 void World::removeObject(const std::string& id) {
-        objects_.erase(id);
+    objects_.erase(id);
 }
 
 const std::map<std::string, Object*>& World::getObjects() const {

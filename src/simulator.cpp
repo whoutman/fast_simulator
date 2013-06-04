@@ -142,6 +142,8 @@ visualization_msgs::MarkerArray Simulator::getROSVisualizationMessage() {
 
 Simulator* SIM;
 
+string MODEL_DIR;
+
 bool setObject(fast_simulator::SetObject::Request& req, fast_simulator::SetObject::Response& res) {
 
     Object* obj = SIM->getObject(req.id);
@@ -152,6 +154,18 @@ bool setObject(fast_simulator::SetObject::Request& req, fast_simulator::SetObjec
             if (req.type == "box") {
                 obj = new Object(req.type);
                 obj->setShape(Box(tf::Vector3(-0.4, -0.4, 0), tf::Vector3(0.4, 0.4, 1)));
+            } else if (req.type == "person") {
+                obj = new Object(req.type);
+                //obj->setBoundingBox(Box(tf::Vector3(-0.4, -0.4, 0.5), tf::Vector3(0.4, 0.4, 1.5)));
+                //obj->setShape(Sprite(MODEL_DIR + "/laser/body.pgm", 0.025, 0.5, 1.5));
+
+                obj->setShape(Box(tf::Vector3(-0.3, -0.3, 0.5), tf::Vector3(0.3, 0.3, 1.5)));
+
+
+
+                Object* face = new Object("face");
+                obj->addChild(face, tf::Transform(tf::Quaternion(0, 0, 0, 1), tf::Vector3(0, 0, 1.6)));
+
             } else {
                 const Object* model = SIM->getModel(req.type);
                 if (model) {
@@ -165,20 +179,6 @@ bool setObject(fast_simulator::SetObject::Request& req, fast_simulator::SetObjec
             }
             SIM->addObject(req.id, obj);
         }
-
-        /*
-        if (!obj) {
-            obj = new Object(req.type);
-            if (req.type == "person") {
-                obj->setBoundingBox(Box(tf::Vector3(-0.4, -0.4, 0.5), tf::Vector3(0.4, 0.4, 1.5)));
-                obj->setShape(Sprite(MODEL_DIR + "/laser/body.pgm", 0.025, 0.5, 1.5));
-            } else if (req.type == "box") {
-                obj->setShape(Box(tf::Vector3(-0.4, -0.4, 0), tf::Vector3(0.4, 0.4, 1)));
-            }
-
-            WORLD->addObject(req.id, obj);
-        }
-        */
 
         tf::Point pos;
         tf::pointMsgToTF(req.pose.position, pos);
@@ -215,7 +215,7 @@ int main(int argc, char **argv) {
     ros::init(argc, argv, "fast_simulator");
     ros::NodeHandle nh;
 
-    string MODEL_DIR = ros::package::getPath("fast_simulator_data");
+    MODEL_DIR = ros::package::getPath("fast_simulator_data");
     if (MODEL_DIR == "") {
         ROS_ERROR("Could not find package 'fast_simulator_data' for object models. Exiting..");
         exit(-1);
@@ -324,7 +324,7 @@ int main(int argc, char **argv) {
         top_kinect->addModel("coke", MODEL_DIR + "/kinect/coke_cropped");
         top_kinect->addModel("cif", MODEL_DIR + "/kinect/cif_cropped");
         top_kinect->addModel("tea_pack", MODEL_DIR + "/kinect/tea_pack_cropped");
-        top_kinect->addModel("person", MODEL_DIR + "/kinect/loy_cropped");
+        top_kinect->addModel("face", MODEL_DIR + "/kinect/loy_cropped");
 
         amigo->registerSensor(top_kinect);
         amigo->getLink("openni_rgb_optical_frame")->addChild(top_kinect);

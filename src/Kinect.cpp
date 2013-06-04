@@ -257,11 +257,13 @@ void Kinect::step(World& world) {
 
     image_rgb_.image = cv::Mat(height_, width_, CV_8UC3, cv::Scalar(255,255,255));
 
-    map<string, Object*> objects = world.getObjects();
+    vector<Object*> objects = world.getObjectsRecursive();
 
     string filename = "";
-    for(map<string, Object*>::const_iterator it_obj = objects.begin(); it_obj != objects.end(); ++it_obj) {
-        Object& obj = *it_obj->second;
+    for(vector<Object*>::const_iterator it_obj = objects.begin(); it_obj != objects.end(); ++it_obj) {
+
+        Object& obj = **it_obj;
+
 
         map<string, Image>::iterator it_image = type_to_image_.find(obj.getType());
         if (it_image == type_to_image_.end()) {

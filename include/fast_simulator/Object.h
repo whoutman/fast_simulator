@@ -78,6 +78,8 @@ public:
 
     void getBoundingBox(tf::Vector3 &min, tf::Vector3 &max) const;
 
+    void getChildrenRecursive(std::vector<Object*>& objects);
+
     std::string toString(const std::string &indent = "") const;
 
 private:
