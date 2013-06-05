@@ -169,7 +169,7 @@ bool setObject(fast_simulator::SetObject::Request& req, fast_simulator::SetObjec
                 obj->addChild(face, tf::Transform(tf::Quaternion(0, 0, 0, 1), tf::Vector3(0, 0, 1.6)));
             } else if (req.type == "world") {
                 obj = new Object(req.type);
-                obj->setShape(Octree::fromHeightImage(MODEL_DIR + "/worlds/rgo2013/pgm", 1, 0.05));
+                obj->setShape(Octree::fromHeightImage(MODEL_DIR + "/worlds/rgo2013/pgm", 1, 0.025));
 
             } else {
                 const Object* model = SIM->getModel(req.type);
@@ -238,6 +238,7 @@ int main(int argc, char **argv) {
     desc.add_options()
         ("help", "Show this")
         ("robot", po::value<string>(), "Type of robot: pico or amigo")
+        ("world", po::value<string>(), "Name of the model that should be used as world")
         ("x", po::value<double>(), "X-value of robot intial pose")
         ("y", po::value<double>(), "Y-value of robot intial pose")
         ("z", po::value<double>(), "Z-value of robot intial pose")
@@ -271,6 +272,11 @@ int main(int argc, char **argv) {
         robot_name = vm["robot"].as<string>();
     }
 
+    string world_name = "";
+    if (vm.count("world")) {
+        world_name = vm["world"].as<string>();
+    }
+
     tf::Quaternion robot_ori;
     robot_ori.setEuler(robot_ori_x, robot_ori_y, robot_ori_z);
 
@@ -279,18 +285,10 @@ int main(int argc, char **argv) {
     // parse models
 
     std::map<std::string, Object> MODELS;
-    ModelParser model_parser(MODEL_DIR + "/models/models.xml");
+    ModelParser model_parser(MODEL_DIR + "/models/models.xml", MODEL_DIR);
     if (!model_parser.parse(MODELS)) {
         ROS_ERROR("Could not parse models: %s", model_parser.getError().c_str());
     }    
-
-    // parse world
-
-    map<string, Object> world;
-    ModelParser world_parser(MODEL_DIR + "/models/world.xml");
-    if (!world_parser.parse(world)) {
-        ROS_ERROR("Could not parse world: %s", model_parser.getError().c_str());
-    }
 
     // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 
@@ -300,7 +298,14 @@ int main(int argc, char **argv) {
         SIM->addModel(it->first, it->second);
     }
 
-    SIM->addObject("world", new Object(world["world"]));
+    if (world_name != "") {
+        map<string, Object>::iterator it_world = MODELS.find(world_name);
+        if (it_world != MODELS.end()) {
+            SIM->addObject(world_name, new Object(it_world->second));
+        } else {
+            ROS_ERROR("While loading world: could not find model: '%s'", world_name.c_str());
+        }
+    }
 
     // PUBLISHERS
 

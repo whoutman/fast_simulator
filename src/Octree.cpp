@@ -38,7 +38,7 @@ Octree Octree::fromHeightImage(const std::string& filename, double height, doubl
         for(int x = 0; x < image.cols; ++x) {
             map[x].resize(image.rows);
             for(int y = 0; y < image.rows; ++y) {
-                map[x][y] = 1 - (double)image.at<unsigned char>(y, x) / 255 * height;
+                map[x][image.rows - y - 1] = 1 - (double)image.at<unsigned char>(y, x) / 255 * height;
             }
         }
 

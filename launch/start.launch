@@ -15,8 +15,10 @@
 
     <arg name="init_pos_args" value="--x $(arg robot_init_x) --y $(arg robot_init_y) --rz $(arg robot_init_phi)"/>
 
-    <arg if="$(arg localization)" name="simulator_args" value="$(arg init_pos_args)"/>
-    <arg unless="$(arg localization)" name="simulator_args" value="no-loc $(arg init_pos_args)"/>
+    <arg if="$(arg localization)" name="localization_arg" value=""/>
+    <arg unless="$(arg localization)" name="localization_arg" value="no-loc"/>
+
+    <arg name="simulator_args" value="$(arg localization_arg) $(arg init_pos_args) --world $(arg env)"/>
 
     <!-- load robot -->
     <param name="robot_description" command="$(find xacro)/xacro.py '$(find amigo_robot_model)/description/robot_complex.urdf.xacro' " />
@@ -37,10 +39,6 @@
         <param name="tf_prefix" type="string" value="" />
     </node>
      
-    <node name="fast_simulator_map_server" pkg="map_server" type="map_server" args="$(find fast_simulator_data)/worlds/$(arg env)/yaml" output="screen">
-    	<remap from="/map" to="/fast_simulator/map"/>
-    </node>
-
     <!-- Required simulation parameter -->
     <param name="/use_sim_time" value="false"/>
 

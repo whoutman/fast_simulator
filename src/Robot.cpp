@@ -68,7 +68,7 @@ void Robot::addChildren(Object& obj, const KDL::SegmentMap::const_iterator segme
             ROS_DEBUG("Adding moving segment from %s to %s", root.c_str(), child.getName().c_str());
         }*/
 
-        cout << child_kdl.getName() << endl;
+        //cout << child_kdl.getName() << endl;
 
 
 
@@ -123,7 +123,7 @@ void Robot::setJointPosition(const string& joint_name, double position) {
     } else {
         it_jnt->second->position_ = position;
         it_jnt->second->reference_ = position;
-        cout << "Setting " << joint_name << " to " << it_jnt->second->position_ << endl;
+        //cout << "Setting " << joint_name << " to " << it_jnt->second->position_ << endl;
     }
 }
 

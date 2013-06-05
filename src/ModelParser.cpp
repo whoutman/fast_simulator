@@ -1,10 +1,12 @@
 #include "fast_simulator/ModelParser.h"
 
+#include "fast_simulator/Octree.h"
+
 #include <tinyxml.h>
 
 using namespace std;
 
-ModelParser::ModelParser(const std::string& filename) : filename_(filename) {
+ModelParser::ModelParser(const std::string& filename, const std::string& model_dir) : filename_(filename), model_dir_(model_dir) {
 
 }
 
@@ -53,39 +55,51 @@ bool ModelParser::parse(map<std::string, Object>& models) {
 
             const TiXmlElement* shape_xml = model_xml->FirstChildElement();
             while(shape_xml) {
+
+                // parse properties valid for all shapes
+                const TiXmlElement* xyz_xml = shape_xml->FirstChildElement("xyz");
+                if (xyz_xml) {
+                    xyz = parseArray(xyz_xml);
+                }
+
+                tf::Vector3 pos(xyz[0], xyz[1], xyz[2]);
+                tf::Quaternion rot(0, 0, 0, 1);
+
+                const TiXmlElement* rpy_xml = shape_xml->FirstChildElement("rpy");
+                if (rpy_xml) {
+                    rpy = parseArray(rpy_xml);
+                    if (fabs(rpy[0]) < 0.0001 && fabs(rpy[1]) < 0.0001 && fabs(rpy[2]) < 0.0001) {
+                        rpy.clear();
+                    } else {
+                        rot.setRPY(rpy[0], rpy[1], rpy[2]);
+                    }
+                }
+
+                const TiXmlElement* size_xml = shape_xml->FirstChildElement("size");
+                if (size_xml) {
+                    size = parseArray(size_xml);
+                }
+
                 string shape_type = shape_xml->Value();
                 if (shape_type == "heightMap") {
                     Object* height_map = parseHeightMap(shape_xml);
-                    model.addChild(height_map);
+
+                    if (height_map) {
+                        height_map->setPose(pos, rot);
+                        model.addChild(height_map);
+                    }
+
                 } else if (shape_type == "box") {
-                    const TiXmlElement* xyz_xml = shape_xml->FirstChildElement("xyz");
-                    if (xyz_xml) {
-                        xyz = parseArray(xyz_xml);
-                    }
+                    if (!size.empty()) {
 
-                    const TiXmlElement* rpy_xml = shape_xml->FirstChildElement("rpy");
-                    if (rpy_xml) {
-                        rpy = parseArray(rpy_xml);
-                        if (fabs(rpy[0]) < 0.0001 && fabs(rpy[1]) < 0.0001 && fabs(rpy[2]) < 0.0001) {
-                            rpy.clear();
-                        }
-                    }
-
-                    const TiXmlElement* size_xml = shape_xml->FirstChildElement("size");
-                    if (size_xml) {
-                        size = parseArray(size_xml);
-
-                        tf::Vector3 v_pos(xyz[0], xyz[1], xyz[2]);
                         tf::Vector3 v_size(size[0], size[1], size[2]);
 
                         Object* obj = new Object();
                         if (rpy.empty()) {
-                            obj->setShape(Box(v_pos - v_size / 2, v_pos + v_size / 2));
+                            obj->setShape(Box(pos - v_size / 2, pos + v_size / 2));
                         } else {
                             obj->setShape(Box(-v_size / 2, v_size / 2));
-                            tf::Quaternion q;
-                            q.setRPY(rpy[0], rpy[1], rpy[2]);
-                            obj->setPose(v_pos, q);
+                            obj->setPose(pos, rot);
                         }
                         model.addChild(obj);
                     } else {
@@ -123,11 +137,41 @@ std::string ModelParser::getError() const {
 
 Object* ModelParser::parseHeightMap(const TiXmlElement* xml_elem) {
     const TiXmlElement* height_xml = xml_elem->FirstChildElement("height");
-    double height = 1;
+    double height = 0;
     if (height_xml) {
         height = atof(height_xml->GetText());
     }
 
+    if (height <= 0) {
+        error_ << "HeightMap: 'height' not or incorrectly specified." << endl;
+        return 0;
+    }
+
+    const TiXmlElement* resolution_xml = xml_elem->FirstChildElement("resolution");
+    double resolution = 0;
+    if (resolution_xml) {
+        resolution = atof(resolution_xml->GetText());
+    }
+
+    if (resolution <= 0) {
+        error_ << "HeightMap: 'resolution' not or incorrectly specified." << endl;
+        return 0;
+    }
+
+    const TiXmlElement* image_xml = xml_elem->FirstChildElement("image");
+    if (image_xml) {
+        string image_filename = image_xml->GetText();
+        Object* obj = new Object();
+
+        cout << height << ", " << resolution << endl;
+
+        obj->setShape(Octree::fromHeightImage(model_dir_ + "/" + image_filename, height, resolution));
+        return obj;
+    } else {
+        error_ << "HeightMap: 'image' not specified." << endl;
+    }
+
+    /*
     const TiXmlElement* topic_xml = xml_elem->FirstChildElement("topic");
     if (topic_xml) {
         string topic = topic_xml->GetText();
@@ -153,10 +197,12 @@ Object* ModelParser::parseHeightMap(const TiXmlElement* xml_elem) {
 
         return root;
     }
+    */
 
     return 0;
 }
 
+/*
 void ModelParser::createQuadTree(const nav_msgs::OccupancyGrid& map, unsigned int mx_min, unsigned int my_min,
                                                     unsigned int mx_max, unsigned int my_max, double height, Object* parent, string indent) {
 
@@ -222,3 +268,4 @@ void ModelParser::callbackMap(const nav_msgs::OccupancyGrid::ConstPtr& msg) {
     tf::poseMsgToTF(world_map_.info.origin, map_transform_);
     map_transform_inverse_ = map_transform_.inverse();
 }
+*/
