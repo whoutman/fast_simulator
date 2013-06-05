@@ -167,6 +167,9 @@ bool setObject(fast_simulator::SetObject::Request& req, fast_simulator::SetObjec
 
                 Object* face = new Object("face");
                 obj->addChild(face, tf::Transform(tf::Quaternion(0, 0, 0, 1), tf::Vector3(0, 0, 1.6)));
+            } else if (req.type == "world") {
+                obj = new Object(req.type);
+                obj->setShape(Octree::fromHeightImage(MODEL_DIR + "/worlds/rgo2013/pgm", 1, 0.05));
 
             } else {
                 const Object* model = SIM->getModel(req.type);
