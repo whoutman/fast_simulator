@@ -40,6 +40,7 @@ rosbuild_add_executable(simulator src/simulator.cpp
                                   src/Amigo.cpp
                                   src/Pico.cpp
                                   src/Box.cpp
+                                  src/Octree.cpp
                                   src/Ray.cpp
                                   src/Sensor.cpp
                                   src/Sonar.cpp

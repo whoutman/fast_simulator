@@ -23,6 +23,8 @@
 
 #include "fast_simulator/ModelParser.h"
 
+#include "fast_simulator/Octree.h"
+
 using namespace std;
 
 
@@ -159,8 +161,8 @@ bool setObject(fast_simulator::SetObject::Request& req, fast_simulator::SetObjec
                 //obj->setBoundingBox(Box(tf::Vector3(-0.4, -0.4, 0.5), tf::Vector3(0.4, 0.4, 1.5)));
                 //obj->setShape(Sprite(MODEL_DIR + "/laser/body.pgm", 0.025, 0.5, 1.5));
 
-                obj->setShape(Box(tf::Vector3(-0.3, -0.3, 0.5), tf::Vector3(0.3, 0.3, 1.5)));
-
+                //obj->setShape(Box(tf::Vector3(-0.3, -0.3, 0.5), tf::Vector3(0.3, 0.3, 1.5)));
+                obj->setShape(Octree::fromHeightImage(MODEL_DIR + "/laser/body.pgm", 1, 0.025));
 
 
                 Object* face = new Object("face");
