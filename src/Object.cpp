@@ -34,10 +34,9 @@ void Object::addChild(Object* child) {
     parts_.push_back(*child);
 }
 
-void Object::addChild(Object* child, const tf::Transform& rel_pose) {
-    child->pose_ = rel_pose;
-    child->pose_inv_ = pose_.inverse();
-    child->has_pose_ = true;
+//void Object::addChild(Object* child, const tf::Transform& rel_pose) {
+void Object::addChild(Object* child, const tf::Vector3& pos, const tf::Quaternion& rot) {
+    child->setPose(pos, rot);
     addChild(child);
 }
 

@@ -58,7 +58,8 @@ public:
 
     void addChild(Object* child);
 
-    void addChild(Object* child, const tf::Transform& rel_pose);
+    //void addChild(Object* child, const tf::Transform& rel_pose);
+    void addChild(Object* child, const tf::Vector3& pos, const tf::Quaternion& rot);
 
     tf::Transform getAbsolutePose() const;
 

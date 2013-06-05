@@ -48,7 +48,7 @@ void Robot::addChildren(Object& obj, const KDL::SegmentMap::const_iterator segme
         Object* child = new Object("robot_link", child_kdl.getName());
         addChildren(*child, children[i]);
 
-        obj.addChild(child, rel_pose);
+        obj.addChild(child, rel_pose.getOrigin(), rel_pose.getRotation());
 
         links_[child_kdl.getName()] = child;
         joint->link_ = child;

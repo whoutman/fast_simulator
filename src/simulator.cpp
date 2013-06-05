@@ -71,11 +71,11 @@ const Object* Simulator::getModel(const std::string& name) const {
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 
 visualization_msgs::MarkerArray Simulator::getROSVisualizationMessage() {
-    map<string, Object*> objects = world_.getObjects();
+    vector<Object*> objects = world_.getObjectsRecursive();
 
     visualization_msgs::MarkerArray marker_array;
-    for(map<string, Object*>::const_iterator it_obj = objects.begin(); it_obj != objects.end(); ++it_obj) {
-        Object& obj = *it_obj->second;
+    for(vector<Object*>::const_iterator it_obj = objects.begin(); it_obj != objects.end(); ++it_obj) {
+        Object& obj = **it_obj;
 
         visualization_msgs::Marker m;
 
@@ -110,15 +110,24 @@ visualization_msgs::MarkerArray Simulator::getROSVisualizationMessage() {
         visualization_msgs::Marker m_text;
 
         m_text.id = m.id + 10000;
-        m_text.text = obj.getID();
+
+        if (obj.getID() != "") {
+            m_text.text = obj.getID();
+            m_text.color.r = 1;
+            m_text.color.g = 1;
+            m_text.color.b = 1;
+        } else {
+            m_text.text = obj.getType();
+            m_text.color.r = 1;
+            m_text.color.g = 0;
+            m_text.color.b = 0;
+        }
+
         m_text.action = visualization_msgs::Marker::ADD;
         m_text.header.frame_id = "/map";
         tf::poseTFToMsg(pose, m_text.pose);
         m_text.pose.position.z += 0.2;
         m_text.color.a = 1;
-        m_text.color.r = 1;
-        m_text.color.g = 1;
-        m_text.color.b = 1;
 
         m_text.type = visualization_msgs::Marker::TEXT_VIEW_FACING;
         m_text.scale.x = 0.1;
@@ -158,18 +167,15 @@ bool setObject(fast_simulator::SetObject::Request& req, fast_simulator::SetObjec
                 obj->setShape(Box(tf::Vector3(-0.4, -0.4, 0), tf::Vector3(0.4, 0.4, 1)));
             } else if (req.type == "person") {
                 obj = new Object(req.type);
-                //obj->setBoundingBox(Box(tf::Vector3(-0.4, -0.4, 0.5), tf::Vector3(0.4, 0.4, 1.5)));
-                //obj->setShape(Sprite(MODEL_DIR + "/laser/body.pgm", 0.025, 0.5, 1.5));
 
-                //obj->setShape(Box(tf::Vector3(-0.3, -0.3, 0.5), tf::Vector3(0.3, 0.3, 1.5)));
-                obj->setShape(Octree::fromHeightImage(MODEL_DIR + "/laser/body.pgm", 1, 0.025));
+                Object* body = new Object("body", req.id + "-body");
+                body->setShape(Octree::fromHeightImage(MODEL_DIR + "/laser/body.pgm", 1, 0.025));
+                obj->addChild(body, tf::Vector3(0, 0, 0.5), tf::Quaternion(0, 0, 0, 1));
+                //body->setPose(tf::Vector3(0, 0, 1), tf::Quaternion(0, 0, 0, 1));
+                //obj->addChild(body, tf::Transform(tf::Quaternion(0, 0, 0, 1), tf::Vector3(0.5, 0.5, 0.5)));
 
-
-                Object* face = new Object("face");
-                obj->addChild(face, tf::Transform(tf::Quaternion(0, 0, 0, 1), tf::Vector3(0, 0, 1.6)));
-            } else if (req.type == "world") {
-                obj = new Object(req.type);
-                obj->setShape(Octree::fromHeightImage(MODEL_DIR + "/worlds/rgo2013/pgm", 1, 0.025));
+                Object* face = new Object("face", req.id + "-face");
+                obj->addChild(face, tf::Vector3(0, 0, 1.6), tf::Quaternion(0, 0, 0, 1));
 
             } else {
                 const Object* model = SIM->getModel(req.type);
