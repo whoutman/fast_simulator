@@ -71,11 +71,14 @@ const Object* Simulator::getModel(const std::string& name) const {
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 
 visualization_msgs::MarkerArray Simulator::getROSVisualizationMessage() {
-    vector<Object*> objects = world_.getObjectsRecursive();
+    //vector<Object*> objects = world_.getObjectsRecursive();
+    map<string, Object*> objects = world_.getObjects();
 
     visualization_msgs::MarkerArray marker_array;
-    for(vector<Object*>::const_iterator it_obj = objects.begin(); it_obj != objects.end(); ++it_obj) {
-        Object& obj = **it_obj;
+    //for(vector<Object*>::const_iterator it_obj = objects.begin(); it_obj != objects.end(); ++it_obj) {
+    for(map<string, Object*>::const_iterator it_obj = objects.begin(); it_obj != objects.end(); ++it_obj) {
+        //Object& obj = **it_obj;
+        Object& obj = *it_obj->second;
 
         visualization_msgs::Marker m;
 
