@@ -2,6 +2,8 @@
 #include "fast_simulator/World.h"
 
 LRF::LRF(const std::string& topic, const std::string& frame_id) : frame_id_(frame_id) {
+    rate_ = 10;
+
     ros::NodeHandle nh;
     pub_laser_scan = nh.advertise<sensor_msgs::LaserScan>(topic, 10);
 

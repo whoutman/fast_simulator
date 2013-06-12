@@ -1,7 +1,7 @@
 #include "fast_simulator/Sensor.h"
 #include "fast_simulator/World.h"
 
-Sensor::Sensor() {
+Sensor::Sensor() : rate_(10) {
     description_->type_ = "sensor";
 }
 
@@ -12,7 +12,7 @@ void Sensor::start() {
 }
 
 void Sensor::run() {
-    ros::Rate r(10);
+    ros::Rate r(rate_);
     while(ros::ok()) {
 
         // create a copy of the world

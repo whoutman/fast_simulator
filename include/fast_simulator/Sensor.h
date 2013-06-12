@@ -24,6 +24,8 @@ protected:
 
     boost::thread worker_thread_;
 
+    double rate_;
+
 };
 
 
