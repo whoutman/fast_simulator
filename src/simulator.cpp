@@ -81,8 +81,6 @@ visualization_msgs::MarkerArray Simulator::getROSVisualizationMessage() {
         //Object& obj = **it_obj;
         Object& obj = *it_obj->second;
 
-        cout << "Object: " << it_obj->first << " " << obj.getID() << endl;
-
         visualization_msgs::Marker m;
 
         m.action = visualization_msgs::Marker::ADD;

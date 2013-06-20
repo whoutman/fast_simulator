@@ -66,9 +66,7 @@ void World::step(double dt) {
 }
 
 void World::addObject(const std::string& id, Object* obj) {
-    cout << "Adding object with id: " << id << endl;
     obj->description_->id_ = id;
-    cout << "ID is now: " << obj->getID() << endl;
     objects_[id] = obj;
 }
 
