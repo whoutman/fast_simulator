@@ -56,6 +56,8 @@ public:
 
     Object(const Object& orig);
 
+    static Object* fromModel(const Object& model);
+
     void addChild(Object* child);
 
     //void addChild(Object* child, const tf::Transform& rel_pose);

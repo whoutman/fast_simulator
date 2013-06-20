@@ -76,14 +76,18 @@ visualization_msgs::MarkerArray Simulator::getROSVisualizationMessage() {
 
     visualization_msgs::MarkerArray marker_array;
     //for(vector<Object*>::const_iterator it_obj = objects.begin(); it_obj != objects.end(); ++it_obj) {
-    for(map<string, Object*>::const_iterator it_obj = objects.begin(); it_obj != objects.end(); ++it_obj) {
+    for(map<string, Object*>::const_iterator it_obj = objects.begin(); it_obj != objects.end(); ++it_obj) {       
+
         //Object& obj = **it_obj;
         Object& obj = *it_obj->second;
+
+        cout << "Object: " << it_obj->first << " " << obj.getID() << endl;
 
         visualization_msgs::Marker m;
 
         m.action = visualization_msgs::Marker::ADD;
 
+        /*
         map<string, int>::iterator it_vis_id = object_id_to_vis_id.find(obj.getID());
         if (it_vis_id == object_id_to_vis_id.end()) {
             m.id = UNIQUE_VIS_ID;
@@ -92,6 +96,7 @@ visualization_msgs::MarkerArray Simulator::getROSVisualizationMessage() {
         } else {
             m.id = it_vis_id->second;
         }
+        */
 
         tf::Transform pose = obj.getAbsolutePose();
         m.header.frame_id = "/map";
@@ -112,7 +117,7 @@ visualization_msgs::MarkerArray Simulator::getROSVisualizationMessage() {
         // add text
         visualization_msgs::Marker m_text;
 
-        m_text.id = m.id + 10000;
+        //m_text.id = m.id + 10000;
 
         if (obj.getID() != "") {
             m_text.text = obj.getID();
@@ -142,6 +147,10 @@ visualization_msgs::MarkerArray Simulator::getROSVisualizationMessage() {
         marker_array.markers.push_back(m);
         marker_array.markers.push_back(m_text);
 
+    }
+
+    for(unsigned int i = 0; i < marker_array.markers.size(); ++i) {
+        marker_array.markers[i].id = i;
     }
 
     return marker_array;
@@ -183,7 +192,7 @@ bool setObject(fast_simulator::SetObject::Request& req, fast_simulator::SetObjec
             } else {
                 const Object* model = SIM->getModel(req.type);
                 if (model) {
-                    obj = new Object(*model);
+                    obj = Object::fromModel(*model);
                 } else {
                     obj = new Object(req.type);
                     //cout << "Unknown model type: '" << req.type << "'" << endl;

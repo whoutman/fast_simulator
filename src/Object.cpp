@@ -29,6 +29,13 @@ Object::Object(const Object& orig) : has_pose_(orig.has_pose_), pose_(orig.pose_
 
 }
 
+Object* Object::fromModel(const Object& model) {
+    // TODO: check if this is OK!
+    Object* obj = new Object(model);
+    obj->description_ = boost::shared_ptr<ObjectDescription>(new ObjectDescription(*model.description_));
+    return obj;
+}
+
 void Object::addChild(Object* child) {
     child->description_->parent_ = this;
     parts_.push_back(*child);
