@@ -262,6 +262,7 @@ int main(int argc, char **argv) {
         ("ry", po::value<double>(), "Y-value of robot intial rotation")
         ("rz", po::value<double>(), "Z-value of robot intial rotation")
         ("no-localization", "Set if no transformation from /map to /odom should be published")
+        ("kinect-raytracing", po::value<bool>(), "If set to false, Kinect raytracing is disabled (default: true)")
     ;
 
     po::variables_map vm;
@@ -282,6 +283,9 @@ int main(int argc, char **argv) {
     if (vm.count("rz")) { robot_ori_z = vm["rz"].as<double>(); }
 
     bool publish_localization = !(vm.count("no-localization"));
+
+    bool raytrace = true;
+    if (vm.count("kinect-raytracing")) { raytrace = vm["kinect-raytracing"].as<bool>(); }
 
     string robot_name = "";
     if (vm.count("robot")) {
@@ -351,6 +355,7 @@ int main(int argc, char **argv) {
         top_kinect->addModel("cif", MODEL_DIR + "/kinect/cif_cropped");
         top_kinect->addModel("tea_pack", MODEL_DIR + "/kinect/tea_pack_cropped");
         top_kinect->addModel("face", MODEL_DIR + "/kinect/loy_cropped");
+        top_kinect->setRaytracing(raytrace);
 
         amigo->registerSensor(top_kinect);
         amigo->getLink("openni_rgb_optical_frame")->addChild(top_kinect);

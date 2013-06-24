@@ -27,6 +27,8 @@ public:
 
     void addModel(const std::string& type, const std::string& filename);
 
+    void setRaytracing(bool status);
+
     void step(World& world);
 
 protected:
@@ -49,6 +51,10 @@ protected:
     sensor_msgs::CameraInfo cam_info_;
     cv_bridge::CvImage image_rgb_;
     cv_bridge::CvImage image_depth_;
+
+    // raytracing
+
+    bool raytrace_;
 
     image_geometry::PinholeCameraModel pinhole_model_;
 

@@ -7,6 +7,7 @@
 
     <arg name="teleport" default="false"/>
     <arg name="localization" default="true"/>
+    <arg name="kinect_raytracing" default="true"/>
 
     <arg name="env" default="$(optenv ROBOT_ENV robotics_testlab_A)" />
     <arg name="robot_init_x" default="$(optenv ROBOT_INIT_X 0)"/>
@@ -29,7 +30,7 @@
     <!-- SIMULATION -->
 
     <!-- gdb -ex run DASH DASH args -->
-    <node name="fast_simulator" pkg="fast_simulator" type="simulator" args="$(arg simulator_args)" output="screen" launch-prefix="$(arg launch-prefix)"/>
+    <node name="fast_simulator" pkg="fast_simulator" type="simulator" args="$(arg simulator_args) --kinect-raytracing $(arg kinect_raytracing)" output="screen" launch-prefix="$(arg launch-prefix)"/>
 
     <node if="$(arg teleport)" name="amigo_teleporter" pkg="fast_simulator" type="amigo_teleporter"/>
 
