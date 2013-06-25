@@ -54,11 +54,18 @@ class SimWorld(object):
     def amigo_speech_contains(self, substr, max_dt = rospy.Duration(2.0)):
             return substr in self.amigo_sentence and rospy.Time.now() - self.t_amigo_sentence < max_dt
 
-    def wait_for_amigo_speech(self, texts):
+    def wait_for_amigo_speech(self, matchtargets, max_dt = rospy.Duration(2.0)):
+        """matchtargets is a list of strings *and* functions. When none of the strings match,
+        this method returns when one of the matchfunctions returns True"""
         while not rospy.is_shutdown():
             rospy.sleep(0.5)
-            for text in texts:
-                if self.amigo_speech_contains(text):
+            strings = [text for text in matchtargets if type(text) == str]
+            for text in strings:
+                if self.amigo_speech_contains(text, max_dt=max_dt):
+                    return
+            matchfuncs = [func for func in matchtargets if callable(func)]
+            for func in matchfuncs:
+                if func(self.amigo_sentence)  and rospy.Time.now() - self.t_amigo_sentence < max_dt:
                     return
 
     # def add_response(self, matchfunc, response):
