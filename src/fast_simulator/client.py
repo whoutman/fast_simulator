@@ -15,7 +15,7 @@ class SimWorld(object):
 
         self.pub_speech = rospy.Publisher("/pocketsphinx/output", std_msgs.msg.String)
 
-        self.sub_amigo_speech = rospy.Subscriber("/amigo_speech_sim", std_msgs.msg.String, self.callback_amigo_speech)
+        self.sub_amigo_speech = rospy.Subscriber("/amigo_speech_sim", std_msgs.msg.String, self.callback_amigo_speech) 
         self.amigo_sentence = ""
         self.t_amigo_sentence = rospy.Time.now()
         
@@ -48,8 +48,9 @@ class SimWorld(object):
     def callback_amigo_speech(self, string_msg):
         if self.show_amigo_speech:
             print "AMIGO says: %s" % string_msg.data
-        self.amigo_sentence = string_msg.data
-        self.t_amigo_sentence = rospy.Time.now()
+        if string_msg.data != '':
+            self.amigo_sentence = string_msg.data
+            self.t_amigo_sentence = rospy.Time.now()
 
     def amigo_speech_contains(self, substr, max_dt = rospy.Duration(2.0)):
             return substr in self.amigo_sentence and rospy.Time.now() - self.t_amigo_sentence < max_dt
