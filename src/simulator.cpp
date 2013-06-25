@@ -365,6 +365,21 @@ int main(int argc, char **argv) {
         top_kinect->addModel("sponge", MODEL_DIR + "/kinect/sponge_cropped");
         top_kinect->addModel("veggie_noodles", MODEL_DIR + "/kinect/veggie_noodles_cropped");
 
+        top_kinect->addModel("apple_juice", MODEL_DIR + "/kinect/apple_juice");
+        top_kinect->addModel("beer_bottle", MODEL_DIR + "/kinect/beer_bottle");
+        top_kinect->addModel("chocolate_milk", MODEL_DIR + "/kinect/chocolate_milk");
+        top_kinect->addModel("coke_rwc2013", MODEL_DIR + "/kinect/coke_rwc2013");
+        top_kinect->addModel("cookies", MODEL_DIR + "/kinect/cookies");
+        top_kinect->addModel("crackers", MODEL_DIR + "/kinect/crackers");
+        top_kinect->addModel("deodorant", MODEL_DIR + "/kinect/deodorant");
+        top_kinect->addModel("fanta", MODEL_DIR + "/kinect/fanta");
+        top_kinect->addModel("fresh_discs", MODEL_DIR + "/kinect/fresh_discs");
+        top_kinect->addModel("garlic_sauce", MODEL_DIR + "/kinect/garlic_sauce");
+        top_kinect->addModel("milk", MODEL_DIR + "/kinect/milk");
+        top_kinect->addModel("orange_juice", MODEL_DIR + "/kinect/orange_juice");
+        top_kinect->addModel("peanut_butter", MODEL_DIR + "/kinect/peanut_butter");
+        top_kinect->addModel("seven_up", MODEL_DIR + "/kinect/seven_up");
+        top_kinect->addModel("tooth_paste", MODEL_DIR + "/kinect/tooth_paste");
 
         top_kinect->setRaytracing(raytrace);
 
