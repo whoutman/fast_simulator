@@ -355,6 +355,13 @@ int main(int argc, char **argv) {
         top_kinect->addModel("cif", MODEL_DIR + "/kinect/cif_cropped");
         top_kinect->addModel("tea_pack", MODEL_DIR + "/kinect/tea_pack_cropped");
         top_kinect->addModel("face", MODEL_DIR + "/kinect/loy_cropped");
+
+        top_kinect->addModel("drops", MODEL_DIR + "/kinect/drops_cropped");
+        top_kinect->addModel("marmalade", MODEL_DIR + "/kinect/marmalade_cropped");
+        top_kinect->addModel("tomato_soup", MODEL_DIR + "/kinect/tomato_soup_cropped");
+        top_kinect->addModel("cleaner", MODEL_DIR + "/kinect/cleaner_cropped");
+
+
         top_kinect->setRaytracing(raytrace);
 
         amigo->registerSensor(top_kinect);
