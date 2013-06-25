@@ -361,6 +361,10 @@ int main(int argc, char **argv) {
         top_kinect->addModel("tomato_soup", MODEL_DIR + "/kinect/tomato_soup_cropped");
         top_kinect->addModel("cleaner", MODEL_DIR + "/kinect/cleaner_cropped");
 
+        top_kinect->addModel("energy_drink", MODEL_DIR + "/kinect/energy_drink_cropped");
+        top_kinect->addModel("sponge", MODEL_DIR + "/kinect/sponge_cropped");
+        top_kinect->addModel("veggie_noodles", MODEL_DIR + "/kinect/veggie_noodles_cropped");
+
 
         top_kinect->setRaytracing(raytrace);
 
