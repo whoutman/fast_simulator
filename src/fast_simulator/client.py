@@ -13,27 +13,16 @@ class SimWorld(object):
 
         self.srv_set = rospy.ServiceProxy("/fast_simulator/set_object", fast_simulator.srv.SetObject)
 
-        self.pub_speech = rospy.Publisher("/speech/output", std_msgs.msg.String)
+        self.pub_speech = rospy.Publisher("/pocketsphinx/output", std_msgs.msg.String)
 
         self.sub_amigo_speech = rospy.Subscriber("/amigo_speech_sim", std_msgs.msg.String, self.callback_amigo_speech)
         self.amigo_sentence = ""
         self.t_amigo_sentence = rospy.Time.now()
-
-        # init all amigo hear publishers
-        self.output_publishers = {} 
-        output_topics = [   "/speech/output", "/speech_appliance/output", "/speech_cleanup/output", "/speech_continue/output",
-                            "/speech_decoration/output", "/speech_diningroom/output", "/speech_drink/output", "/speech_drink_cocktail/output",
-                            "/speech_food/output", "/speech_kitchen/output", "/speech_livingroom/output", "/speech_medicine/output",
-                            "/speech_name/output", "/speech_open_challenge/output", "/speech_room/output", "/speech_seat/output",
-                            "/speech_sentences/output", "/speech_storage/output", "/speech_stuff/output", "/speech_table/output",
-                            "/speech_yesno/output"]
-
-        for output_topic in output_topics:
-            self.output_publishers[output_topic] = rospy.Publisher(output_topic, std_msgs.msg.String)
         
         self.show_amigo_speech = True
 
         self.objects = {}
+        # self.speechmatchers = {}
 
     def add_object(self, id, type, x=None, y=None, z=None):
         obj = SimObject(id, type, self)
@@ -53,23 +42,12 @@ class SimWorld(object):
         #   return self.objects[id]
 
     def speak(self, text, type=None):
-
-        if type == None:
-            topic = "/speech/output"
-        else:
-            topic = "/speech_" + type + "/output"
-
-        if not self.output_publishers.has_key(topic):
-            rospy.logerr("Unknown amigo speak topic: %s" % topic)
-        else:
-            print "I say:      " + str(text)
-            print
-            self.output_publishers[topic].publish(text)
+        print "I say:      " + str(text)
+        self.pub_speech.publish(text)
 
     def callback_amigo_speech(self, string_msg):
         if self.show_amigo_speech:
             print "AMIGO says: %s" % string_msg.data
-            print
         self.amigo_sentence = string_msg.data
         self.t_amigo_sentence = rospy.Time.now()
 
@@ -82,6 +60,22 @@ class SimWorld(object):
             for text in texts:
                 if self.amigo_speech_contains(text):
                     return
+
+    # def add_response(self, matchfunc, response):
+    #     """Add a function to match sentences.
+    #        When the received sentence matches according to matchfunc, then self.tts replies with 'response'"""
+    #     self.speechmatchers[matchfunc] = response
+
+    # def tts(self, robot_text, language='en'):
+    #     rospy.sleep(self.delay_factor*len(robot_text))
+        
+    #     matches = [response for matchfunc, response in self.matchers if matchfunc(robot_text)]
+
+    #     try:
+    #         human_text = matches[0]
+    #         self.pub.publish(human_text)
+    #     except IndexError:
+    #         rospy.logwarn("No matching response for '{0}'".format(robot_text))
 
 
 class SimObject(object):
