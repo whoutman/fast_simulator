@@ -63,11 +63,11 @@ class SimWorld(object):
             strings = [text for text in matchtargets if type(text) == str]
             for text in strings:
                 if self.amigo_speech_contains(text, max_dt=max_dt):
-                    return
+                    return self.amigo_sentence
             matchfuncs = [func for func in matchtargets if callable(func)]
             for func in matchfuncs:
                 if func(self.amigo_sentence)  and rospy.Time.now() - self.t_amigo_sentence < max_dt:
-                    return
+                    return self.amigo_sentence
 
     # def add_response(self, matchfunc, response):
     #     """Add a function to match sentences.
