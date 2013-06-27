@@ -165,6 +165,8 @@ Simulator* SIM;
 
 string MODEL_DIR;
 
+set<string> FACES;
+
 bool setObject(fast_simulator::SetObject::Request& req, fast_simulator::SetObject::Response& res) {
 
     Object* obj = SIM->getObject(req.id);
@@ -182,9 +184,15 @@ bool setObject(fast_simulator::SetObject::Request& req, fast_simulator::SetObjec
                 body->setShape(Octree::fromHeightImage(MODEL_DIR + "/laser/body.pgm", 1, 0.025));
                 obj->addChild(body, tf::Vector3(0, 0, 0.5), tf::Quaternion(0, 0, 0, 1));
                 //body->setPose(tf::Vector3(0, 0, 1), tf::Quaternion(0, 0, 0, 1));
-                //obj->addChild(body, tf::Transform(tf::Quaternion(0, 0, 0, 1), tf::Vector3(0.5, 0.5, 0.5)));
+                //obj->addChild(body, tf::Transform(tf::Quaternion(0, 0, 0, 1), tf::Vector3(0.5, 0.5, 0.5)));               
 
-                Object* face = new Object("face", req.id + "-face");
+                string face_type = "loy";
+                set<string>::iterator it_face_type = FACES.find(req.id);
+                if (it_face_type != FACES.end()) {
+                    face_type = *it_face_type;
+                }
+
+                Object* face = new Object("face_" + face_type, req.id + "-face");
                 obj->addChild(face, tf::Vector3(0, 0, 1.6), tf::Quaternion(0, 0, 0, 1));
 
             } else {
@@ -310,6 +318,12 @@ int main(int argc, char **argv) {
         ROS_ERROR("Could not parse models: %s", model_parser.getError().c_str());
     }    
 
+    FACES.insert("loy");
+    FACES.insert("tim");
+    FACES.insert("rob");
+    FACES.insert("erik");
+    FACES.insert("sjoerd");
+
     // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 
     SIM = new Simulator();
@@ -354,7 +368,10 @@ int main(int argc, char **argv) {
         top_kinect->addModel("coke", MODEL_DIR + "/kinect/coke_cropped");
         top_kinect->addModel("cif", MODEL_DIR + "/kinect/cif_cropped");
         top_kinect->addModel("tea_pack", MODEL_DIR + "/kinect/tea_pack_cropped");
-        top_kinect->addModel("face", MODEL_DIR + "/kinect/loy_cropped");
+
+        for(set<string>::iterator it = FACES.begin(); it != FACES.end(); ++it) {
+            top_kinect->addModel("face_" + *it, MODEL_DIR + "/kinect/face_" + *it);
+        }
 
         top_kinect->addModel("drops", MODEL_DIR + "/kinect/drops_cropped");
         top_kinect->addModel("marmalade", MODEL_DIR + "/kinect/marmalade_cropped");
