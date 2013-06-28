@@ -95,6 +95,8 @@ Kinect::Kinect(const string& rgb_topic, const string& depth_topic, const string&
     pub_cam_info_ = nh.advertise<sensor_msgs::CameraInfo>(info_topic, 10);
     pub_point_cloud_ = nh.advertise<pcl::PointCloud<pcl::PointXYZ> >(point_cloud_topic, 1);
 
+    pub_point_cloud_2_ = nh.advertise<pcl::PointCloud<pcl::PointXYZ> >("camera/depth_registered/points", 1);
+
     // calculate ray directions
 
     image_geometry::PinholeCameraModel cam_model;
@@ -221,6 +223,7 @@ void Kinect::step(World& world) {
         }
 
         pub_point_cloud_.publish (msg);
+        pub_point_cloud_2_.publish (msg);
 
     } else {
         image_depth_.image = cv::Mat(height_, width_, CV_32FC1, 0.0);

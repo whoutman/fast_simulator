@@ -48,6 +48,9 @@ protected:
     ros::Publisher pub_cam_info_;
     ros::Publisher pub_point_cloud_;
 
+    // temporarily for tabletop segmentation
+    ros::Publisher pub_point_cloud_2_;
+
     sensor_msgs::CameraInfo cam_info_;
     cv_bridge::CvImage image_rgb_;
     cv_bridge::CvImage image_depth_;
