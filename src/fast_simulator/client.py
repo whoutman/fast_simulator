@@ -7,6 +7,8 @@ import fast_simulator.srv
 import geometry_msgs.msg
 import std_msgs.msg
 
+import tf
+
 class SimWorld(object):
     def __init__(self):
         #rospy.wait_for_service("/fast_simulator/set_object")
@@ -92,20 +94,22 @@ class SimObject(object):
         self.type = type
         self.world = world
 
-    def set_position(self, x, y, z):
+    def set_position(self, x, y, z, rx = 0, ry = 0, rz = 0):
         req = fast_simulator.srv.SetObjectRequest()
 
         req.id = self.id
         req.type = self.type
         req.action = fast_simulator.srv.SetObjectRequest.SET_POSE
 
+        q = tf.transformations.quaternion_from_euler(rx, ry, rz)
+
         req.pose.position.x = x
         req.pose.position.y = y
         req.pose.position.z = z
-        req.pose.orientation.x = 0
-        req.pose.orientation.y = 0
-        req.pose.orientation.z = 0
-        req.pose.orientation.w = 1      
+        req.pose.orientation.x = q[0]
+        req.pose.orientation.y = q[1]
+        req.pose.orientation.z = q[2]
+        req.pose.orientation.w = q[3]      
 
         if not self.world.srv_set(req):
             rospy.roserr("Service call failed")

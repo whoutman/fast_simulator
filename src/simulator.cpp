@@ -215,7 +215,9 @@ bool setObject(fast_simulator::SetObject::Request& req, fast_simulator::SetObjec
         tf::quaternionMsgToTF(req.pose.orientation, rot);
         obj->setPose(pos, rot);
 
-        cout << "Set " << req.id << " (type: " << req.type << ") at position (" << pos.x() << ", " << pos.y() << ", " << pos.z() << ")" << endl;
+        cout << "Set " << req.id << " (type: " << req.type << "): " << endl;
+        cout << "    position: (" << pos.x() << ", " << pos.y() << ", " << pos.z() << ")" << endl;
+        cout << "    rotation: (" << rot.x() << ", " << rot.y() << ", " << rot.z() << ", " << rot.w() << ")" << endl;
 
     } else {
         if (!obj) {
