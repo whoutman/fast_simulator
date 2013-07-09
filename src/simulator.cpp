@@ -16,6 +16,7 @@
 
 #include "fast_simulator/Amigo.h"
 #include "fast_simulator/Pico.h"
+#include "fast_simulator/Pera.h"
 
 #include <boost/program_options.hpp>
 
@@ -361,6 +362,10 @@ int main(int argc, char **argv) {
 
         pico->setPose(robot_pos, robot_ori);
         SIM->addObject("pico", pico);
+    } else if (robot_name == "pera") {
+        Pera* pera = new Pera(nh, publish_localization);
+        pera->setPose(robot_pos, robot_ori);
+        SIM->addObject("pera", pera);
     } else {
         Amigo* amigo = new Amigo(nh, publish_localization);
 
