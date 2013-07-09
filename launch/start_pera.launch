@@ -1,0 +1,31 @@
+<?xml version="1.0"?>
+<launch>
+
+    <arg name="gdb" default="false"/>
+    <arg if="$(arg gdb)" name="launch-prefix" value="gdb -ex run --args"/>
+    <arg unless="$(arg gdb)" name="launch-prefix" value=""/>
+
+    <arg name="env" default="$(optenv ROBOT_ENV robotics_testlab_A)" />
+    <arg name="robot_init_x" default="$(optenv ROBOT_INIT_X 0)"/>
+    <arg name="robot_init_y" default="$(optenv ROBOT_INIT_Y 0)"/>
+    <arg name="robot_init_phi" default="$(optenv ROBOT_INIT_PHI 0)"/>
+
+    <arg name="init_pos_args" value="--x 0 --y 0 --z 1.5 --rx -1.57"/>
+
+    <arg name="simulator_args" value="$(arg init_pos_args) --world $(arg env)"/>
+
+    <!-- load robot -->
+    <param name="robot_description" command="$(find xacro)/xacro.py '$(find pera_description)/urdf/pera_left.urdf.xacro' " />
+
+    <!-- SIMULATION -->
+
+    <node name="fast_simulator" pkg="fast_simulator" type="simulator" args="$(arg simulator_args) --robot pera" output="screen" launch-prefix="$(arg launch-prefix)"/>
+
+    <!-- Robot state publisher -->
+    <node pkg="robot_state_publisher" type="state_publisher" name="robot_state_publisher">
+        <param name="publish_frequency" type="double" value="50.0" />
+        <param name="tf_prefix" type="string" value="" />
+    </node>
+     
+ </launch>
+  

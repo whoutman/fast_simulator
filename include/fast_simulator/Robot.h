@@ -56,9 +56,7 @@ private:
 
     KDL::Tree tree;
 
-    bool publish_localization_;
-
-    tf::StampedTransform tf_map_to_odom;
+    bool publish_localization_;    
 
     std::map<std::string, Joint*> joints_;
 
@@ -67,6 +65,8 @@ private:
     ros::Publisher pub_joint_states;
 
     std::map<std::string, Object*> links_;
+
+    tf::StampedTransform tf_localization_;
 
     Event event_loc_pub_;
     Event event_joint_states_pub_;

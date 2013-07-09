@@ -33,7 +33,7 @@ public:
 
 protected:
 
-    tf::StampedTransform tf_map_to_odom;
+    tf::StampedTransform tf_localization_;
     tf::StampedTransform tf_odom_to_base_link;
 
     ros::Time t_last_cmd_vel_;

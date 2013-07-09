@@ -12,7 +12,7 @@ class Pera : public Robot {
 
 public:
 
-    Pera(ros::NodeHandle& nh, bool publish_localization = true);
+    Pera(ros::NodeHandle& nh);
 
     virtual ~Pera();
 
@@ -26,6 +26,9 @@ protected:
     ros::Subscriber sub_left_gripper;
 
     int left_gripper_direction_;
+
+    Event event_loc_pub_;
+    tf::StampedTransform tf_location_;
 
     std::vector<std::string> left_arm_joint_names;
 

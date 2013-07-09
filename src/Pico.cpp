@@ -20,12 +20,6 @@ Pico::Pico(ros::NodeHandle& nh, bool publish_localization) : Robot(nh, publish_l
     sub_head_pan_ = nh.subscribe("/robot/body/yaw_out", 10, &Pico::callbackHeadPan, this);
     sub_head_tilt_ = nh.subscribe("/robot/body/pitch_out", 10, &Pico::callbackHeadTilt, this);
 
-    // TF
-    tf_map_to_odom.setOrigin(tf::Vector3(0, 0, 0));
-    tf_map_to_odom.setRotation(tf::Quaternion(0, 0, 0, 1));
-    tf_map_to_odom.frame_id_ = "/map";
-    tf_map_to_odom.child_frame_id_ = "/odom";
-
     tf_odom_to_base_link.frame_id_ = "/odom";
     tf_odom_to_base_link.child_frame_id_ = "/base_link";
 

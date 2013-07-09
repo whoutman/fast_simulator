@@ -21,10 +21,9 @@
 #include <boost/program_options.hpp>
 
 #include "fast_simulator/simulator.h"
-
 #include "fast_simulator/ModelParser.h"
-
 #include "fast_simulator/Octree.h"
+#include "fast_simulator/util.h"
 
 using namespace std;
 
@@ -363,7 +362,10 @@ int main(int argc, char **argv) {
         pico->setPose(robot_pos, robot_ori);
         SIM->addObject("pico", pico);
     } else if (robot_name == "pera") {
-        Pera* pera = new Pera(nh, publish_localization);
+        Pera* pera = new Pera(nh);
+
+        cout << toString(robot_pos) << endl;
+
         pera->setPose(robot_pos, robot_ori);
         SIM->addObject("pera", pera);
     } else {

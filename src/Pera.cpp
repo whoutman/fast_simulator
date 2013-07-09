@@ -2,7 +2,7 @@
 
 using namespace std;
 
-Pera::Pera(ros::NodeHandle& nh, bool publish_localization) : Robot(nh, publish_localization) {
+Pera::Pera(ros::NodeHandle& nh) : Robot(nh, false) {
 
     setJointPosition("shoulder_yaw_joint_left", -0.010038043598955326);
     setJointPosition("shoulder_pitch_joint_left", -0.39997462399515005);
@@ -35,6 +35,10 @@ Pera::Pera(ros::NodeHandle& nh, bool publish_localization) : Robot(nh, publish_l
     left_gripper_direction_ = amigo_msgs::AmigoGripperMeasurement::OPEN;
 
     event_refs_pub_.scheduleRecurring(100);
+
+    tf_location_.frame_id_ = "/map";
+    tf_location_.child_frame_id_ = "/shoulder_mount_left";
+    event_loc_pub_.scheduleRecurring(50);
 }
 
 Pera::~Pera() {
@@ -44,6 +48,13 @@ Pera::~Pera() {
 void Pera::step(double dt) {
     Robot::step(dt);
     publishControlRefs();
+
+    if (event_loc_pub_.isScheduled()) {
+        tf_location_.stamp_ = ros::Time::now();
+        tf_location_.setOrigin(getAbsolutePose().getOrigin());
+        tf_location_.setRotation(getAbsolutePose().getRotation());
+        tf_broadcaster_.sendTransform(tf_location_);
+    }
 
 }
 

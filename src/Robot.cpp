@@ -9,10 +9,10 @@ Robot::Robot(ros::NodeHandle& nh, bool publish_localization) : nh_(nh), publish_
     pub_joint_states = nh.advertise<sensor_msgs::JointState>("/joint_states", 10);
 
     // TF
-    tf_map_to_odom.setOrigin(tf::Vector3(0, 0, 0));
-    tf_map_to_odom.setRotation(tf::Quaternion(0, 0, 0, 1));
-    tf_map_to_odom.frame_id_ = "/map";
-    tf_map_to_odom.child_frame_id_ = "/odom";
+    tf_localization_.setOrigin(tf::Vector3(0, 0, 0));
+    tf_localization_.setRotation(tf::Quaternion(0, 0, 0, 1));
+    tf_localization_.frame_id_ = "/map";
+    tf_localization_.child_frame_id_ = "/odom";
 
     event_loc_pub_.scheduleRecurring(100);
     event_joint_states_pub_.scheduleRecurring(100);
@@ -90,8 +90,8 @@ void Robot::step(double dt) {
 
     if (event_loc_pub_.isScheduled()) {
         if (publish_localization_) {
-            tf_map_to_odom.stamp_ = ros::Time::now();
-            tf_broadcaster_.sendTransform(tf_map_to_odom);
+            tf_localization_.stamp_ = ros::Time::now();
+            tf_broadcaster_.sendTransform(tf_localization_);
         }
     }
 
