@@ -29,8 +29,10 @@
 
     <!-- SIMULATION -->
 
-    <!-- gdb -ex run DASH DASH args -->
     <node name="fast_simulator" pkg="fast_simulator" type="simulator" args="$(arg simulator_args) --kinect-raytracing $(arg kinect_raytracing)" output="screen" launch-prefix="$(arg launch-prefix)"/>
+
+    <!-- spawn objects -->
+    <node name="fast_simulator_object_spawner" pkg="fast_simulator_data" type="$(arg env).py" output="screen"/>
 
     <node if="$(arg teleport)" name="amigo_teleporter" pkg="fast_simulator" type="amigo_teleporter"/>
 

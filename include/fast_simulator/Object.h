@@ -63,6 +63,12 @@ public:
     //void addChild(Object* child, const tf::Transform& rel_pose);
     void addChild(Object* child, const tf::Vector3& pos, const tf::Quaternion& rot);
 
+    const std::vector<Object>& getChildren() const;
+
+    void getChildrenRecursive(std::vector<Object*>& objects);
+
+    tf::Transform getRelativePose() const;
+
     tf::Transform getAbsolutePose() const;
 
     virtual void step(double dt);
@@ -73,15 +79,15 @@ public:
 
     void setShape(const Shape& box);
 
+    const Shape* getShape() const;
+
     void setPose(const tf::Vector3& pos, const tf::Quaternion& rot);
 
     const std::string& getType() const;
 
     bool intersect(const Ray &r, float t0, float t1, double& distance) const;
 
-    void getBoundingBox(tf::Vector3 &min, tf::Vector3 &max) const;
-
-    void getChildrenRecursive(std::vector<Object*>& objects);
+    void getBoundingBox(tf::Vector3 &min, tf::Vector3 &max) const;    
 
     std::string toString(const std::string &indent = "") const;
 

@@ -47,11 +47,19 @@ void Object::addChild(Object* child, const tf::Vector3& pos, const tf::Quaternio
     addChild(child);
 }
 
+const std::vector<Object>& Object::getChildren() const {
+    return parts_;
+}
+
+tf::Transform Object::getRelativePose() const {
+    return pose_;
+}
+
 tf::Transform Object::getAbsolutePose() const {
     if (!description_->parent_) {
         return pose_;
     }
-    return description_->parent_->getAbsolutePose() * pose_;
+    return description_->parent_->getAbsolutePose() * pose_;    // TODO: parent_ may be invalid, FIX!
 }
 
 void Object::step(double dt) {
@@ -75,6 +83,13 @@ void Object::setBoundingBox(const Box& box) {
 
 void Object::setShape(const Shape& shape) {
     description_->shape_ = shape.clone();
+}
+
+const Shape* Object::getShape() const {
+    if (!description_) {
+        return 0;
+    }
+    return description_->shape_;
 }
 
 void Object::setPose(const tf::Vector3& pos, const tf::Quaternion& rot) {

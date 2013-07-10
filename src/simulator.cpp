@@ -71,15 +71,58 @@ const Object* Simulator::getModel(const std::string& name) const {
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 
 visualization_msgs::MarkerArray Simulator::getROSVisualizationMessage() {
-    //vector<Object*> objects = world_.getObjectsRecursive();
     map<string, Object*> objects = world_.getObjects();
 
     visualization_msgs::MarkerArray marker_array;
-    //for(vector<Object*>::const_iterator it_obj = objects.begin(); it_obj != objects.end(); ++it_obj) {
+
     for(map<string, Object*>::const_iterator it_obj = objects.begin(); it_obj != objects.end(); ++it_obj) {       
 
-        //Object& obj = **it_obj;
         Object& obj = *it_obj->second;
+
+        tf::Transform pose = obj.getAbsolutePose();
+
+        const vector<Object>& children = obj.getChildren();
+        for(vector<Object>::const_iterator it_child = children.begin(); it_child != children.end(); ++it_child) {
+            const Object& child = *it_child;
+
+            const Shape* shape = child.getShape();
+            if (shape) {
+                const Box* box = dynamic_cast<const Box*>(shape);
+                if (box) {
+                    tf::Vector3 size = box->getSize();
+
+                    if (size.x() < 20 && size.y() < 20 && size.z() < 20) { // quick hack to prevent visualization of ground plane
+
+                        visualization_msgs::Marker m_box;
+                        m_box.action =  visualization_msgs::Marker::ADD;
+                        m_box.header.frame_id = "/map";
+                        m_box.header.stamp = ros::Time::now();
+
+                        tf::Transform child_rel_pose = child.getRelativePose();
+                        child_rel_pose.setOrigin(child_rel_pose.getOrigin() + box->getCenter());
+
+                        tf::poseTFToMsg(pose * child_rel_pose, m_box.pose);
+
+                        m_box.color.a = 1;
+                        m_box.color.r = 0.8;
+                        m_box.color.g = 0.8;
+                        m_box.color.b = 1;
+
+                        m_box.type = visualization_msgs::Marker::CUBE;
+
+                        m_box.scale.x = size.getX();
+                        m_box.scale.y = size.getY();
+                        m_box.scale.z = size.getZ();
+
+                        m_box.lifetime = ros::Duration(1.0);
+
+                        marker_array.markers.push_back(m_box);
+                    }
+                }
+            }
+        }
+
+
 
         visualization_msgs::Marker m;
 
@@ -96,8 +139,7 @@ visualization_msgs::MarkerArray Simulator::getROSVisualizationMessage() {
         }
         */
 
-        tf::Transform pose = obj.getAbsolutePose();
-        m.header.frame_id = "/map";
+        m.header.frame_id = "/map";        
         tf::poseTFToMsg(pose, m.pose);
 
         m.color.a = 1;

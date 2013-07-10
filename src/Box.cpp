@@ -41,3 +41,13 @@ void Box::getBoundingBox(tf::Vector3 &min, tf::Vector3 &max) const {
     max = bounds[1];
 }
 
+tf::Vector3 Box::getSize() const {
+    return tf::Vector3(bounds[1].x() - bounds[0].x(), bounds[1].y() - bounds[0].y(), bounds[1].z() - bounds[0].z());
+}
+
+tf::Vector3 Box::getCenter() const {
+    return tf::Vector3( (bounds[1].x() + bounds[0].x()) / 2,
+                        (bounds[1].y() + bounds[0].y()) / 2,
+                        (bounds[1].z() + bounds[0].z()) / 2);
+}
+

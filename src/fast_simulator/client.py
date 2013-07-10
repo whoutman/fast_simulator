@@ -11,8 +11,7 @@ import tf
 
 class SimWorld(object):
     def __init__(self):
-        #rospy.wait_for_service("/fast_simulator/set_object")
-
+        rospy.wait_for_service("/fast_simulator/set_object")
         self.srv_set = rospy.ServiceProxy("/fast_simulator/set_object", fast_simulator.srv.SetObject)
 
         self.pub_speech = rospy.Publisher("/pocketsphinx/output", std_msgs.msg.String)

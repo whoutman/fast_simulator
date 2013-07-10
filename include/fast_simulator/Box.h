@@ -15,6 +15,10 @@ public:
 
     void getBoundingBox(tf::Vector3 &min, tf::Vector3 &max) const;
 
+    tf::Vector3 getSize() const;
+
+    tf::Vector3 getCenter() const;
+
     tf::Vector3 bounds[2];
 
 };
