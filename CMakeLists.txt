@@ -33,6 +33,8 @@ rosbuild_add_boost_directories()
 #rosbuild_add_boost_directories()
 #rosbuild_link_boost(${PROJECT_NAME} thread)
 rosbuild_add_executable(simulator src/simulator.cpp
+                                  src/Simulator.cpp
+                                  src/SimulatorROS.cpp
                                   src/Object.cpp
                                   src/Robot.cpp
                                   src/Joint.cpp
