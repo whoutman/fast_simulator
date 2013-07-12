@@ -22,7 +22,7 @@
     <arg name="simulator_args" value="$(arg localization_arg) $(arg init_pos_args) --world $(arg env)"/>
 
     <!-- load robot -->
-    <param name="robot_description" command="$(find xacro)/xacro.py '$(find amigo_robot_model)/description/robot_complex.urdf.xacro' " />
+    <param name="/amigo/description" command="$(find xacro)/xacro.py '$(find amigo_robot_model)/description/robot_complex.urdf.xacro' " />
 
     <!-- load robot joint group info -->
     <rosparam file="$(find amigo_robot_model)/description/joint_groups.yaml" command="load" />
@@ -31,15 +31,21 @@
 
     <node name="fast_simulator" pkg="fast_simulator" type="simulator" args="$(arg simulator_args) --kinect-raytracing $(arg kinect_raytracing)" output="screen" launch-prefix="$(arg launch-prefix)"/>
 
+    <!-- spawn world -->
+    <node pkg="fast_simulator" type="spawn" name="spawn_world" args="-i $(arg env) -m $(arg env)" output="screen"/>
+
     <!-- spawn objects -->
     <node name="fast_simulator_object_spawner" pkg="fast_simulator_data" type="$(arg env).py" output="screen"/>
+
+    <!-- spawn amigo -->
+    <node pkg="fast_simulator" type="spawn" name="spawn_amigo" args="-i amigo -m amigo -x $(arg robot_init_x) -y $(arg robot_init_y) -Z $(arg robot_init_phi)" output="screen"/>
 
     <node if="$(arg teleport)" name="amigo_teleporter" pkg="fast_simulator" type="amigo_teleporter"/>
 
     <!-- Robot state publisher -->
     <node pkg="robot_state_publisher" type="state_publisher" name="robot_state_publisher">
         <param name="publish_frequency" type="double" value="50.0" />
-        <param name="tf_prefix" type="string" value="" />
+        <param name="tf_prefix" type="string" value="amigo" />
     </node>
      
     <!-- Required simulation parameter -->

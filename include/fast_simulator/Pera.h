@@ -1,10 +1,13 @@
 #ifndef _FAST_SIMULATOR_PERA_H_
 #define _FAST_SIMULATOR_PERA_H_
 
-#include "amigo_msgs/arm_joints.h"
 #include "amigo_msgs/AmigoGripperCommand.h"
 #include "amigo_msgs/AmigoGripperMeasurement.h"
-#include "std_msgs/Float64.h"
+
+//#include "amigo_msgs/arm_joints.h"
+//#include "std_msgs/Float64.h"
+
+#include "sensor_msgs/JointState.h"
 
 #include "fast_simulator/Robot.h"
 
@@ -34,7 +37,7 @@ protected:
 
     void callbackLeftGripper(const amigo_msgs::AmigoGripperCommand::ConstPtr& msg);
 
-    void callbackLeftArm(const amigo_msgs::arm_joints::ConstPtr& msg);
+    void callbackLeftArm(const sensor_msgs::JointState::ConstPtr& msg);
 
     void publishControlRefs();
 

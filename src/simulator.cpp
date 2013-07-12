@@ -85,30 +85,6 @@ int main(int argc, char **argv) {
     SimulatorROS SIM(nh);
     SIM.parseModelFile(model_dir + "/models/models.xml", model_dir);
 
-    if (world_name != "") {
-        Object* world = SIM.getObjectFromModel(world_name);
-        if (world) {
-            SIM.addObject(world_name, world);
-        } else {
-            ROS_ERROR("While loading world: could not find model: '%s'", world_name.c_str());
-        }
-    }
-
-
-    // ADD ROBOT
-
-    if (robot_name != "") {
-        Object* robot = SIM.getObjectFromModel(robot_name);
-        if (robot) {
-            robot->setPose(robot_pos, robot_ori);
-            SIM.addObject(robot_name, robot);
-        } else {
-            ROS_ERROR("Could not find robot model: '%s'", robot_name.c_str());
-        }
-    }
-
-
-
     SIM.start();
 
     return 0;

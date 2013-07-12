@@ -4,22 +4,22 @@
 
 using namespace std;
 
-Robot::Robot(ros::NodeHandle& nh, bool publish_localization) : nh_(nh), publish_localization_(publish_localization) {
+Robot::Robot(ros::NodeHandle& nh, const std::string& robot_type, bool publish_localization) : nh_(nh), publish_localization_(publish_localization) {
     // joint_states
-    pub_joint_states = nh.advertise<sensor_msgs::JointState>("/joint_states", 10);
+    pub_joint_states = nh.advertise<sensor_msgs::JointState>("/" + robot_type + "/joint_states", 10);
 
     // TF
     tf_localization_.setOrigin(tf::Vector3(0, 0, 0));
     tf_localization_.setRotation(tf::Quaternion(0, 0, 0, 1));
     tf_localization_.frame_id_ = "/map";
-    tf_localization_.child_frame_id_ = "/odom";
+    tf_localization_.child_frame_id_ = "/" + robot_type + "/odom";
 
     event_loc_pub_.scheduleRecurring(100);
     event_joint_states_pub_.scheduleRecurring(100);
     event_sensors_pub_.scheduleRecurring(10);
 
     // gets the location of the robot description on the parameter server
-    if (!kdl_parser::treeFromParam("/robot_description", tree)){
+    if (!kdl_parser::treeFromParam("/" + robot_type + "/robot_description", tree)){
       ROS_ERROR("Failed to extract kdl tree from xml robot description");
     }
     addChildren(*this, tree.getRootSegment());

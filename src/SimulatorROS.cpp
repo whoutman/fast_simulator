@@ -65,11 +65,11 @@ Object* SimulatorROS::getObjectFromModel(const std::string& model_name, const st
         Pico* pico = new Pico(nh_, true); //publish_localization);
 
         // add laser
-        LRF* laser_range_finder_ = new LRF("/robot/body/laser", "/laser");
+        LRF* laser_range_finder_ = new LRF("/pico/laser", "/pico/laser");
         pico->registerSensor(laser_range_finder_);
         pico->getLink("laser")->addChild(laser_range_finder_);
 
-        Sonar* front_sonar_ = new Sonar("/robot/body/sonar_front", "/sonar_front");
+        Sonar* front_sonar_ = new Sonar("/pico/sonar_front", "/pico/sonar_front");
         pico->registerSensor(front_sonar_);
         pico->getLink("sonar_front")->addChild(front_sonar_);
 
@@ -81,7 +81,8 @@ Object* SimulatorROS::getObjectFromModel(const std::string& model_name, const st
         Amigo* amigo = new Amigo(nh_, true); //publish_localization);
 
         // add kinect
-        Kinect* top_kinect = new Kinect("/camera/rgb/image_rect_color", "/camera/depth_registered/image", "/camera/rgb/camera_info", "/camera/rgb/points", "/openni_rgb_optical_frame");
+        Kinect* top_kinect = new Kinect("/amigo/camera/rgb/image_rect_color", "/amigo/camera/depth_registered/image",
+                                        "/amigo/camera/rgb/camera_info", "/amigo/camera/rgb/points", "/amigo/openni_rgb_optical_frame");
         //top_kinect->addModel("loy", MODEL_DIR + "/kinect/loy");
         top_kinect->addModel("coke", model_dir_ + "/kinect/coke_cropped");
         top_kinect->addModel("cif", model_dir_ + "/kinect/cif_cropped");
@@ -122,11 +123,11 @@ Object* SimulatorROS::getObjectFromModel(const std::string& model_name, const st
         amigo->getLink("openni_rgb_optical_frame")->addChild(top_kinect);
 
 
-        LRF* base_lrf = new LRF("/base_scan", "/front_laser");
+        LRF* base_lrf = new LRF("/base_scan", "/amigo/front_laser");
         amigo->registerSensor(base_lrf);
         amigo->getLink("front_laser")->addChild(base_lrf);
 
-        LRF* torso_lrf = new LRF("/top_scan", "/torso_laser");
+        LRF* torso_lrf = new LRF("/top_scan", "/amigo/torso_laser");
         amigo->registerSensor(torso_lrf);
         amigo->getLink("torso_laser")->addChild(torso_lrf);
         cout << "TORSO_LASER " << amigo->getLink("torso_laser") << endl;
@@ -161,6 +162,8 @@ Object* SimulatorROS::getObjectFromModel(const std::string& model_name, const st
         obj->addChild(face, tf::Vector3(0, 0, 1.6), tf::Quaternion(0, 0, 0, 1));
 
     }
+
+    cout << "Model " << model_name << " not found" << endl;
 
     return 0;
 }
@@ -212,6 +215,8 @@ void SimulatorROS::start() {
 }
 
 bool SimulatorROS::setObject(fast_simulator::SetObject::Request& req, fast_simulator::SetObject::Response& res) {
+
+    cout << "SimulatorROS::setObject" << endl;
 
     Object* obj = SIM.getObject(req.id);
 
