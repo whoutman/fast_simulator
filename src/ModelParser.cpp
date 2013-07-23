@@ -118,10 +118,11 @@ Object* ModelParser::parse(const std::string& model_name, std::string& error) {
                     shape_xml = shape_xml->NextSiblingElement();
                 }
 
+                error = s_error.str();
                 if (s_error.str().empty()) {
                     cout << "... Parsing successfully ..." << endl;
                     return model;
-                } else {
+                } else {                    
                     return 0;
                 }
             }
@@ -132,7 +133,7 @@ Object* ModelParser::parse(const std::string& model_name, std::string& error) {
         model_xml = model_xml->NextSiblingElement("model");
     }
 
-    s_error << "No model '" << model_name << "' found." << endl;
+    //s_error << "No model '" << model_name << "' found." << endl;
     error = s_error.str();
 
     return 0;
