@@ -25,7 +25,7 @@ using namespace std;
 
 SimulatorROS::SimulatorROS(ros::NodeHandle& nh, const std::string& model_file, const std::string& model_dir)
     : nh_(nh), model_parser_(new ModelParser(model_file, model_dir)), model_dir_(model_dir) {
-    PUB_MARKER = nh_.advertise<visualization_msgs::MarkerArray>("/fast_simulator/visualization", 10);
+    pub_marker_ = nh_.advertise<visualization_msgs::MarkerArray>("/fast_simulator/visualization", 10);
     srv_set_object_ = nh_.advertiseService("/fast_simulator/set_object", &SimulatorROS::setObject, this);
 
 }
@@ -36,11 +36,11 @@ SimulatorROS::~SimulatorROS() {
 }
 
 void SimulatorROS::parseModelFile(const std::string& filename, const std::string& model_dir) {
-    FACES.insert("loy");
-    FACES.insert("tim");
-    FACES.insert("rob");
-    FACES.insert("erik");
-    FACES.insert("sjoerd");
+    faces_.insert("loy");
+    faces_.insert("tim");
+    faces_.insert("rob");
+    faces_.insert("erik");
+    faces_.insert("sjoerd");
 }
 
 Object* SimulatorROS::getObjectFromModel(const std::string& model_name, const std::string& id) {
@@ -81,7 +81,7 @@ Object* SimulatorROS::getObjectFromModel(const std::string& model_name, const st
         top_kinect->addModel("cif", model_dir_ + "/kinect/cif_cropped");
         top_kinect->addModel("tea_pack", model_dir_ + "/kinect/tea_pack_cropped");
 
-        for(set<string>::iterator it = FACES.begin(); it != FACES.end(); ++it) {
+        for(set<string>::iterator it = faces_.begin(); it != faces_.end(); ++it) {
             top_kinect->addModel("face_" + *it, model_dir_ + "/kinect/face_" + *it);
         }
 
@@ -146,8 +146,8 @@ Object* SimulatorROS::getObjectFromModel(const std::string& model_name, const st
         //obj->addChild(body, tf::Transform(tf::Quaternion(0, 0, 0, 1), tf::Vector3(0.5, 0.5, 0.5)));
 
         string face_type = "loy";
-        set<string>::iterator it_face_type = FACES.find(id);
-        if (it_face_type != FACES.end()) {
+        set<string>::iterator it_face_type = faces_.find(id);
+        if (it_face_type != faces_.end()) {
             face_type = *it_face_type;
         }
 
@@ -162,7 +162,7 @@ Object* SimulatorROS::getObjectFromModel(const std::string& model_name, const st
 }
 
 void SimulatorROS::addObject(const std::string& id, Object* obj) {
-    SIM.addObject(id, obj);
+    simulator_.addObject(id, obj);
 }
 
 void SimulatorROS::start() {
@@ -188,11 +188,11 @@ void SimulatorROS::start() {
 
         ros::spinOnce();
 
-        SIM.step(dt);
+        simulator_.step(dt);
 
         if (count % 10 == 0) {
             visualization_msgs::MarkerArray marker_array = getROSVisualizationMessage();
-            PUB_MARKER.publish(marker_array);
+            pub_marker_.publish(marker_array);
         }
 
         ros::Duration cycle_time = ros::Time::now() - t_start;
@@ -209,7 +209,7 @@ void SimulatorROS::start() {
 
 bool SimulatorROS::setObject(fast_simulator::SetObject::Request& req, fast_simulator::SetObject::Response& res) {
 
-    Object* obj = SIM.getObject(req.id);
+    Object* obj = simulator_.getObject(req.id);
 
     if (req.action == fast_simulator::SetObject::Request::SET_POSE) {
 
@@ -218,7 +218,7 @@ bool SimulatorROS::setObject(fast_simulator::SetObject::Request& req, fast_simul
             if (!obj) {
                 obj = new Object(req.type);
             }
-            SIM.addObject(req.id, obj);
+            simulator_.addObject(req.id, obj);
         }
 
         tf::Point pos;
@@ -238,7 +238,7 @@ bool SimulatorROS::setObject(fast_simulator::SetObject::Request& req, fast_simul
         }
 
         if (req.action == fast_simulator::SetObject::Request::DELETE) {
-            SIM.removeObject(req.id);
+            simulator_.removeObject(req.id);
         } else if (req.action == fast_simulator::SetObject::Request::SET_PARAMS) {
 
         }
@@ -255,7 +255,7 @@ bool SimulatorROS::setObject(fast_simulator::SetObject::Request& req, fast_simul
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 
 visualization_msgs::MarkerArray SimulatorROS::getROSVisualizationMessage() {
-    map<string, Object*> objects = SIM.getObjects();
+    map<string, Object*> objects = simulator_.getObjects();
 
     visualization_msgs::MarkerArray marker_array;
 

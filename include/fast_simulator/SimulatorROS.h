@@ -29,13 +29,13 @@ public:
 
 protected:
 
-    ros::NodeHandle(nh_);
+    ros::NodeHandle nh_;
 
-    Simulator SIM;
+    Simulator simulator_;
 
-    std::set<std::string> FACES;
+    std::set<std::string> faces_;
 
-    ros::Publisher PUB_MARKER;
+    ros::Publisher pub_marker_;
 
     ros::ServiceServer srv_set_object_;
 

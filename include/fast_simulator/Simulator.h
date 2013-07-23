@@ -33,12 +33,6 @@ protected:
 
     World& world_;
 
-    //std::string MODEL_DIR;
-
-    int UNIQUE_VIS_ID;
-
-    std::map<std::string, int> object_id_to_vis_id;
-
 };
 
 #endif

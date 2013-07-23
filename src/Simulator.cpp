@@ -2,7 +2,7 @@
 
 using namespace std;
 
-Simulator::Simulator() : world_(World::getInstance()), UNIQUE_VIS_ID(0) {
+Simulator::Simulator() : world_(World::getInstance()) {
 
 }
 
