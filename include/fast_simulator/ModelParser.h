@@ -22,32 +22,15 @@ public:
 
     std::vector<double> parseArray(const TiXmlElement* xml_elem);
 
-    bool parse(std::map<std::string, Object> &models);
+    Object* parse(const std::string& model_name, std::string& error);
 
-    std::string getError() const;
-
-    Object* parseHeightMap(const TiXmlElement* xml_elem);
-
-    /*
-    void createQuadTree(const nav_msgs::OccupancyGrid& map, unsigned int mx_min, unsigned int my_min,
-             unsigned int mx_max, unsigned int my_max, double height, Object* parent, std::string indent = "");
-    */
-    //void initFromTopic(const std::string& topic);
+    Object* parseHeightMap(const TiXmlElement* xml_elem, std::stringstream& s_error);
 
 protected:
 
     std::string filename_;
 
     std::string model_dir_;
-
-    std::stringstream error_;
-
-    //nav_msgs::OccupancyGrid world_map_;
-
-    //tf::Transform map_transform_;
-    //tf::Transform map_transform_inverse_;
-
-    //void callbackMap(const nav_msgs::OccupancyGrid::ConstPtr& msg);
 
 };
 

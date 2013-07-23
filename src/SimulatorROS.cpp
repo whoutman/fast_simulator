@@ -23,7 +23,8 @@
 
 using namespace std;
 
-SimulatorROS::SimulatorROS(ros::NodeHandle& nh) : nh_(nh) {
+SimulatorROS::SimulatorROS(ros::NodeHandle& nh, const std::string& model_file, const std::string& model_dir)
+    : nh_(nh), model_parser_(new ModelParser(model_file, model_dir)), model_dir_(model_dir) {
     PUB_MARKER = nh_.advertise<visualization_msgs::MarkerArray>("/fast_simulator/visualization", 10);
     srv_set_object_ = nh_.advertiseService("/fast_simulator/set_object", &SimulatorROS::setObject, this);
 
@@ -31,34 +32,26 @@ SimulatorROS::SimulatorROS(ros::NodeHandle& nh) : nh_(nh) {
 
 SimulatorROS::~SimulatorROS() {
     srv_set_object_.shutdown();
+    delete model_parser_;
 }
 
 void SimulatorROS::parseModelFile(const std::string& filename, const std::string& model_dir) {
-
-    std::map<std::string, Object> MODELS;
-    ModelParser model_parser(filename, model_dir);
-    if (!model_parser.parse(MODELS)) {
-        ROS_ERROR("Could not parse models: %s", model_parser.getError().c_str());
-    }
-
     FACES.insert("loy");
     FACES.insert("tim");
     FACES.insert("rob");
     FACES.insert("erik");
     FACES.insert("sjoerd");
-
-    for(map<string, Object>::iterator it = MODELS.begin(); it != MODELS.end(); ++it) {
-        SIM.addModel(it->first, it->second);
-    }
-
-    model_dir_ = model_dir;
 }
 
 Object* SimulatorROS::getObjectFromModel(const std::string& model_name, const std::string& id) {
+    string parse_error;
+    Object* obj = model_parser_->parse(model_name, parse_error);
+    if (!parse_error.empty()) {
+        ROS_ERROR("While parsing model file: %s", parse_error.c_str());
+    }
 
-    const Object* model = SIM.getModel(model_name);
-    if (model) {
-        return Object::fromModel(*model);
+    if (obj) {
+        return obj;
     }
 
     if (model_name == "pico") {
@@ -215,8 +208,6 @@ void SimulatorROS::start() {
 }
 
 bool SimulatorROS::setObject(fast_simulator::SetObject::Request& req, fast_simulator::SetObject::Response& res) {
-
-    cout << "SimulatorROS::setObject" << endl;
 
     Object* obj = SIM.getObject(req.id);
 

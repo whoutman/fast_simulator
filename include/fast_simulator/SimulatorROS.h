@@ -7,12 +7,13 @@
 
 #include <visualization_msgs/MarkerArray.h>
 #include "fast_simulator/SetObject.h"
+#include "ModelParser.h"
 
 class SimulatorROS {
 
 public:
 
-    SimulatorROS(ros::NodeHandle& nh);
+    SimulatorROS(ros::NodeHandle& nh, const std::string& model_file, const std::string& model_dir);
 
     virtual ~SimulatorROS();
 
@@ -37,6 +38,8 @@ protected:
     ros::Publisher PUB_MARKER;
 
     ros::ServiceServer srv_set_object_;
+
+    ModelParser* model_parser_;
 
     std::string model_dir_;
 

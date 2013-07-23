@@ -29,15 +29,3 @@ map<string, Object*> Simulator::getObjects() const {
 void Simulator::removeObject(const std::string& id) {
     world_.removeObject(id);
 }
-
-void Simulator::addModel(const std::string& name, const Object& obj) {
-    MODELS[name] = obj;
-}
-
-const Object* Simulator::getModel(const std::string& name) const {
-    map<string, Object>::const_iterator it = MODELS.find(name);
-    if (it == MODELS.end()) {
-        return 0;
-    }
-    return &it->second;
-}

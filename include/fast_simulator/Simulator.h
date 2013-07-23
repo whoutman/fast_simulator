@@ -29,10 +29,6 @@ public:
 
     void removeObject(const std::string& id);
 
-    void addModel(const std::string& name, const Object& obj);
-
-    const Object* getModel(const std::string& name) const;
-
 protected:
 
     World& world_;
@@ -42,8 +38,6 @@ protected:
     int UNIQUE_VIS_ID;
 
     std::map<std::string, int> object_id_to_vis_id;
-
-    std::map<std::string, Object> MODELS;
 
 };
 
