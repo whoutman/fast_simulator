@@ -42,6 +42,7 @@ rosbuild_add_executable(simulator src/simulator.cpp
                                   src/Amigo.cpp
                                   src/Pico.cpp
                                   src/Pera.cpp
+                                  src/StandaloneKinect.cpp
                                   src/Box.cpp
                                   src/Octree.cpp
                                   src/Ray.cpp

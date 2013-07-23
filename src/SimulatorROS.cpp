@@ -15,6 +15,7 @@
 #include "fast_simulator/Amigo.h"
 #include "fast_simulator/Pico.h"
 #include "fast_simulator/Pera.h"
+#include "fast_simulator/StandaloneKinect.h"
 
 #include "fast_simulator/simulator.h"
 #include "fast_simulator/ModelParser.h"
@@ -132,6 +133,9 @@ Object* SimulatorROS::getObjectFromModel(const std::string& model_name, const st
         //this->registerSensor(laser_range_finder_top_, tf_base_link_to_top_laser);
 
         return amigo;
+    } else if (model_name == "kinect") {
+        StandaloneKinect* kinect = new StandaloneKinect(nh_, model_dir_);
+        return kinect;
     } else if (model_name == "box") {
         Object* obj = new Object(model_name);
         obj->setShape(Box(tf::Vector3(-0.4, -0.4, 0), tf::Vector3(0.4, 0.4, 1)));

@@ -21,9 +21,9 @@ Robot::Robot(ros::NodeHandle& nh, const std::string& robot_type, bool publish_lo
     // gets the location of the robot description on the parameter server
     if (!kdl_parser::treeFromParam("/" + robot_type + "/robot_description", tree)){
       ROS_ERROR("Failed to extract kdl tree from xml robot description");
+    } else {
+        addChildren(*this, tree.getRootSegment());
     }
-    addChildren(*this, tree.getRootSegment());
-
 }
 
 Robot::~Robot() {
