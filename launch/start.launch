@@ -1,6 +1,8 @@
 <?xml version="1.0"?>
 <launch>
 
+    <arg name="robot_name" default="amigo"/>
+
     <arg name="gdb" default="false"/>
     <arg if="$(arg gdb)" name="launch-prefix" value="gdb -ex run --args"/>
     <arg unless="$(arg gdb)" name="launch-prefix" value=""/>
@@ -22,10 +24,10 @@
     <arg name="simulator_args" value="$(arg localization_arg) $(arg init_pos_args) --world $(arg env)"/>
 
     <!-- load robot -->
-    <param name="/amigo/description" command="$(find xacro)/xacro.py '$(find amigo_robot_model)/description/robot_complex.urdf.xacro' " />
+    <param name="/$(arg robot_name)/robot_description" textfile="$(find amigo_description)/urdf/amigo.urdf"/>
 
     <!-- load robot joint group info -->
-    <rosparam file="$(find amigo_robot_model)/description/joint_groups.yaml" command="load" />
+    <rosparam file="$(find amigo_description)/custom/joint_groups.yaml" command="load" />
 
     <!-- SIMULATION -->
 
@@ -43,10 +45,13 @@
     <node if="$(arg teleport)" name="amigo_teleporter" pkg="fast_simulator" type="amigo_teleporter"/>
 
     <!-- Robot state publisher -->
-    <node pkg="robot_state_publisher" type="state_publisher" name="robot_state_publisher">
+    <!-- robot state publisher -->
+    <node pkg="robot_state_publisher" type="state_publisher" name="$(arg robot_name)_state_publisher" ns="$(arg robot_name)">
         <param name="publish_frequency" type="double" value="50.0" />
-        <param name="tf_prefix" type="string" value="amigo" />
+        <param name="tf_prefix" type="string" value="$(arg robot_name)" />
+        <remap from="joint_states" to="/$(arg robot_name)/joint_states"/>
     </node>
+
      
     <!-- Required simulation parameter -->
     <param name="/use_sim_time" value="false"/>

@@ -4,7 +4,7 @@ using namespace std;
 
 Amigo::Amigo(ros::NodeHandle& nh, bool publish_localization) : Robot(nh, "amigo", publish_localization) {
 
-    setJointPosition("spindle_joint", 0.351846521684684);
+    setJointPosition("torso_joint", 0.351846521684684);
     setJointPosition("shoulder_yaw_joint_left", -0.010038043598955326);
     setJointPosition("shoulder_pitch_joint_left", -0.39997462399515005);
     setJointPosition("shoulder_roll_joint_left", 2.0889754646091774e-06);
@@ -60,7 +60,7 @@ Amigo::Amigo(ros::NodeHandle& nh, bool publish_localization) : Robot(nh, "amigo"
     // SUBSCRIBERS
 
     // cmd_vel
-    sub_cmd_vel = nh.subscribe("/cmd_vel", 10, &Amigo::callbackCmdVel, this);
+    sub_cmd_vel = nh.subscribe("/amigo/base/references", 10, &Amigo::callbackCmdVel, this);
 
     sub_init_pose = nh.subscribe("/amigo/initialpose", 10, &Amigo::callbackInitialPose, this);
 
@@ -157,7 +157,7 @@ void Amigo::callbackRightGripper(const amigo_msgs::AmigoGripperCommand::ConstPtr
 }
 
 void Amigo::callbackSpindleSetpoint(const amigo_msgs::spindle_setpoint::ConstPtr& msg) {
-    setJointReference("spindle_joint", msg->pos);
+    setJointReference("torso_joint", msg->pos);
 }
 
 void Amigo::callbackHeadPanTilt(const amigo_msgs::head_ref::ConstPtr& msg) {
@@ -191,7 +191,7 @@ void Amigo::publishControlRefs() {
     f.data = getJointPosition("neck_tilt_joint");
     pub_head_tilt_.publish(f);
 
-    f.data = getJointPosition("spindle_joint");
+    f.data = getJointPosition("torso_joint");
     pub_spindle_.publish(f);
 
     amigo_msgs::arm_joints left_arm_joints;

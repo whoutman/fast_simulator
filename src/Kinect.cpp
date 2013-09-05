@@ -95,7 +95,7 @@ Kinect::Kinect(const string& rgb_topic, const string& depth_topic, const string&
     pub_cam_info_ = nh.advertise<sensor_msgs::CameraInfo>(info_topic, 10);
     pub_point_cloud_ = nh.advertise<pcl::PointCloud<pcl::PointXYZ> >(point_cloud_topic, 1);
 
-    pub_point_cloud_2_ = nh.advertise<pcl::PointCloud<pcl::PointXYZ> >("camera/depth_registered/points", 1);
+    pub_point_cloud_2_ = nh.advertise<pcl::PointCloud<pcl::PointXYZ> >("/amigo/top_kinect/depth_registered/points", 1);
 
     // calculate ray directions
 

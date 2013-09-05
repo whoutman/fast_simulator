@@ -54,6 +54,8 @@ void Robot::addChildren(Object& obj, const KDL::SegmentMap::const_iterator segme
         joint->link_ = child;
         joint->kdl_segment_ = child_kdl;
 
+        std::cout << "    " << child_kdl.getName() << std::endl;
+
         // ALMOST THERE!
         // Just update the pose of a link whenever a joints position is set
 
