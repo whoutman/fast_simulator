@@ -2,26 +2,26 @@
 
 using namespace std;
 
-Pico::Pico(ros::NodeHandle& nh, bool publish_localization) : Robot(nh, publish_localization) {
+Pico::Pico(ros::NodeHandle& nh, bool publish_localization) : Robot(nh, "pico", publish_localization) {
 
     setJointPosition("head_yaw_joint", 0.0);
     setJointPosition("head_pitch_joint", 0.0);
 
-    pub_head_pan_ = nh.advertise<std_msgs::Float64>("/robot/body/yaw_in", 10);
-    pub_head_tilt_ = nh.advertise<std_msgs::Float64>("/robot/body/pitch_in", 10);
+    pub_head_pan_ = nh.advertise<std_msgs::Float64>("/pico/head/measurement/yaw", 10);
+    pub_head_tilt_ = nh.advertise<std_msgs::Float64>("/pico/head/measurement/pitch", 10);
 
     // SUBSCRIBERS
 
     // cmd_vel
-    sub_cmd_vel = nh.subscribe("/robot_in", 10, &Pico::callbackCmdVel, this);
+    sub_cmd_vel = nh.subscribe("/pico/cmd_vel", 10, &Pico::callbackCmdVel, this);
 
-    sub_init_pose = nh.subscribe("/initialpose", 10, &Pico::callbackInitialPose, this);
+    sub_init_pose = nh.subscribe("/pico/initialpose", 10, &Pico::callbackInitialPose, this);
 
-    sub_head_pan_ = nh.subscribe("/robot/body/yaw_out", 10, &Pico::callbackHeadPan, this);
-    sub_head_tilt_ = nh.subscribe("/robot/body/pitch_out", 10, &Pico::callbackHeadTilt, this);
+    sub_head_pan_ = nh.subscribe("/pico/head/reference/yaw", 10, &Pico::callbackHeadPan, this);
+    sub_head_tilt_ = nh.subscribe("/pico/head/reference/pitch", 10, &Pico::callbackHeadTilt, this);
 
-    tf_odom_to_base_link.frame_id_ = "/odom";
-    tf_odom_to_base_link.child_frame_id_ = "/base_link";
+    tf_odom_to_base_link.frame_id_ = "/pico/odom";
+    tf_odom_to_base_link.child_frame_id_ = "/pico/base_link";
 
     event_odom_pub_.scheduleRecurring(50);
 }

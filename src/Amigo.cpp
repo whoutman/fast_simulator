@@ -2,7 +2,7 @@
 
 using namespace std;
 
-Amigo::Amigo(ros::NodeHandle& nh, bool publish_localization) : Robot(nh, publish_localization) {
+Amigo::Amigo(ros::NodeHandle& nh, bool publish_localization) : Robot(nh, "amigo", publish_localization) {
 
     setJointPosition("spindle_joint", 0.351846521684684);
     setJointPosition("shoulder_yaw_joint_left", -0.010038043598955326);
@@ -62,7 +62,7 @@ Amigo::Amigo(ros::NodeHandle& nh, bool publish_localization) : Robot(nh, publish
     // cmd_vel
     sub_cmd_vel = nh.subscribe("/cmd_vel", 10, &Amigo::callbackCmdVel, this);
 
-    sub_init_pose = nh.subscribe("/initialpose", 10, &Amigo::callbackInitialPose, this);
+    sub_init_pose = nh.subscribe("/amigo/initialpose", 10, &Amigo::callbackInitialPose, this);
 
     sub_spindle = nh.subscribe("/spindle_controller/spindle_coordinates", 10, &Amigo::callbackSpindleSetpoint, this);
 
@@ -82,8 +82,8 @@ Amigo::Amigo(ros::NodeHandle& nh, bool publish_localization) : Robot(nh, publish
 
 
 
-    tf_odom_to_base_link.frame_id_ = "/odom";
-    tf_odom_to_base_link.child_frame_id_ = "/base_link";
+    tf_odom_to_base_link.frame_id_ = "/amigo/odom";
+    tf_odom_to_base_link.child_frame_id_ = "/amigo/base_link";
 
     event_odom_pub_.scheduleRecurring(50);
     event_refs_pub_.scheduleRecurring(100);

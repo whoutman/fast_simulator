@@ -24,7 +24,7 @@ class Robot : public Object {
 
 public:
 
-    Robot(ros::NodeHandle& nh, bool publish_localization);
+    Robot(ros::NodeHandle& nh, const std::string& robot_type, bool publish_localization);
 
     virtual ~Robot();
 

@@ -2,7 +2,7 @@
 
 using namespace std;
 
-Pera::Pera(ros::NodeHandle& nh) : Robot(nh, false) {
+Pera::Pera(ros::NodeHandle& nh) : Robot(nh, "pera", false) {
 
     setJointPosition("shoulder_yaw_joint_left", -0.010038043598955326);
     setJointPosition("shoulder_pitch_joint_left", -0.39997462399515005);
@@ -24,20 +24,20 @@ Pera::Pera(ros::NodeHandle& nh) : Robot(nh, false) {
     left_arm_joint_names.push_back("wrist_pitch_joint_left");
     left_arm_joint_names.push_back("wrist_yaw_joint_left");
 
-    pub_left_arm_ = nh.advertise<amigo_msgs::arm_joints>("/arm_left_controller/joint_measurements", 10);
-    pub_left_gripper_ = nh.advertise<amigo_msgs::AmigoGripperMeasurement>("/arm_left_controller/gripper_measurement", 10);
+    pub_left_arm_ = nh.advertise<sensor_msgs::JointState>("/pera/measurements", 10);
+    pub_left_gripper_ = nh.advertise<amigo_msgs::AmigoGripperMeasurement>("/pera/gripper_measurement", 10);
 
     // SUBSCRIBERS
 
-    sub_left_arm = nh.subscribe("/arm_left_controller/joint_references", 10, &Pera::callbackLeftArm, this);
-    sub_left_gripper = nh.subscribe("/arm_left_controller/gripper_command", 10, &Pera::callbackLeftGripper, this);
+    sub_left_arm = nh.subscribe("/pera/references", 10, &Pera::callbackLeftArm, this);
+    sub_left_gripper = nh.subscribe("/pera/gripper_command", 10, &Pera::callbackLeftGripper, this);
 
     left_gripper_direction_ = amigo_msgs::AmigoGripperMeasurement::OPEN;
 
     event_refs_pub_.scheduleRecurring(100);
 
     tf_location_.frame_id_ = "/map";
-    tf_location_.child_frame_id_ = "/shoulder_mount_left";
+    tf_location_.child_frame_id_ = "/pera/shoulder_mount_left";
     event_loc_pub_.scheduleRecurring(50);
 }
 
@@ -74,16 +74,17 @@ void Pera::callbackLeftGripper(const amigo_msgs::AmigoGripperCommand::ConstPtr& 
     }
 }
 
-void Pera::callbackLeftArm(const amigo_msgs::arm_joints::ConstPtr& msg) {
-    for(unsigned int i = 0; i < msg->pos.size(); ++i) {
-        setJointReference(left_arm_joint_names[i], msg->pos[i].data);
+void Pera::callbackLeftArm(const sensor_msgs::JointState::ConstPtr& msg) {
+    for(unsigned int i = 0; i < msg->name.size(); ++i) {
+        setJointReference(msg->name[i], msg->position[i]);
     }
 }
 
 void Pera::publishControlRefs() {
-    amigo_msgs::arm_joints left_arm_joints;
+   sensor_msgs::JointState left_arm_joints;
     for(unsigned int j = 0; j < left_arm_joint_names.size(); ++j) {
-        left_arm_joints.pos[j].data = getJointPosition(left_arm_joint_names[j]);
+        left_arm_joints.name.push_back(left_arm_joint_names[j]);
+        left_arm_joints.position.push_back(getJointPosition(left_arm_joint_names[j]));
     }
     pub_left_arm_.publish(left_arm_joints);
 

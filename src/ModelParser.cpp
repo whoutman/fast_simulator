@@ -28,114 +28,118 @@ vector<double> ModelParser::parseArray(const TiXmlElement* xml_elem) {
     return v;
 }
 
-bool ModelParser::parse(map<std::string, Object>& models) {
+Object* ModelParser::parse(const std::string& model_name, std::string& error) {
+    stringstream s_error;
+
+    //error_ = stringstream("");
+
     TiXmlDocument doc(filename_);
     doc.LoadFile();
 
     if (doc.Error()) {
-        error_ << "While parsing '" << filename_ << "': " << endl << endl << doc.ErrorDesc() << " at line " << doc.ErrorRow() << ", col " << doc.ErrorCol() << endl;
-        return false;
+        s_error << "While parsing '" << filename_ << "': " << endl << endl << doc.ErrorDesc() << " at line " << doc.ErrorRow() << ", col " << doc.ErrorCol() << endl;
+        error = s_error.str();
+        return 0;
     }
 
     const TiXmlElement* model_xml = doc.FirstChildElement("model");
-
-    /* PARSE ALL MODELS */
 
     while (model_xml) {
 
         const char* name = model_xml->Attribute("name");
         if (name) {
-            cout << "Parsing model '" << name << "'" << endl;
+            if (string(name) == model_name) {
 
-            vector<double> xyz(3, 0);
-            vector<double> rpy;
-            vector<double> size;
+                cout << "Parsing model '" << name << "'" << endl;
 
-            Object model(name);
+                vector<double> xyz(3, 0);
+                vector<double> rpy;
+                vector<double> size;
 
-            const TiXmlElement* shape_xml = model_xml->FirstChildElement();
-            while(shape_xml) {
+                Object* model = new Object(name);
 
-                // parse properties valid for all shapes
-                const TiXmlElement* xyz_xml = shape_xml->FirstChildElement("xyz");
-                if (xyz_xml) {
-                    xyz = parseArray(xyz_xml);
-                }
+                const TiXmlElement* shape_xml = model_xml->FirstChildElement();
+                while(shape_xml) {
 
-                tf::Vector3 pos(xyz[0], xyz[1], xyz[2]);
-                tf::Quaternion rot(0, 0, 0, 1);
-
-                const TiXmlElement* rpy_xml = shape_xml->FirstChildElement("rpy");
-                if (rpy_xml) {
-                    rpy = parseArray(rpy_xml);
-                    if (fabs(rpy[0]) < 0.0001 && fabs(rpy[1]) < 0.0001 && fabs(rpy[2]) < 0.0001) {
-                        rpy.clear();
-                    } else {
-                        rot.setRPY(rpy[0], rpy[1], rpy[2]);
-                    }
-                }
-
-                const TiXmlElement* size_xml = shape_xml->FirstChildElement("size");
-                if (size_xml) {
-                    size = parseArray(size_xml);
-                }
-
-                string shape_type = shape_xml->Value();
-                if (shape_type == "heightMap") {
-                    Object* height_map = parseHeightMap(shape_xml);
-
-                    if (height_map) {
-                        height_map->setPose(pos, rot);
-                        model.addChild(height_map);
+                    // parse properties valid for all shapes
+                    const TiXmlElement* xyz_xml = shape_xml->FirstChildElement("xyz");
+                    if (xyz_xml) {
+                        xyz = parseArray(xyz_xml);
                     }
 
-                } else if (shape_type == "box") {
-                    if (!size.empty()) {
+                    tf::Vector3 pos(xyz[0], xyz[1], xyz[2]);
+                    tf::Quaternion rot(0, 0, 0, 1);
 
-                        tf::Vector3 v_size(size[0], size[1], size[2]);
-
-                        Object* obj = new Object();
-                        if (rpy.empty()) {
-                            obj->setShape(Box(pos - v_size / 2, pos + v_size / 2));
+                    const TiXmlElement* rpy_xml = shape_xml->FirstChildElement("rpy");
+                    if (rpy_xml) {
+                        rpy = parseArray(rpy_xml);
+                        if (fabs(rpy[0]) < 0.0001 && fabs(rpy[1]) < 0.0001 && fabs(rpy[2]) < 0.0001) {
+                            rpy.clear();
                         } else {
-                            obj->setShape(Box(-v_size / 2, v_size / 2));
-                            obj->setPose(pos, rot);
+                            rot.setRPY(rpy[0], rpy[1], rpy[2]);
                         }
-                        model.addChild(obj);
-                    } else {
-                        error_ << "In definition for model '" << name << "': shape '" << shape_type << "' has no size property" << endl;
                     }
 
-                } else {
-                    error_ << "In definition for model '" << name << "': Unknown shape type: '" << shape_type << "'" << endl;
+                    const TiXmlElement* size_xml = shape_xml->FirstChildElement("size");
+                    if (size_xml) {
+                        size = parseArray(size_xml);
+                    }
+
+                    string shape_type = shape_xml->Value();
+                    if (shape_type == "heightMap") {
+                        Object* height_map = parseHeightMap(shape_xml, s_error);
+
+                        if (height_map) {
+                            height_map->setPose(pos, rot);
+                            model->addChild(height_map);
+                        }
+
+                    } else if (shape_type == "box") {
+                        if (!size.empty()) {
+
+                            tf::Vector3 v_size(size[0], size[1], size[2]);
+
+                            Object* obj = new Object();
+                            if (rpy.empty()) {
+                                obj->setShape(Box(pos - v_size / 2, pos + v_size / 2));
+                            } else {
+                                obj->setShape(Box(-v_size / 2, v_size / 2));
+                                obj->setPose(pos, rot);
+                            }
+                            model->addChild(obj);
+                        } else {
+                            s_error << "In definition for model '" << name << "': shape '" << shape_type << "' has no size property" << endl;
+                        }
+
+                    } else {
+                        s_error << "In definition for model '" << name << "': Unknown shape type: '" << shape_type << "'" << endl;
+                    }
+
+                    shape_xml = shape_xml->NextSiblingElement();
                 }
 
-                shape_xml = shape_xml->NextSiblingElement();
-            }
-
-            if (error_.str().empty()) {
-                cout << "... Parsing successfully ..." << endl;
-                models[name] = model;
+                error = s_error.str();
+                if (s_error.str().empty()) {
+                    cout << "... Parsing successfully ..." << endl;
+                    return model;
+                } else {                    
+                    return 0;
+                }
             }
         } else {
-            error_ << "Encountered model without 'name' attribute." << endl;
+            s_error << "Encountered model without 'name' attribute." << endl;
         }
 
         model_xml = model_xml->NextSiblingElement("model");
     }
 
-    if (error_.str() != "") {
-        return false;
-    }
+    //s_error << "No model '" << model_name << "' found." << endl;
+    error = s_error.str();
 
-    return true;
+    return 0;
 }
 
-std::string ModelParser::getError() const {
-    return error_.str();
-}
-
-Object* ModelParser::parseHeightMap(const TiXmlElement* xml_elem) {
+Object* ModelParser::parseHeightMap(const TiXmlElement* xml_elem, stringstream& s_error) {
     const TiXmlElement* height_xml = xml_elem->FirstChildElement("height");
     double height = 0;
     if (height_xml) {
@@ -143,7 +147,7 @@ Object* ModelParser::parseHeightMap(const TiXmlElement* xml_elem) {
     }
 
     if (height <= 0) {
-        error_ << "HeightMap: 'height' not or incorrectly specified." << endl;
+        s_error << "HeightMap: 'height' not or incorrectly specified." << endl;
         return 0;
     }
 
@@ -154,7 +158,7 @@ Object* ModelParser::parseHeightMap(const TiXmlElement* xml_elem) {
     }
 
     if (resolution <= 0) {
-        error_ << "HeightMap: 'resolution' not or incorrectly specified." << endl;
+        s_error << "HeightMap: 'resolution' not or incorrectly specified." << endl;
         return 0;
     }
 
@@ -168,7 +172,7 @@ Object* ModelParser::parseHeightMap(const TiXmlElement* xml_elem) {
         obj->setShape(Octree::fromHeightImage(model_dir_ + "/" + image_filename, height, resolution));
         return obj;
     } else {
-        error_ << "HeightMap: 'image' not specified." << endl;
+        s_error << "HeightMap: 'image' not specified." << endl;
     }
 
     /*
