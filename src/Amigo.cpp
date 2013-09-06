@@ -46,8 +46,7 @@ Amigo::Amigo(ros::NodeHandle& nh, bool publish_localization) : Robot(nh, "amigo"
     right_arm_joint_names.push_back("wrist_pitch_joint_right");
     right_arm_joint_names.push_back("wrist_yaw_joint_right");
 
-    pub_head_pan_ = nh.advertise<std_msgs::Float64>("/head_pan_angle", 10);
-    pub_head_tilt_ = nh.advertise<std_msgs::Float64>("/head_tilt_angle", 10);
+    pub_head_ = nh.advertise<sensor_msgs::JointState>("/amigo/neck/measurements", 10);
 
     pub_left_arm_ = nh.advertise<amigo_msgs::arm_joints>("/arm_left_controller/joint_measurements", 10);
     pub_right_arm_ = nh.advertise<amigo_msgs::arm_joints>("/arm_right_controller/joint_measurements", 10);
@@ -66,11 +65,12 @@ Amigo::Amigo(ros::NodeHandle& nh, bool publish_localization) : Robot(nh, "amigo"
 
     sub_spindle = nh.subscribe("/spindle_controller/spindle_coordinates", 10, &Amigo::callbackSpindleSetpoint, this);
 
-    sub_head = nh.subscribe("/head_controller/set_Head", 10, &Amigo::callbackHeadPanTilt, this);
+    sub_head = nh.subscribe("/amigo/neck/references", 10, &Amigo::callbackJointReference, this);
 
     sub_left_arm = nh.subscribe("/arm_left_controller/joint_references", 10, &Amigo::callbackLeftArm, this);
 
     sub_right_arm = nh.subscribe("/arm_right_controller/joint_references", 10, &Amigo::callbackRightArm, this);
+
 
     left_gripper_direction_ = amigo_msgs::AmigoGripperMeasurement::OPEN;
     right_gripper_direction_ = amigo_msgs::AmigoGripperMeasurement::OPEN;
@@ -183,14 +183,21 @@ void Amigo::callbackInitialPose(const geometry_msgs::PoseWithCovarianceStamped::
     setPose(pose.getOrigin(), pose.getRotation());
 }
 
+void Amigo::callbackJointReference(const sensor_msgs::JointState::ConstPtr msg) {
+    for(unsigned int i = 0; i < msg->name.size(); ++i) {
+        setJointReference(msg->name[i], msg->position[i]);
+    }
+}
+
 void Amigo::publishControlRefs() {
+    sensor_msgs::JointState head_meas_msg;
+    head_meas_msg.name.push_back("neck_pan_joint");
+    head_meas_msg.name.push_back("neck_tilt_joint");
+    head_meas_msg.position.push_back(getJointPosition("neck_pan_joint"));
+    head_meas_msg.position.push_back(getJointPosition("neck_tilt_joint"));
+    pub_head_.publish(head_meas_msg);
+
     std_msgs::Float64 f;
-    f.data = getJointPosition("neck_pan_joint");
-    pub_head_pan_.publish(f);
-
-    f.data = getJointPosition("neck_tilt_joint");
-    pub_head_tilt_.publish(f);
-
     f.data = getJointPosition("torso_joint");
     pub_spindle_.publish(f);
 

@@ -26,8 +26,7 @@ protected:
 
     ros::Time t_last_cmd_vel_;
 
-    ros::Publisher pub_head_pan_;
-    ros::Publisher pub_head_tilt_;
+    ros::Publisher pub_head_;
 
     ros::Publisher pub_left_arm_;
     ros::Publisher pub_right_arm_;
@@ -82,6 +81,8 @@ protected:
     void callbackLeftArm(const amigo_msgs::arm_joints::ConstPtr& msg);
 
     void callbackRightArm(const amigo_msgs::arm_joints::ConstPtr& msg);
+
+    void callbackJointReference(const sensor_msgs::JointState::ConstPtr msg);
 
     void callbackInitialPose(const geometry_msgs::PoseWithCovarianceStamped::ConstPtr& msg);
 
