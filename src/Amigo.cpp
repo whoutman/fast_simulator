@@ -51,10 +51,10 @@ Amigo::Amigo(ros::NodeHandle& nh, bool publish_localization) : Robot(nh, "amigo"
     pub_left_arm_ = nh.advertise<amigo_msgs::arm_joints>("/arm_left_controller/joint_measurements", 10);
     pub_right_arm_ = nh.advertise<amigo_msgs::arm_joints>("/arm_right_controller/joint_measurements", 10);
 
-    pub_spindle_ = nh.advertise<std_msgs::Float64>("/spindle_position", 10);
+    pub_torso_ = nh.advertise<sensor_msgs::JointState>("/amigo/torso/measurements", 10);
 
-    pub_left_gripper_ = nh.advertise<amigo_msgs::AmigoGripperMeasurement>("/arm_left_controller/gripper_measurement", 10);
-    pub_right_gripper_ = nh.advertise<amigo_msgs::AmigoGripperMeasurement>("/arm_right_controller/gripper_measurement", 10);
+    pub_left_gripper_ = nh.advertise<amigo_msgs::AmigoGripperMeasurement>("/amigo/left_gripper/measurements", 10);
+    pub_right_gripper_ = nh.advertise<amigo_msgs::AmigoGripperMeasurement>("/amigo/right_gripper/measurements", 10);
 
     // SUBSCRIBERS
 
@@ -63,7 +63,7 @@ Amigo::Amigo(ros::NodeHandle& nh, bool publish_localization) : Robot(nh, "amigo"
 
     sub_init_pose = nh.subscribe("/amigo/initialpose", 10, &Amigo::callbackInitialPose, this);
 
-    sub_spindle = nh.subscribe("/spindle_controller/spindle_coordinates", 10, &Amigo::callbackSpindleSetpoint, this);
+    sub_spindle = nh.subscribe("/amigo/torso/references", 10, &Amigo::callbackJointReference, this);
 
     sub_head = nh.subscribe("/amigo/neck/references", 10, &Amigo::callbackJointReference, this);
 
@@ -76,9 +76,9 @@ Amigo::Amigo(ros::NodeHandle& nh, bool publish_localization) : Robot(nh, "amigo"
     right_gripper_direction_ = amigo_msgs::AmigoGripperMeasurement::OPEN;
 
 
-    sub_left_gripper = nh.subscribe("/arm_left_controller/gripper_command", 10, &Amigo::callbackLeftGripper, this);
+    sub_left_gripper = nh.subscribe("/amigo/left_gripper/references", 10, &Amigo::callbackLeftGripper, this);
 
-    sub_right_gripper = nh.subscribe("/arm_right_controller/gripper_command", 10, &Amigo::callbackRightGripper, this);
+    sub_right_gripper = nh.subscribe("/amigo/right_gripper/references", 10, &Amigo::callbackRightGripper, this);
 
 
 
@@ -197,9 +197,10 @@ void Amigo::publishControlRefs() {
     head_meas_msg.position.push_back(getJointPosition("neck_tilt_joint"));
     pub_head_.publish(head_meas_msg);
 
-    std_msgs::Float64 f;
-    f.data = getJointPosition("torso_joint");
-    pub_spindle_.publish(f);
+    sensor_msgs::JointState torso_meas_msg;
+    torso_meas_msg.name.push_back("torso_joint");
+    torso_meas_msg.position.push_back(getJointPosition("torso_joint"));
+    pub_torso_.publish(torso_meas_msg);
 
     amigo_msgs::arm_joints left_arm_joints;
     for(unsigned int j = 0; j < left_arm_joint_names.size(); ++j) {

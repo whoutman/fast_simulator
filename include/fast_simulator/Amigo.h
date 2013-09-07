@@ -31,7 +31,7 @@ protected:
     ros::Publisher pub_left_arm_;
     ros::Publisher pub_right_arm_;
 
-    ros::Publisher pub_spindle_;
+    ros::Publisher pub_torso_;
 
     ros::Publisher pub_left_gripper_;
     ros::Publisher pub_right_gripper_;
