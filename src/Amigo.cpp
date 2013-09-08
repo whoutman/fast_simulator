@@ -48,8 +48,8 @@ Amigo::Amigo(ros::NodeHandle& nh, bool publish_localization) : Robot(nh, "amigo"
 
     pub_head_ = nh.advertise<sensor_msgs::JointState>("/amigo/neck/measurements", 10);
 
-    pub_left_arm_ = nh.advertise<amigo_msgs::arm_joints>("/arm_left_controller/joint_measurements", 10);
-    pub_right_arm_ = nh.advertise<amigo_msgs::arm_joints>("/arm_right_controller/joint_measurements", 10);
+    pub_left_arm_ = nh.advertise<sensor_msgs::JointState>("/amigo/left_arm/measurements", 10);
+    pub_right_arm_ = nh.advertise<sensor_msgs::JointState>("/amigo/right_arm/measurements", 10);
 
     pub_torso_ = nh.advertise<sensor_msgs::JointState>("/amigo/torso/measurements", 10);
 
@@ -67,9 +67,9 @@ Amigo::Amigo(ros::NodeHandle& nh, bool publish_localization) : Robot(nh, "amigo"
 
     sub_head = nh.subscribe("/amigo/neck/references", 10, &Amigo::callbackJointReference, this);
 
-    sub_left_arm = nh.subscribe("/arm_left_controller/joint_references", 10, &Amigo::callbackLeftArm, this);
+    sub_left_arm = nh.subscribe("/amigo/left_arm/references", 10, &Amigo::callbackJointReference, this);
 
-    sub_right_arm = nh.subscribe("/arm_right_controller/joint_references", 10, &Amigo::callbackRightArm, this);
+    sub_right_arm = nh.subscribe("/amigo/right_arm/references", 10, &Amigo::callbackJointReference, this);
 
 
     left_gripper_direction_ = amigo_msgs::AmigoGripperMeasurement::OPEN;
@@ -202,15 +202,17 @@ void Amigo::publishControlRefs() {
     torso_meas_msg.position.push_back(getJointPosition("torso_joint"));
     pub_torso_.publish(torso_meas_msg);
 
-    amigo_msgs::arm_joints left_arm_joints;
+    sensor_msgs::JointState left_arm_joints;
     for(unsigned int j = 0; j < left_arm_joint_names.size(); ++j) {
-        left_arm_joints.pos[j].data = getJointPosition(left_arm_joint_names[j]);
+        left_arm_joints.name.push_back(left_arm_joint_names[j]);
+        left_arm_joints.position.push_back(getJointPosition(left_arm_joint_names[j]));
     }
     pub_left_arm_.publish(left_arm_joints);
 
-    amigo_msgs::arm_joints right_arm_joints;
+    sensor_msgs::JointState right_arm_joints;
     for(unsigned int j = 0; j < right_arm_joint_names.size(); ++j) {
-        right_arm_joints.pos[j].data = getJointPosition(right_arm_joint_names[j]);
+        right_arm_joints.name.push_back(right_arm_joint_names[j]);
+        right_arm_joints.position.push_back(getJointPosition(right_arm_joint_names[j]));
     }
     pub_right_arm_.publish(right_arm_joints);
 
