@@ -45,9 +45,6 @@ rosbuild_add_executable(simulator src/simulator.cpp
                                   src/StandaloneKinect.cpp
                                   src/Box.cpp
                                   src/Octree.cpp
-                                  src/OctreeNode.cpp
-                                  src/HeightMap.cpp
-                                  src/HeightMapNode.cpp
                                   src/Ray.cpp
                                   src/Sensor.cpp
                                   src/Sonar.cpp

@@ -1,57 +1,31 @@
-#ifndef _Octree_H_
-#define _Octree_H_
+#ifndef _FAST_SIMULATOR_OCTREE_H_
+#define _FAST_SIMULATOR_OCTREE_H_
 
 #include "Shape.h"
-#include "OctreeNode.h"
-#include "Box.h"
+#include "Object.h"
 
 class Octree : public Shape {
 
-    friend class OctreeNode;
-
 public:
 
-    Octree(double size, double resolution = 0.1);
+    Octree();
 
-    Octree(const Octree& orig);
+    virtual ~Octree();
 
-    virtual ~Octree();    
+    virtual Octree* clone() const;
 
-    Octree* clone() const;
+    virtual bool intersect(const Ray &, float t0, float t1, double& distance) const;
 
-    void getBoundingBox(tf::Vector3 &min, tf::Vector3 &max) const;
-
-    void clear();
-
-    void add(const tf::Vector3& p);
-
-    void getCubes(std::vector<Box>& cubes) const;
-
-    double setResolution(double resolution);
-
-    double getResolution() const;
-
-    bool intersect(const Ray& r, float t0, float t1, double& distance) const;
-
-    void raytrace(const Ray& r, float t0, float t1);
-
-    bool intersect(const tf::Vector3& p) const;
-
-    bool intersect(const Box& b) const;
+    virtual void getBoundingBox(tf::Vector3& min, tf::Vector3& max) const;
 
     static Octree fromHeightImage(const std::string& filename, double height, double resolution);
 
 protected:
 
-    double resolution_;
+    Object root_;
 
-    tf::Vector3 offset_;
-
-    tf::Vector3 max_;
-
-    double size_;
-
-    OctreeNode* root_;
+    static void createQuadTree(const std::vector<std::vector<double> >& map, unsigned int mx_min, unsigned int my_min,
+                               unsigned int mx_max, unsigned int my_max, double resolution, Object* parent);
 
 };
 
