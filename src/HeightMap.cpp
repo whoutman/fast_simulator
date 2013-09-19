@@ -40,30 +40,36 @@ HeightMap HeightMap::fromGrid(const std::vector<std::vector<double> >& grid, dou
     unsigned int mx_max = grid.size();
     unsigned int my_max = grid[0].size();
 
-    // make square
     unsigned int size = std::max(mx_max, my_max);
 
-    std::vector<std::vector<double> > square_grid(size);
+    unsigned int pow_size = 1;
+    while(pow_size < size) {
+        pow_size *= 2;
+    }
+
+    std::vector<std::vector<double> > pow_grid(pow_size);
 
     for(unsigned int mx = 0; mx < mx_max; ++mx) {
-        square_grid[mx].resize(size, 0);
+        pow_grid[mx].resize(pow_size, 0);
         for(unsigned int my = 0; my < my_max; ++my) {
-            square_grid[mx][my] = grid[mx][my];
+            pow_grid[mx][my] = grid[mx][my];
         }
     }
 
-    for(unsigned int mx = mx_max; mx < size; ++mx) {
-         square_grid[mx].resize(size, 0);
+    for(unsigned int mx = mx_max; mx < pow_size; ++mx) {
+         pow_grid[mx].resize(pow_size, 0);
     }
 
     HeightMap hmap;
-    hmap.root_ = createQuadTree(square_grid, 0, 0, mx_max, my_max, resolution);
+    hmap.root_ = createQuadTree(pow_grid, 0, 0, pow_size, pow_size, resolution);
     return hmap;
 }
 
 HeightMapNode* HeightMap::createQuadTree(const std::vector<std::vector<double> >& map,
                             unsigned int mx_min, unsigned int my_min,
                             unsigned int mx_max, unsigned int my_max, double resolution) {
+
+    //std::cout << mx_min << ", " << my_min << " - " << mx_max << ", " << my_max << std::endl;
 
     double max_height = 0;
     for(unsigned int mx = mx_min; mx < mx_max; ++mx) {
@@ -97,6 +103,38 @@ HeightMapNode* HeightMap::createQuadTree(const std::vector<std::vector<double> >
         n->children_[1] = createQuadTree(map, cx , my_min, mx_max, cy, resolution);
         n->children_[2] = createQuadTree(map, mx_min, cy , cx, my_max, resolution);
         n->children_[3] = createQuadTree(map, cx , cy , mx_max, my_max, resolution);
+
+        /*
+        if ((n->children_[0] && n->children_[0]->occupied_)
+                || (n->children_[1] && n->children_[1]->occupied_)
+                || (n->children_[2] && n->children_[2]->occupied_)
+                || (n->children_[3] && n->children_[3]->occupied_)) {
+
+            std::cout << min_map.getX() << ", " << min_map.getY() << ", " << min_map.getZ() << " - " << max_map.getX() << ", " << max_map.getY() << ", " << max_map.getZ() << std::endl;
+
+            if (n->children_[0]) {
+                std::cout << "    " << n->children_[0]->box_.bounds[0].getX() << ", " << n->children_[0]->box_.bounds[0].getY() << ", " << n->children_[0]->box_.bounds[0].getZ() << " - "
+                                                                                                                                                                                  << n->children_[0]->box_.bounds[1].getX() << ", " << n->children_[0]->box_.bounds[1].getY() << ", " << n->children_[0]->box_.bounds[1].getZ() << std::endl;
+            }
+
+            if (n->children_[1]) {
+                std::cout << "    " << n->children_[1]->box_.bounds[0].getX() << ", " << n->children_[1]->box_.bounds[0].getY() << ", " << n->children_[1]->box_.bounds[0].getZ() << " - "
+                                                                                                                                                                                  << n->children_[1]->box_.bounds[1].getX() << ", " << n->children_[1]->box_.bounds[1].getY() << ", " << n->children_[1]->box_.bounds[1].getZ() << std::endl;
+            }
+
+            if (n->children_[2]) {
+                std::cout << "    " << n->children_[2]->box_.bounds[0].getX() << ", " << n->children_[2]->box_.bounds[0].getY() << ", " << n->children_[2]->box_.bounds[0].getZ() << " - "
+                                                                                                                                                                                  << n->children_[2]->box_.bounds[1].getX() << ", " << n->children_[2]->box_.bounds[1].getY() << ", " << n->children_[2]->box_.bounds[1].getZ() << std::endl;
+            }
+
+            if (n->children_[3]) {
+                std::cout << "    " << n->children_[3]->box_.bounds[0].getX() << ", " << n->children_[3]->box_.bounds[0].getY() << ", " << n->children_[3]->box_.bounds[0].getZ() << " - "
+                                                                                                                                                                                  << n->children_[3]->box_.bounds[1].getX() << ", " << n->children_[3]->box_.bounds[1].getY() << ", " << n->children_[3]->box_.bounds[1].getZ() << std::endl;
+            }
+
+        }
+        */
+
     }
 
     return n;

@@ -1,8 +1,11 @@
 #include "fast_simulator/ModelParser.h"
 
-#include "fast_simulator/Octree.h"
+#include "fast_simulator/HeightMap.h"
 
 #include <tinyxml.h>
+
+// for loading images
+#include <opencv2/highgui/highgui.hpp>
 
 using namespace std;
 
@@ -167,9 +170,28 @@ Object* ModelParser::parseHeightMap(const TiXmlElement* xml_elem, stringstream& 
         string image_filename = image_xml->GetText();
         Object* obj = new Object();
 
-        cout << height << ", " << resolution << endl;
+        std::string image_path = model_dir_ + "/" + image_filename;
 
-        obj->setShape(Octree::fromHeightImage(model_dir_ + "/" + image_filename, height, resolution));
+        cv::Mat image = cv::imread(image_path, CV_LOAD_IMAGE_GRAYSCALE);   // Read the file
+
+        if (image.data ) {
+            vector<vector<double> > map;
+            map.resize(image.cols);
+
+            for(int x = 0; x < image.cols; ++x) {
+                map[x].resize(image.rows);
+                for(int y = 0; y < image.rows; ++y) {
+                    map[x][image.rows - y - 1] = height - (double)image.at<unsigned char>(y, x) / 255 * height;
+                }
+            }
+
+            std::cout << "Loaded height map " << image_filename << std::endl;
+
+            obj->setShape(HeightMap::fromGrid(map, resolution));
+        } else {
+            std::cout << "Could not load height map " << image_filename << std::endl;
+        }
+
         return obj;
     } else {
         s_error << "HeightMap: 'image' not specified." << endl;

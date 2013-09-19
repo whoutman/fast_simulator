@@ -9,6 +9,12 @@ Box* Box::clone() const {
     return new Box(*this);
 }
 
+bool Box::intersect(const tf::Vector3& p) const {
+    return (p.getX() >= bounds[0].getX() && p.getX() <= bounds[1].getX()
+            && p.getY() >= bounds[0].getX() && p.getY() <= bounds[1].getY()
+            && p.getZ() >= bounds[0].getX() && p.getZ() <= bounds[1].getZ());
+}
+
 bool Box::intersect(const Ray &r, float t0, float t1, double& distance) const {
 
     float tmin, tmax, tymin, tymax, tzmin, tzmax;
