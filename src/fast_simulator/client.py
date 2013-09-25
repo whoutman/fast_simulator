@@ -113,6 +113,14 @@ class SimObject(object):
         if not self.world.srv_set(req):
             rospy.roserr("Service call failed")
 
+    def set_parameter(self, name, value):
+        req = fast_simulator.srv.SetObjectRequest()
+        req.id = self.id
+        req.action = fast_simulator.srv.SetObjectRequest.SET_PARAMS
+        req.param_names = [name]
+        req.param_values = [value]
+        self.world.srv_set(req)
+
     def remove(self):
         req = fast_simulator.srv.SetObjectRequest()
         req.id = self.id

@@ -243,7 +243,14 @@ bool SimulatorROS::setObject(fast_simulator::SetObject::Request& req, fast_simul
         if (req.action == fast_simulator::SetObject::Request::DELETE) {
             simulator_.removeObject(req.id);
         } else if (req.action == fast_simulator::SetObject::Request::SET_PARAMS) {
+            if (!obj) {
+                res.result_msg = "Object with id " + req.id + " does not exist";
+                return true;
+            }
 
+            for(unsigned int i = 0; i < req.param_names.size(); ++i) {
+                obj->setParameter(req.param_names[i], req.param_values[i]);
+            }
         }
     }
 

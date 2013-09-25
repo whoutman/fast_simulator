@@ -10,7 +10,7 @@ geometry_msgs/Pose pose
 geometry_msgs/Pose[] path
 
 string[] param_names
-float64[] param_values
+string[] param_values
 
 ---
 string result_msg

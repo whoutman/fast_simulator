@@ -164,3 +164,13 @@ Object* Robot::getLink(const std::string& name) const {
         return 0;
     }
 }
+
+void Robot::setParameter(const std::string& param_name, const std::string& value) {
+    if (param_name == "localization") {
+        if (value == "false") {
+            publish_localization_ = false;
+        } else if (value == "true") {
+            publish_localization_ = true;
+        }
+    }
+}

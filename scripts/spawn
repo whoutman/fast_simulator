@@ -6,13 +6,13 @@ import sys, getopt
 from fast_simulator import client
 
 def print_usage(exit_code = 0):
-    print "Usage: spawn -i <object-id> -m <model-name> [ -x <x-pos> -y <y-pos> -z <z-pos> -X <x-rot> -Y <y-rot> -Z <z-rot>"   
+    print "Usage: spawn -i <object-id> -m <model-name> [ -x <x-pos> -y <y-pos> -z <z-pos> -X <x-rot> -Y <y-rot> -Z <z-rot> -p PARAM_NAME=VALUE]"   
     sys.exit(exit_code)
 
 if __name__ == "__main__":
 
     try:
-        opts, args = getopt.gnu_getopt(sys.argv[1:], "hx:y:z:X:Y:Z:m:i:", [])
+        opts, args = getopt.gnu_getopt(sys.argv[1:], "hx:y:z:X:Y:Z:m:i:p::", [])
     except getopt.GetoptError, err:
         print str(err)
         print_usage(2)
@@ -25,6 +25,9 @@ if __name__ == "__main__":
     rx = 0
     ry = 0
     rz = 0
+
+    param_names=[]
+    param_values=[]    
 
     for o, a in opts:
         if o == '-h':
@@ -45,6 +48,13 @@ if __name__ == "__main__":
             model_name = a
         elif o == '-i':
             obj_id = a
+        elif o == '-p':
+            l = a.split("=")
+            if len(l) == 2:
+                param_names += [l[0]]
+                param_values += [l[1]]
+            else:
+                print "Invalid parameter specification: " + str(a)
 
     if not model_name or not obj_id:
         print "Please specify the model name (-m) and object ID (-i)"
@@ -58,6 +68,9 @@ if __name__ == "__main__":
     W = client.SimWorld()
     obj = W.add_object(obj_id, model_name, x, y, z)
     obj.set_position(x, y, z, rx, ry, rz)
+
+    for i in range(len(param_names)):
+        obj.set_parameter(param_names[i], param_values[i])
 
     #person1 = W.add_object("person-1", "person", 1, -4, 0)    
     #person2 = W.add_object("person-2", "person", 3, -4, 0)    

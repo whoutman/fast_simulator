@@ -46,6 +46,8 @@ public:
 
     Object* getLink(const std::string& name) const;
 
+    void setParameter(const std::string& param_name, const std::string& value);
+
 protected:
 
     ros::NodeHandle& nh_;

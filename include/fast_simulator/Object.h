@@ -89,6 +89,8 @@ public:
 
     void getBoundingBox(tf::Vector3 &min, tf::Vector3 &max) const;    
 
+    virtual void setParameter(const std::string& param_name, const std::string& value);
+
     std::string toString(const std::string &indent = "") const;
 
 private:

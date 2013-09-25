@@ -176,6 +176,10 @@ void Object::getBoundingBox(tf::Vector3& min, tf::Vector3& max) const {
     }
 }
 
+void Object::setParameter(const std::string& param_name, const std::string& value) {
+
+}
+
 #include <sstream>
 #include "fast_simulator/util.h"
 
