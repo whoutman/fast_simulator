@@ -18,12 +18,6 @@ int main(int argc, char **argv) {
     ros::init(argc, argv, "fast_simulator");
     ros::NodeHandle nh;
 
-    string model_dir = ros::package::getPath("fast_simulator_data");
-    if (model_dir == "") {
-        ROS_ERROR("Could not find package 'fast_simulator_data' for object models. Exiting..");
-        exit(-1);
-    }
-
     tf::Vector3 robot_pos(0, 0, 0);
     double robot_ori_x = 0;
     double robot_ori_y = 0;
@@ -43,6 +37,7 @@ int main(int argc, char **argv) {
         ("rx", po::value<double>(), "X-value of robot intial rotation")
         ("ry", po::value<double>(), "Y-value of robot intial rotation")
         ("rz", po::value<double>(), "Z-value of robot intial rotation")
+        ("model-dir", po::value<string>(), "Model directory")
         ("no-localization", "Set if no transformation from /map to /odom should be published")
         ("kinect-raytracing", po::value<bool>(), "If set to false, Kinect raytracing is disabled (default: true)")
     ;
@@ -77,6 +72,16 @@ int main(int argc, char **argv) {
     string world_name = "";
     if (vm.count("world")) {
         world_name = vm["world"].as<string>();
+    }
+
+    string model_dir = "";
+    if (vm.count("model-dir")) {
+        model_dir = vm["model-dir"].as<string>();
+    }
+
+    if (model_dir == "") {
+        ROS_ERROR("Model directory not specified (use option -model-dir). Exiting..");
+        exit(-1);
     }
 
     tf::Quaternion robot_ori;

@@ -31,7 +31,7 @@
 
     <!-- SIMULATION -->
 
-    <node name="fast_simulator" pkg="fast_simulator" type="simulator" args="$(arg simulator_args) --kinect-raytracing $(arg kinect_raytracing)" output="screen" launch-prefix="$(arg launch-prefix)"/>
+    <node name="fast_simulator" pkg="fast_simulator" type="simulator" args="$(arg simulator_args) --model-dir $(find fast_simulator_data) --kinect-raytracing $(arg kinect_raytracing)" output="screen" launch-prefix="$(arg launch-prefix)"/>
 
     <!-- spawn world -->
     <node pkg="fast_simulator" type="spawn" name="spawn_world" args="-i $(arg env) -m $(arg env)" output="screen"/>
