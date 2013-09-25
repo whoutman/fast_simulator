@@ -63,9 +63,9 @@ Object* SimulatorROS::getObjectFromModel(const std::string& model_name, const st
         pico->registerSensor(laser_range_finder_);
         pico->getLink("laser")->addChild(laser_range_finder_);
 
-        Sonar* front_sonar_ = new Sonar("/pico/sonar_front", "/pico/sonar_front");
-        pico->registerSensor(front_sonar_);
-        pico->getLink("sonar_front")->addChild(front_sonar_);
+//        Sonar* front_sonar_ = new Sonar("/pico/sonar_front", "/pico/sonar_front");
+//        pico->registerSensor(front_sonar_);
+//        pico->getLink("sonar_front")->addChild(front_sonar_);
 
         return pico;
     } else if (model_name == "pera") {
