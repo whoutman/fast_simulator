@@ -11,7 +11,7 @@ if __name__ == "__main__":
     W = client.SimWorld()
 
     #human = W.add_object("human", "humanlike_box", 0, 0, 0)
-    human = W.add_object("human", "humanlike_box2", 0, 0, 0)
+    human = W.add_object("human_model", "humanlike_box_2", 0, 0, 0)
     #coke.set_position(4, 1, 0)
 
     #velocity
