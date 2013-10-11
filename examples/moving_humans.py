@@ -46,8 +46,8 @@ if __name__ == "__main__":
     random_time_out = [rospy.Duration(0)]*len(human)
     fixed_time_out  = [rospy.Duration(5),
 						rospy.Duration(10),
-						rospy.Duration(0),
-						rospy.Duration(0),
+						rospy.Duration(5),
+						rospy.Duration(5),
 						rospy.Duration(10)]
     t_last_time_out = [time_now]*len(human)
 
