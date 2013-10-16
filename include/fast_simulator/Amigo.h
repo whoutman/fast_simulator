@@ -8,6 +8,8 @@
 #include "amigo_msgs/AmigoGripperMeasurement.h"
 #include "std_msgs/Float64.h"
 
+#include <std_msgs/Bool.h>
+
 #include "fast_simulator/Robot.h"
 
 class Amigo : public Robot {
@@ -22,7 +24,7 @@ public:
 
 protected:
 
-    tf::StampedTransform tf_odom_to_base_link;
+    tf::StampedTransform tf_world_to_odom;
 
     ros::Time t_last_cmd_vel_;
 
@@ -51,6 +53,8 @@ protected:
 
     ros::Subscriber sub_left_gripper;
     ros::Subscriber sub_right_gripper;
+
+    ros::Subscriber sub_odom_reset;
 
     int left_gripper_direction_;
     int right_gripper_direction_;
@@ -85,6 +89,8 @@ protected:
     void callbackJointReference(const sensor_msgs::JointState::ConstPtr msg);
 
     void callbackInitialPose(const geometry_msgs::PoseWithCovarianceStamped::ConstPtr& msg);
+
+    void callbackOdomReset(const std_msgs::Bool& msg);
 
     void publishControlRefs();
 
