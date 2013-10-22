@@ -129,7 +129,11 @@ Kinect::~Kinect() {
 }
 
 void Kinect::addModel(const std::string& type, const std::string& filename) {
-    type_to_image_[type] = Image::loadFromFile(filename);
+    try {
+        type_to_image_[type] = Image::loadFromFile(filename);
+    } catch (rosbag::BagException& e) {
+        std::cout << "Could not load Kinect model '" << filename << "'" << std::endl;
+    }
 }
 
 void Kinect::setRaytracing(bool status) {

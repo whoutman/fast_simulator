@@ -111,6 +111,8 @@ Object* SimulatorROS::getObjectFromModel(const std::string& model_name, const st
         top_kinect->addModel("seven_up", model_dir_ + "/kinect/seven_up");
         top_kinect->addModel("tooth_paste", model_dir_ + "/kinect/tooth_paste");
 
+        top_kinect->addModel("qr_code", model_dir_ + "/kinect/qr_code");
+
         top_kinect->setRaytracing(true); //raytrace);
 
         amigo->registerSensor(top_kinect);
