@@ -10,105 +10,95 @@
 
 using namespace std;
 
-Kinect::Kinect(const string& rgb_topic, const string& depth_topic, const string& info_topic, const string& point_cloud_topic, const string& frame_id)
+Kinect::Kinect()
     : width_(640), height_(480), x_res_(2), y_res_(2), raytrace_(true) {
+
+    nh_ = new ros::NodeHandle();
 
     // Set camera info
 
-    cam_info_.header.frame_id = frame_id;
-    cam_info_.height = height_;
-    cam_info_.width = width_;
-    cam_info_.distortion_model = "plumb_bob";
+    cam_info_rgb_.height = height_;
+    cam_info_rgb_.width = width_;
+    cam_info_rgb_.distortion_model = "plumb_bob";
 
     // D: [0.0, 0.0, 0.0, 0.0, 0.0]
-    cam_info_.D.push_back(0);
-    cam_info_.D.push_back(0);
-    cam_info_.D.push_back(0);
-    cam_info_.D.push_back(0);
-    cam_info_.D.push_back(0);
+    cam_info_rgb_.D.push_back(0);
+    cam_info_rgb_.D.push_back(0);
+    cam_info_rgb_.D.push_back(0);
+    cam_info_rgb_.D.push_back(0);
+    cam_info_rgb_.D.push_back(0);
 
     // K: [554.2559327880068, 0.0, 320.5, 0.0, 554.2559327880068, 240.5, 0.0, 0.0, 1.0]
-    cam_info_.K[0] = 554.2559327880068;
-    cam_info_.K[1] = 0;
-    cam_info_.K[2] = 320.5;
-    cam_info_.K[3] = 0;
-    cam_info_.K[4] = 554.2559327880068;
-    cam_info_.K[5] = 240.5;
-    cam_info_.K[6] = 0;
-    cam_info_.K[7] = 0;
-    cam_info_.K[8] = 1;
+    cam_info_rgb_.K[0] = 554.2559327880068;
+    cam_info_rgb_.K[1] = 0;
+    cam_info_rgb_.K[2] = 320.5;
+    cam_info_rgb_.K[3] = 0;
+    cam_info_rgb_.K[4] = 554.2559327880068;
+    cam_info_rgb_.K[5] = 240.5;
+    cam_info_rgb_.K[6] = 0;
+    cam_info_rgb_.K[7] = 0;
+    cam_info_rgb_.K[8] = 1;
 
     // R: [1.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 1.0]
-    cam_info_.R[0] = 1;
-    cam_info_.R[1] = 0;
-    cam_info_.R[2] = 0;
-    cam_info_.R[3] = 0;
-    cam_info_.R[4] = 1;
-    cam_info_.R[5] = 0;
-    cam_info_.R[6] = 0;
-    cam_info_.R[7] = 0;
-    cam_info_.R[8] = 1;
+    cam_info_rgb_.R[0] = 1;
+    cam_info_rgb_.R[1] = 0;
+    cam_info_rgb_.R[2] = 0;
+    cam_info_rgb_.R[3] = 0;
+    cam_info_rgb_.R[4] = 1;
+    cam_info_rgb_.R[5] = 0;
+    cam_info_rgb_.R[6] = 0;
+    cam_info_rgb_.R[7] = 0;
+    cam_info_rgb_.R[8] = 1;
 
     // P: [554.2559327880068, 0.0, 320.5, -0.0, 0.0, 554.2559327880068, 240.5, 0.0, 0.0, 0.0, 1.0, 0.0]
-    cam_info_.P[0] = 554.2559327880068;
-    cam_info_.P[1] = 0;
-    cam_info_.P[2] = 320.5;
-    cam_info_.P[3] = 0;
-    cam_info_.P[4] = 0;
-    cam_info_.P[5] = 554.2559327880068;
-    cam_info_.P[6] = 240.5;
-    cam_info_.P[7] = 0;
-    cam_info_.P[8] = 0;
-    cam_info_.P[9] = 0;
-    cam_info_.P[10] = 1;
-    cam_info_.P[11] = 0;
+    cam_info_rgb_.P[0] = 554.2559327880068;
+    cam_info_rgb_.P[1] = 0;
+    cam_info_rgb_.P[2] = 320.5;
+    cam_info_rgb_.P[3] = 0;
+    cam_info_rgb_.P[4] = 0;
+    cam_info_rgb_.P[5] = 554.2559327880068;
+    cam_info_rgb_.P[6] = 240.5;
+    cam_info_rgb_.P[7] = 0;
+    cam_info_rgb_.P[8] = 0;
+    cam_info_rgb_.P[9] = 0;
+    cam_info_rgb_.P[10] = 1;
+    cam_info_rgb_.P[11] = 0;
 
-    cam_info_.binning_x = 0;
-    cam_info_.binning_y = 0;
+    cam_info_rgb_.binning_x = 0;
+    cam_info_rgb_.binning_y = 0;
 
-    cam_info_.roi.x_offset = 0;
-    cam_info_.roi.y_offset = 0;
-    cam_info_.roi.height = 0;
-    cam_info_.roi.width = 0;
-    cam_info_.roi.do_rectify = false;
+    cam_info_rgb_.roi.x_offset = 0;
+    cam_info_rgb_.roi.y_offset = 0;
+    cam_info_rgb_.roi.height = 0;
+    cam_info_rgb_.roi.width = 0;
+    cam_info_rgb_.roi.do_rectify = false;
+
+
+    cam_info_depth_ = cam_info_rgb_;
 
     // initialize pinhole model
-    pinhole_model_.fromCameraInfo(cam_info_);
+    pinhole_model_.fromCameraInfo(cam_info_rgb_);
 
     // init rgb image
-
-    image_rgb_.header.frame_id = frame_id;
     image_rgb_.encoding = "bgr8";
     image_rgb_.image = cv::Mat(height_, width_, CV_8UC3, cv::Scalar(255,255,255));
 
     // init depth image
-
-    image_depth_.header.frame_id = frame_id;
     image_depth_.encoding = "32FC1";
     image_depth_.image = cv::Mat(height_, width_, CV_32FC1, 0.0);
-
-    // create publishers
-
-    ros::NodeHandle nh;
-    pub_rgb_ = nh.advertise<sensor_msgs::Image>(rgb_topic, 10);
-    pub_depth_ = nh.advertise<sensor_msgs::Image>(depth_topic, 10);
-    pub_cam_info_ = nh.advertise<sensor_msgs::CameraInfo>(info_topic, 10);
-    pub_point_cloud_ = nh.advertise<pcl::PointCloud<pcl::PointXYZ> >(point_cloud_topic, 1);
-
-    pub_point_cloud_2_ = nh.advertise<pcl::PointCloud<pcl::PointXYZ> >("/amigo/top_kinect/depth_registered/points", 1);
 
     // calculate ray directions
 
     image_geometry::PinholeCameraModel cam_model;
-    cam_model.fromCameraInfo(cam_info_);
+    cam_model.fromCameraInfo(cam_info_rgb_);
 
     // calculate all all origin to pixel directions
-    ray_deltas_.resize(cam_info_.width);
-    depth_ratios_.resize(cam_info_.width);
-    for(unsigned int x = 0; x < cam_info_.width; ++x) {
-        ray_deltas_[x].resize(cam_info_.height);
-        depth_ratios_[x].resize(cam_info_.height);
-        for(unsigned int y = 0; y < cam_info_.height; ++y) {
+    ray_deltas_.resize(cam_info_rgb_.width);
+    depth_ratios_.resize(cam_info_rgb_.width);
+    for(unsigned int x = 0; x < cam_info_rgb_.width; ++x) {
+        ray_deltas_[x].resize(cam_info_rgb_.height);
+        depth_ratios_[x].resize(cam_info_rgb_.height);
+        for(unsigned int y = 0; y < cam_info_rgb_.height; ++y) {
             // compute direction vector to pixel (x, y)
             cv::Point3d dir_cv = cam_model.projectPixelTo3dRay(cv::Point2d(x, y));
 
@@ -122,18 +112,52 @@ Kinect::Kinect(const string& rgb_topic, const string& depth_topic, const string&
             ray_deltas_[x][y] = dir.normalize();
         }
     }
-
 }
 
 Kinect::~Kinect() {
+    delete nh_;
 }
 
+void Kinect::addRGBTopic(const std::string& topic_name) {
+    pubs_rgb_.push_back(nh_->advertise<sensor_msgs::Image>(topic_name, 10));
+}
+
+void Kinect::addDepthTopic(const std::string& topic_name) {
+    pubs_depth_.push_back(nh_->advertise<sensor_msgs::Image>(topic_name, 10));
+}
+
+void Kinect::addPointCloudTopic(const std::string& topic_name) {
+    pubs_point_cloud_.push_back(nh_->advertise<pcl::PointCloud<pcl::PointXYZ> >(topic_name, 1));
+}
+
+void Kinect::addRGBCameraInfoTopic(const std::string& topic_name) {
+    pubs_cam_info_rgb_.push_back(nh_->advertise<sensor_msgs::CameraInfo>(topic_name, 10));
+}
+
+void Kinect::addDepthCameraInfoTopic(const std::string& topic_name) {
+    pubs_cam_info_depth_.push_back(nh_->advertise<sensor_msgs::CameraInfo>(topic_name, 10));
+}
+
+void Kinect::setRGBFrame(const std::string& frame_id) {
+    image_rgb_.header.frame_id = frame_id;
+    cam_info_rgb_.header.frame_id = frame_id;
+}
+
+void Kinect::setDepthFrame(const std::string& frame_id) {
+    image_depth_.header.frame_id = frame_id;
+    cam_info_depth_.header.frame_id = frame_id;
+}
+
+
 void Kinect::addModel(const std::string& type, const std::string& filename) {
+    Image image;
     try {
-        type_to_image_[type] = Image::loadFromFile(filename);
+        image = Image::loadFromFile(filename);
     } catch (rosbag::BagException& e) {
         std::cout << "Could not load Kinect model '" << filename << "'" << std::endl;
+        return;
     }
+    type_to_image_[type] = image;
 }
 
 void Kinect::setRaytracing(bool status) {
@@ -143,7 +167,7 @@ void Kinect::setRaytracing(bool status) {
 void Kinect::step(World& world) {
 
     ros::Time time = ros::Time::now();
-    cam_info_.header.stamp = time;
+    cam_info_rgb_.header.stamp = time;
     image_rgb_.header.stamp = time;
     image_depth_.header.stamp = time;
 
@@ -226,8 +250,9 @@ void Kinect::step(World& world) {
             }
         }
 
-        pub_point_cloud_.publish (msg);
-        pub_point_cloud_2_.publish (msg);
+        for(std::vector<ros::Publisher>::iterator it = pubs_point_cloud_.begin(); it != pubs_point_cloud_.end(); ++it) {
+            it->publish(msg);
+        }
 
     } else {
         image_depth_.image = cv::Mat(height_, width_, CV_32FC1, 0.0);
@@ -245,7 +270,6 @@ void Kinect::step(World& world) {
     for(vector<Object*>::const_iterator it_obj = objects.begin(); it_obj != objects.end(); ++it_obj) {
 
         Object& obj = **it_obj;
-
 
         map<string, Image>::iterator it_image = type_to_image_.find(obj.getType());
         if (it_image == type_to_image_.end()) {
@@ -284,18 +308,17 @@ void Kinect::step(World& world) {
                     int x_tl = pos2d.x - mask.cols / 2;
                     int y_tl = pos2d.y - mask.rows / 2;
 
-                    for(int y = 0; y < mask.rows; ++y) {
-                        for(int x = 0; x < mask.cols; ++x) {
+                    for(int y = 0; y < rgb_img.rows; ++y) {
+                        for(int x = 0; x < rgb_img.cols; ++x) {
 
                             int ix = x_tl + x;
                             int iy = y_tl + y;
 
                             if (ix >=0 && iy >= 0 && ix < width_ && iy < height_) {
 
-                                unsigned char alpha = mask.at<unsigned char>(y, x);
+                                unsigned char alpha = 255;//mask.at<unsigned char>(y, x);
                                 if (alpha > 0) {
                                     image_depth_.image.at<float>(iy, ix) = depth_img.at<float>(y, x) - distance + z;
-                                    //cout << "   " << image_depth_.image.at<float>(iy, ix);
 
                                     cv::Vec3b image_clr =  image_rgb_.image.at<cv::Vec3b>(iy, ix);
                                     cv::Vec3b object_clr = rgb_img.at<cv::Vec3b>(y, x);
@@ -321,14 +344,27 @@ void Kinect::step(World& world) {
 
     } // loop over objects
 
-
-
     // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 
-    pub_cam_info_.publish(cam_info_);
-    pub_rgb_.publish(image_rgb_.toImageMsg());
-    pub_depth_.publish(image_depth_.toImageMsg());
+    for(std::vector<ros::Publisher>::iterator it = pubs_cam_info_rgb_.begin(); it != pubs_cam_info_rgb_.end(); ++it) {
+        it->publish(cam_info_rgb_);
+    }
 
+    for(std::vector<ros::Publisher>::iterator it = pubs_cam_info_depth_.begin(); it != pubs_cam_info_depth_.end(); ++it) {
+        it->publish(cam_info_depth_);
+    }
+
+    sensor_msgs::Image rgb_image_msg;
+    image_rgb_.toImageMsg(rgb_image_msg);
+    for(std::vector<ros::Publisher>::iterator it = pubs_rgb_.begin(); it != pubs_rgb_.end(); ++it) {
+        it->publish(rgb_image_msg);
+    }
+
+    sensor_msgs::Image depth_image_msg;
+    image_depth_.toImageMsg(depth_image_msg);
+    for(std::vector<ros::Publisher>::iterator it = pubs_depth_.begin(); it != pubs_depth_.end(); ++it) {
+        it->publish(depth_image_msg);
+    }
 
     // }
 
