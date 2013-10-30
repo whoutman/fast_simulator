@@ -78,6 +78,7 @@ Object* SimulatorROS::getObjectFromModel(const std::string& model_name, const st
         Kinect* top_kinect = new Kinect();
 
         top_kinect->addRGBTopic("/amigo/top_kinect/rgb/image_rect_color");
+        top_kinect->addRGBTopic("/amigo/top_kinect/rgb/image_color");
         top_kinect->addDepthTopic("/amigo/top_kinect/depth_registered/image");
         top_kinect->addDepthTopic("/amigo/top_kinect/depth_registered/image_rect");
         top_kinect->addRGBCameraInfoTopic("/amigo/top_kinect/rgb/camera_info");
