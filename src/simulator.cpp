@@ -87,7 +87,7 @@ int main(int argc, char **argv) {
     tf::Quaternion robot_ori;
     robot_ori.setEuler(robot_ori_x, robot_ori_y, robot_ori_z);
 
-    SimulatorROS SIM(nh, model_dir + "/models/models.xml", model_dir);
+    SimulatorROS SIM(nh, model_dir + "/models/models.xml", model_dir, publish_localization);
     SIM.parseModelFile(model_dir + "/models/models.xml", model_dir);
 
     SIM.start();

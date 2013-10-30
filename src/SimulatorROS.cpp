@@ -24,8 +24,8 @@
 
 using namespace std;
 
-SimulatorROS::SimulatorROS(ros::NodeHandle& nh, const std::string& model_file, const std::string& model_dir)
-    : nh_(nh), model_parser_(new ModelParser(model_file, model_dir)), model_dir_(model_dir) {
+SimulatorROS::SimulatorROS(ros::NodeHandle& nh, const std::string& model_file, const std::string& model_dir, bool publish_localization)
+    : nh_(nh), model_parser_(new ModelParser(model_file, model_dir)), model_dir_(model_dir), publish_localization_(publish_localization) {
     pub_marker_ = nh_.advertise<visualization_msgs::MarkerArray>("/fast_simulator/visualization", 10);
     srv_set_object_ = nh_.advertiseService("/fast_simulator/set_object", &SimulatorROS::setObject, this);
 
@@ -56,7 +56,7 @@ Object* SimulatorROS::getObjectFromModel(const std::string& model_name, const st
     }
 
     if (model_name == "pico") {
-        Pico* pico = new Pico(nh_, true); //publish_localization);
+        Pico* pico = new Pico(nh_, publish_localization_); //publish_localization);
 
         // add laser
         LRF* laser_range_finder_ = new LRF("/pico/laser", "/pico/laser");
@@ -72,7 +72,7 @@ Object* SimulatorROS::getObjectFromModel(const std::string& model_name, const st
         Pera* pera = new Pera(nh_);
         return pera;
     } else if (model_name == "amigo") {
-        Amigo* amigo = new Amigo(nh_, true); //publish_localization);
+        Amigo* amigo = new Amigo(nh_, publish_localization_); //publish_localization);
 
         // add kinect
         Kinect* top_kinect = new Kinect();
