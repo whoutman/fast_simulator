@@ -305,8 +305,8 @@ void Kinect::step(World& world) {
 
                     //cout << "Z = " << z << endl;
 
-                    int x_tl = pos2d.x - mask.cols / 2;
-                    int y_tl = pos2d.y - mask.rows / 2;
+                    int x_tl = pos2d.x - rgb_img.cols / 2;
+                    int y_tl = pos2d.y - rgb_img.rows / 2;
 
                     for(int y = 0; y < rgb_img.rows; ++y) {
                         for(int x = 0; x < rgb_img.cols; ++x) {
