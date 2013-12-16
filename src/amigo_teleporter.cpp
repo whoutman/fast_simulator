@@ -22,7 +22,7 @@ int main(int argc, char **argv) {
     ros::init(argc, argv, "amigo_teleporter");
     ros::NodeHandle nh;
 
-    pub_initial_pose_ = nh.advertise<geometry_msgs::PoseWithCovarianceStamped>("/initialpose", 10);
+    pub_initial_pose_ = nh.advertise<geometry_msgs::PoseWithCovarianceStamped>("/amigo/initialpose", 10);
 
     ros::Subscriber sub_move_base_goal = nh.subscribe("/move_base/goal", 10, &callbackMoveBase);
 
