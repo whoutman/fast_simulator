@@ -118,8 +118,7 @@ void Amigo::step(double dt) {
         tf_broadcaster_.sendTransform(tf_odom_to_base_link_stamped);
     }
 
-    publishControlRefs();
-
+    publishControlMeasurements();
 }
 
 void Amigo::callbackCmdVel(const geometry_msgs::Twist::ConstPtr& msg) {
@@ -159,27 +158,6 @@ void Amigo::callbackRightGripper(const amigo_msgs::AmigoGripperCommand::ConstPtr
     }
 }
 
-void Amigo::callbackSpindleSetpoint(const amigo_msgs::spindle_setpoint::ConstPtr& msg) {
-    setJointReference("torso_joint", msg->pos);
-}
-
-void Amigo::callbackHeadPanTilt(const amigo_msgs::head_ref::ConstPtr& msg) {
-    setJointReference("neck_pan_joint", msg->head_pan);
-    setJointReference("neck_tilt_joint", msg->head_tilt);
-}
-
-void Amigo::callbackLeftArm(const amigo_msgs::arm_joints::ConstPtr& msg) {
-    for(unsigned int i = 0; i < msg->pos.size(); ++i) {
-        setJointReference(left_arm_joint_names[i], msg->pos[i].data);
-    }
-}
-
-void Amigo::callbackRightArm(const amigo_msgs::arm_joints::ConstPtr& msg) {
-    for(unsigned int i = 0; i < msg->pos.size(); ++i) {
-        setJointReference(right_arm_joint_names[i], msg->pos[i].data);
-    }
-}
-
 void Amigo::callbackInitialPose(const geometry_msgs::PoseWithCovarianceStamped::ConstPtr& msg) {
     tf::Transform pose;
     tf::poseMsgToTF(msg->pose.pose, pose);
@@ -198,7 +176,7 @@ void Amigo::callbackOdomReset(const std_msgs::Bool& msg) {
     tf_world_to_odom.setRotation(getAbsolutePose().getRotation());
 }
 
-void Amigo::publishControlRefs() {
+void Amigo::publishControlMeasurements() {
     sensor_msgs::JointState head_meas_msg;
     head_meas_msg.name.push_back("neck_pan_joint");
     head_meas_msg.name.push_back("neck_tilt_joint");
@@ -241,4 +219,3 @@ void Amigo::publishControlRefs() {
     }
     pub_right_gripper_.publish(right_gripper);
 }
-
