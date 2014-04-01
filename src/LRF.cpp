@@ -4,7 +4,7 @@
 #include <geolib/Ray.h>
 
 LRF::LRF(const std::string& topic, const std::string& frame_id) : frame_id_(frame_id) {
-    rate_ = 10;
+    rate_ = 40;
 
     lrf_.setAngleLimits(-2.09439492226, 2.09439492226);
     lrf_.setRangeLimits(0.05, 10.0);
