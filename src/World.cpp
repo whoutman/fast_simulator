@@ -1,7 +1,7 @@
 #include <ros/ros.h>
 
 #include "fast_simulator/World.h"
-#include "fast_simulator/Sprite.h"
+//#include "fast_simulator/Sprite.h"
 #include "fast_simulator/util.h"
 
 using namespace std;
@@ -66,7 +66,7 @@ void World::step(double dt) {
 }
 
 void World::addObject(const std::string& id, Object* obj) {
-    obj->description_->id_ = id;
+    obj->id_ = id;
     objects_[id] = obj;
 }
 
@@ -97,7 +97,7 @@ const std::map<std::string, Object*>& World::getObjects() const {
     return objects_;
 }
 
-bool World::intersect(const Ray& r, float t0, float t1, double& distance) const {
+bool World::intersect(const geo::Ray& r, float t0, float t1, double& distance) const {
     distance = t1;
     bool has_intersection = false;
     for(map<string, Object*>::const_iterator it_obj = objects_.begin(); it_obj != objects_.end(); ++it_obj) {

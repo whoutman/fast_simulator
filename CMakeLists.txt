@@ -43,16 +43,12 @@ rosbuild_add_executable(simulator src/simulator.cpp
                                   src/Pico.cpp
                                   src/Pera.cpp
                                   src/StandaloneKinect.cpp
-                                  src/Box.cpp
-                                  src/Octree.cpp
-                                  src/Ray.cpp
                                   src/Sensor.cpp
                                   src/Sonar.cpp
                                   src/LRF.cpp
                                   src/Sonar.cpp
                                   src/Kinect.cpp
-                                  src/Sprite.cpp
-                                  src/Shape.cpp
+#                                  src/Sprite.cpp
                                   src/Event.cpp
                                   src/ModelParser.cpp
                                   src/util.cpp ${HEADER_FILES})

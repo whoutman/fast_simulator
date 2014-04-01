@@ -6,7 +6,7 @@
 #include <string>
 
 #include "fast_simulator/Object.h"
-#include "fast_simulator/Box.h"
+//#include "fast_simulator/Box.h"
 
 class World {
 
@@ -34,7 +34,7 @@ public:
 
     //bool isOccupied(const tf::Vector3& pos) const;
 
-    bool intersect(const Ray& r, float t0, float t1, double& distance) const;
+    bool intersect(const geo::Ray& r, float t0, float t1, double& distance) const;
 
 protected:
 

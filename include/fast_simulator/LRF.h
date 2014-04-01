@@ -6,6 +6,8 @@
 #include <ros/ros.h>
 #include <sensor_msgs/LaserScan.h>
 
+#include <geolib/sensors/LaserRangeFinder.h>
+
 class LRF : public Sensor {
 
 public:
@@ -18,13 +20,13 @@ public:
 
 protected:
 
+    geo::LaserRangeFinder lrf_;
+
     std::string frame_id_;
 
     sensor_msgs::LaserScan scan;
 
     ros::Publisher pub_laser_scan;
-
-    std::vector<tf::Vector3> laser_ray_deltas_;
 
 };
 

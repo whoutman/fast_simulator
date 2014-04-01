@@ -1,6 +1,8 @@
 #include "fast_simulator/Sonar.h"
 #include "fast_simulator/World.h"
 
+#include <geolib/Ray.h>
+
 Sonar::Sonar(const std::string& topic, const std::string& frame_id) : frame_id_(frame_id) {
     ros::NodeHandle nh;
     pub_ = nh.advertise<sensor_msgs::Range>(topic, 10);
@@ -38,7 +40,7 @@ void Sonar::step(World& world) {
     output_.range = 6.0;
     for(unsigned int i = 0; i < ray_deltas_.size(); ++i) {
         tf::Vector3 dir = tf::Transform(tf_map_to_sonar.getRotation()) * ray_deltas_[i];
-        Ray r(sonar_origin, dir);
+        geo::Ray r(sonar_origin, dir);
 
         double distance;
         if (world.intersect(r, 0, 9, distance)) {

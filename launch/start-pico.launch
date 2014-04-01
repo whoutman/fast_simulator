@@ -4,7 +4,7 @@
     <arg name="teleport" default="false"/>
 
     <!-- load robot -->
-    <param name="robot_description" command="$(find xacro)/xacro.py '$(find pico_description)/urdf/pico.urdf.xacro' " />
+    <param name="robot_description" command="$(find xacro)/xacro.py '$(find jazz_description)/urdf/jazz.urdf.xacro' " />
 
     <!-- SIMULATION -->
 

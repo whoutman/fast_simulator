@@ -10,37 +10,10 @@
 // TODO: better data structure
 #include <geometry_msgs/Twist.h>
 
-#include "fast_simulator/Box.h"
+#include <geolib/datatypes.h>
 #include "fast_simulator/Event.h"
 
 class World;
-class Object;
-
-class ObjectDescription {
-
-public:
-
-    ObjectDescription();
-
-    virtual ~ObjectDescription();
-
-    std::string id_;
-
-    std::string type_;
-
-    Object* parent_;
-
-    Box* bounding_box_;
-
-    Shape* shape_;
-
-    geometry_msgs::Twist velocity_;
-
-    // scheduler
-
-    std::map<std::string, ros::Time> scheduled_events_;
-
-};
 
 class Object {
 
@@ -75,17 +48,17 @@ public:
 
     const std::string& getID() const;
 
-    void setBoundingBox(const Box& box);
+//    void setBoundingBox(const geo::Box& box);
 
-    void setShape(const Shape& box);
+    void setShape(const geo::Shape& shape);
 
-    const Shape* getShape() const;
+    geo::ShapePtr getShape() const;
 
     void setPose(const tf::Vector3& pos, const tf::Quaternion& rot);
 
     const std::string& getType() const;
 
-    bool intersect(const Ray &r, float t0, float t1, double& distance) const;
+    bool intersect(const geo::Ray& r, float t0, float t1, double& distance) const;
 
     void getBoundingBox(tf::Vector3 &min, tf::Vector3 &max) const;    
 
@@ -103,9 +76,20 @@ private:
 
 protected:
 
-    boost::shared_ptr<ObjectDescription> description_;
+    std::string id_;
 
-    // TODO: Maybe also moves this up to description_ ???
+    std::string type_;
+
+    Object* parent_;
+
+    geo::ShapePtr shape_;
+
+    geometry_msgs::Twist velocity_;
+
+    // scheduler
+
+    std::map<std::string, ros::Time> scheduled_events_;
+
     std::vector<Object> parts_;
 
     /*

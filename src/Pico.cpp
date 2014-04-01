@@ -33,7 +33,7 @@ void Pico::step(double dt) {
     Robot::step(dt);
 
     if (ros::Time::now() - t_last_cmd_vel_ > ros::Duration(0.5)) {
-        geometry_msgs::Twist& vel = this->description_->velocity_;
+        geometry_msgs::Twist& vel = this->velocity_;
 
         vel.angular.x = 0;
         vel.angular.y = 0;
@@ -56,7 +56,7 @@ void Pico::step(double dt) {
 }
 
 void Pico::callbackCmdVel(const geometry_msgs::Twist::ConstPtr& msg) {
-    this->description_->velocity_ = *msg;
+    this->velocity_ = *msg;
     t_last_cmd_vel_ = ros::Time::now();
 }
 

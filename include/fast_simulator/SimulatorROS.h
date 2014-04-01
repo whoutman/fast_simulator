@@ -13,7 +13,7 @@ class SimulatorROS {
 
 public:
 
-    SimulatorROS(ros::NodeHandle& nh, const std::string& model_file, const std::string& model_dir, bool publish_localization);
+    SimulatorROS(ros::NodeHandle& nh, const std::string& model_file, const std::string& model_dir);
 
     virtual ~SimulatorROS();
 
@@ -42,8 +42,6 @@ protected:
     ModelParser* model_parser_;
 
     std::string model_dir_;
-
-    bool publish_localization_;
 
 
     visualization_msgs::MarkerArray getROSVisualizationMessage();

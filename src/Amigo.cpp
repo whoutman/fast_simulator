@@ -80,10 +80,10 @@ Amigo::Amigo(ros::NodeHandle& nh, bool publish_localization) : Robot(nh, "amigo"
 
     sub_right_gripper = nh.subscribe("/amigo/right_gripper/references", 10, &Amigo::callbackRightGripper, this);
 
-    sub_odom_reset = nh.subscribe("/amigo/base/reset_odometry", 1, &Amigo::callbackOdomReset, this);
 
-    tf_world_to_odom.setOrigin(tf::Vector3(0, 0, 0));
-    tf_world_to_odom.setRotation(tf::Quaternion(0, 0, 0, 1));
+
+    tf_odom_to_base_link.frame_id_ = "/amigo/odom";
+    tf_odom_to_base_link.child_frame_id_ = "/amigo/base_link";
 
     event_odom_pub_.scheduleRecurring(50);
     event_refs_pub_.scheduleRecurring(100);
@@ -97,7 +97,7 @@ void Amigo::step(double dt) {
     Robot::step(dt);
 
     if (ros::Time::now() - t_last_cmd_vel_ > ros::Duration(0.5)) {
-        geometry_msgs::Twist& vel = this->description_->velocity_;
+        geometry_msgs::Twist& vel = this->velocity_;
 
         vel.angular.x = 0;
         vel.angular.y = 0;
@@ -109,20 +109,18 @@ void Amigo::step(double dt) {
     }
 
     if (event_odom_pub_.isScheduled()) {
-        tf::Transform tf_odom_to_base_link = tf_world_to_odom.inverse() * getAbsolutePose();
-        tf::StampedTransform tf_odom_to_base_link_stamped;
-        tf_odom_to_base_link_stamped.stamp_ = ros::Time::now();
-        tf_odom_to_base_link_stamped.frame_id_ = "/amigo/odom";
-        tf_odom_to_base_link_stamped.child_frame_id_ = "/amigo/base_link";
-        tf_odom_to_base_link_stamped.setData(tf_odom_to_base_link);
-        tf_broadcaster_.sendTransform(tf_odom_to_base_link_stamped);
+        tf_odom_to_base_link.stamp_ = ros::Time::now();
+        tf_odom_to_base_link.setOrigin(getAbsolutePose().getOrigin());
+        tf_odom_to_base_link.setRotation(getAbsolutePose().getRotation());
+        tf_broadcaster_.sendTransform(tf_odom_to_base_link);
     }
 
-    publishControlMeasurements();
+    publishControlRefs();
+
 }
 
 void Amigo::callbackCmdVel(const geometry_msgs::Twist::ConstPtr& msg) {
-    this->description_->velocity_ = *msg;
+    this->velocity_ = *msg;
     t_last_cmd_vel_ = ros::Time::now();
 }
 
@@ -170,13 +168,7 @@ void Amigo::callbackJointReference(const sensor_msgs::JointState::ConstPtr msg) 
     }
 }
 
-void Amigo::callbackOdomReset(const std_msgs::Bool& msg) {
-    tf_world_to_odom.stamp_ = ros::Time::now();
-    tf_world_to_odom.setOrigin(getAbsolutePose().getOrigin());
-    tf_world_to_odom.setRotation(getAbsolutePose().getRotation());
-}
-
-void Amigo::publishControlMeasurements() {
+void Amigo::publishControlRefs() {
     sensor_msgs::JointState head_meas_msg;
     head_meas_msg.name.push_back("neck_pan_joint");
     head_meas_msg.name.push_back("neck_tilt_joint");
@@ -219,3 +211,4 @@ void Amigo::publishControlMeasurements() {
     }
     pub_right_gripper_.publish(right_gripper);
 }
+

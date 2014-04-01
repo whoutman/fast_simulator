@@ -1,6 +1,11 @@
 #include "fast_simulator/ModelParser.h"
 
-#include "fast_simulator/Octree.h"
+//#include "fast_simulator/Octree.h"
+
+#include <geolib/HeightMap.h>
+
+// for loading images
+#include <opencv2/highgui/highgui.hpp>
 
 #include <tinyxml.h>
 
@@ -101,9 +106,9 @@ Object* ModelParser::parse(const std::string& model_name, std::string& error) {
 
                             Object* obj = new Object();
                             if (rpy.empty()) {
-                                obj->setShape(Box(pos - v_size / 2, pos + v_size / 2));
+                                obj->setShape(geo::Box(pos - v_size / 2, pos + v_size / 2));
                             } else {
-                                obj->setShape(Box(-v_size / 2, v_size / 2));
+                                obj->setShape(geo::Box(-v_size / 2, v_size / 2));
                                 obj->setPose(pos, rot);
                             }
                             model->addChild(obj);
@@ -167,9 +172,9 @@ Object* ModelParser::parseHeightMap(const TiXmlElement* xml_elem, stringstream& 
         string image_filename = image_xml->GetText();
         Object* obj = new Object();
 
-        cout << height << ", " << resolution << endl;
+        geo::HeightMap hmap = getHeightMapFromImage(model_dir_ + "/" + image_filename, height, resolution);
+        obj->setShape(hmap);
 
-        obj->setShape(Octree::fromHeightImage(model_dir_ + "/" + image_filename, height, resolution));
         return obj;
     } else {
         s_error << "HeightMap: 'image' not specified." << endl;
@@ -204,6 +209,32 @@ Object* ModelParser::parseHeightMap(const TiXmlElement* xml_elem, stringstream& 
     */
 
     return 0;
+}
+
+geo::HeightMap ModelParser::getHeightMapFromImage(const std::string& image_filename, double height, double resolution) {
+
+    cv::Mat image = cv::imread(image_filename, CV_LOAD_IMAGE_GRAYSCALE);   // Read the file
+
+    vector<vector<double> > map;
+
+    if (image.data ) {
+
+        map.resize(image.cols);
+
+        for(int x = 0; x < image.cols; ++x) {
+            map[x].resize(image.rows);
+            for(int y = 0; y < image.rows; ++y) {
+                map[x][image.rows - y - 1] = height - (double)image.at<unsigned char>(y, x) / 255 * height;
+            }
+        }
+
+        std::cout << "Loaded height map " << image_filename << std::endl;
+
+    } else {
+        std::cout << "Could not load height map " << image_filename << std::endl;
+    }
+
+    return geo::HeightMap::fromGrid(map, resolution);
 }
 
 /*

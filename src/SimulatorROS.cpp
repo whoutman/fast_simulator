@@ -19,13 +19,16 @@
 
 #include "fast_simulator/simulator.h"
 #include "fast_simulator/ModelParser.h"
-#include "fast_simulator/Octree.h"
+//#include "fast_simulator/Octree.h"
 #include "fast_simulator/util.h"
+
+#include <geolib/Box.h>
+#include <geolib/HeightMap.h>
 
 using namespace std;
 
-SimulatorROS::SimulatorROS(ros::NodeHandle& nh, const std::string& model_file, const std::string& model_dir, bool publish_localization)
-    : nh_(nh), model_parser_(new ModelParser(model_file, model_dir)), model_dir_(model_dir), publish_localization_(publish_localization) {
+SimulatorROS::SimulatorROS(ros::NodeHandle& nh, const std::string& model_file, const std::string& model_dir)
+    : nh_(nh), model_parser_(new ModelParser(model_file, model_dir)), model_dir_(model_dir) {
     pub_marker_ = nh_.advertise<visualization_msgs::MarkerArray>("/fast_simulator/visualization", 10);
     srv_set_object_ = nh_.advertiseService("/fast_simulator/set_object", &SimulatorROS::setObject, this);
 
@@ -56,7 +59,7 @@ Object* SimulatorROS::getObjectFromModel(const std::string& model_name, const st
     }
 
     if (model_name == "pico") {
-        Pico* pico = new Pico(nh_, publish_localization_); //publish_localization);
+        Pico* pico = new Pico(nh_, true); //publish_localization);
 
         // add laser
         LRF* laser_range_finder_ = new LRF("/pico/laser", "/pico/laser");
@@ -72,22 +75,11 @@ Object* SimulatorROS::getObjectFromModel(const std::string& model_name, const st
         Pera* pera = new Pera(nh_);
         return pera;
     } else if (model_name == "amigo") {
-        Amigo* amigo = new Amigo(nh_, publish_localization_); //publish_localization);
+        Amigo* amigo = new Amigo(nh_, true); //publish_localization);
 
         // add kinect
-        Kinect* top_kinect = new Kinect();
-
-        top_kinect->addRGBTopic("/amigo/top_kinect/rgb/image_rect_color");
-        top_kinect->addRGBTopic("/amigo/top_kinect/rgb/image_color");
-        top_kinect->addDepthTopic("/amigo/top_kinect/depth_registered/image");
-        top_kinect->addDepthTopic("/amigo/top_kinect/depth_registered/image_rect");
-        top_kinect->addRGBCameraInfoTopic("/amigo/top_kinect/rgb/camera_info");
-        top_kinect->addDepthCameraInfoTopic("/amigo/top_kinect/depth_registered/camera_info");
-        top_kinect->addPointCloudTopic("/amigo/top_kinect/rgb/points");
-        top_kinect->addPointCloudTopic("/amigo/top_kinect/depth_registered/points");        
-        top_kinect->setRGBFrame("/amigo/top_kinect/openni_rgb_optical_frame");
-        top_kinect->setDepthFrame("/amigo/top_kinect/openni_rgb_optical_frame");
-
+        Kinect* top_kinect = new Kinect("/amigo/top_kinect/rgb/image_rect_color", "/amigo/top_kinect/depth_registered/image",
+                                        "/amigo/top_kinect/rgb/camera_info", "/amigo/top_kinect/rgb/points", "/amigo/top_kinect/openni_rgb_optical_frame");
         //top_kinect->addModel("loy", MODEL_DIR + "/kinect/loy");
         top_kinect->addModel("coke", model_dir_ + "/kinect/coke_cropped");
         top_kinect->addModel("cif", model_dir_ + "/kinect/cif_cropped");
@@ -121,9 +113,6 @@ Object* SimulatorROS::getObjectFromModel(const std::string& model_name, const st
         top_kinect->addModel("peanut_butter", model_dir_ + "/kinect/peanut_butter");
         top_kinect->addModel("seven_up", model_dir_ + "/kinect/seven_up");
         top_kinect->addModel("tooth_paste", model_dir_ + "/kinect/tooth_paste");
-        top_kinect->addModel("pringles", model_dir_ + "/kinect/pringles");
-
-        top_kinect->addModel("qr_code", model_dir_ + "/kinect/qr_code");
 
         top_kinect->setRaytracing(true); //raytrace);
 
@@ -151,13 +140,13 @@ Object* SimulatorROS::getObjectFromModel(const std::string& model_name, const st
         return kinect;
     } else if (model_name == "box") {
         Object* obj = new Object(model_name);
-        obj->setShape(Box(tf::Vector3(-0.4, -0.4, 0), tf::Vector3(0.4, 0.4, 1)));
+        obj->setShape(geo::Box(tf::Vector3(-0.4, -0.4, 0), tf::Vector3(0.4, 0.4, 1)));
         return obj;
     } else if (model_name == "person") {
         Object* obj = new Object(model_name);
 
         Object* body = new Object("body", id + "-body");
-        body->setShape(Octree::fromHeightImage(model_dir_ + "/laser/body.pgm", 1, 0.025));
+        body->setShape(ModelParser::getHeightMapFromImage(model_dir_ + "/laser/body.pgm", 1, 0.025));
         obj->addChild(body, tf::Vector3(0, 0, 0.5), tf::Quaternion(0, 0, 0, 1));
         //body->setPose(tf::Vector3(0, 0, 1), tf::Quaternion(0, 0, 0, 1));
         //obj->addChild(body, tf::Transform(tf::Quaternion(0, 0, 0, 1), tf::Vector3(0.5, 0.5, 0.5)));
@@ -293,9 +282,9 @@ visualization_msgs::MarkerArray SimulatorROS::getROSVisualizationMessage() {
         for(vector<Object>::const_iterator it_child = children.begin(); it_child != children.end(); ++it_child) {
             const Object& child = *it_child;
 
-            const Shape* shape = child.getShape();
+            geo::ShapePtr shape = child.getShape();
             if (shape) {
-                const Box* box = dynamic_cast<const Box*>(shape);
+                const geo::Box* box = dynamic_cast<const geo::Box*>(shape.get());
                 if (box) {
                     tf::Vector3 size = box->getSize();
 

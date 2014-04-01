@@ -8,7 +8,9 @@
 #include <string>
 
 #include "fast_simulator/Object.h"
-#include "fast_simulator/Box.h"
+//#include "fast_simulator/Box.h"
+
+#include <geolib/HeightMap.h>
 
 class TiXmlElement;
 
@@ -25,6 +27,8 @@ public:
     Object* parse(const std::string& model_name, std::string& error);
 
     Object* parseHeightMap(const TiXmlElement* xml_elem, std::stringstream& s_error);
+
+    static geo::HeightMap getHeightMapFromImage(const std::string& filename, double height, double resolution);
 
 protected:
 

@@ -4,7 +4,7 @@
 #include "fast_simulator/Object.h"
 #include "fast_simulator/Joint.h"
 #include "fast_simulator/World.h"
-#include "fast_simulator/Sprite.h"
+//#include "fast_simulator/Sprite.h"
 
 #include <ros/ros.h>
 
