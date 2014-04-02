@@ -23,17 +23,31 @@ class Kinect : public Sensor {
 
 public:
 
-    Kinect(const std::string& rgb_topic, const std::string& depth_topic, const std::string& info_topic, const std::string& point_cloud_topic, const std::string& frame_id);
+    Kinect();
 
     virtual ~Kinect();
 
-    void addModel(const std::string& type, const std::string& filename);
+    void addRGBTopic(const std::string& topic_name);
 
-    void setRaytracing(bool status);
+    void addDepthTopic(const std::string& topic_name);
+
+    void addPointCloudTopic(const std::string& topic_name);
+
+    void addRGBCameraInfoTopic(const std::string& topic_name);
+
+    void addDepthCameraInfoTopic(const std::string& topic_name);
+
+    void setRGBFrame(const std::string& frame_id);
+
+    void setDepthFrame(const std::string& frame_id);
+
+    void addModel(const std::string& type, const std::string& filename);
 
     void step(World& world);
 
 protected:
+
+    ros::NodeHandle* nh_;
 
     geo::DepthCamera camera_;
 
@@ -43,25 +57,18 @@ protected:
     int x_res_;
     int y_res_;
 
-    std::string loaded_file_;
-
     std::map<std::string, Image> type_to_image_;
 
-    ros::Publisher pub_rgb_;
-    ros::Publisher pub_depth_;
-    ros::Publisher pub_cam_info_;
-    ros::Publisher pub_point_cloud_;
+    std::vector<ros::Publisher> pubs_rgb_;
+    std::vector<ros::Publisher> pubs_depth_;
+    std::vector<ros::Publisher> pubs_cam_info_rgb_;
+    std::vector<ros::Publisher> pubs_cam_info_depth_;
+    std::vector<ros::Publisher> pubs_point_cloud_;
 
-    // temporarily for tabletop segmentation
-    ros::Publisher pub_point_cloud_2_;
-
-    sensor_msgs::CameraInfo cam_info_;
+    sensor_msgs::CameraInfo cam_info_rgb_;
+    sensor_msgs::CameraInfo cam_info_depth_;
     cv_bridge::CvImage image_rgb_;
     cv_bridge::CvImage image_depth_;
-
-    // raytracing
-
-    bool raytrace_;
 
     image_geometry::PinholeCameraModel pinhole_model_;
 
