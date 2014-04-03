@@ -25,12 +25,12 @@ class SimWorld(object):
         self.objects = {}
         # self.speechmatchers = {}
 
-    def add_object(self, id, type, x=None, y=None, z=None):
+    def add_object(self, id, type, x=None, y=None, z=None, rx=0, ry=0, rz=0):
         obj = SimObject(id, type, self)
         self.objects[id] = obj
 
         if x:
-            obj.set_position(x, y, z)
+            obj.set_position(x, y, z, rx, ry, rz)
 
         return obj
 
