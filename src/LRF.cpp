@@ -1,14 +1,16 @@
 #include "fast_simulator/LRF.h"
 #include "fast_simulator/World.h"
 
+#include <limits>
+
 #include <geolib/Ray.h>
 
 LRF::LRF(const std::string& topic, const std::string& frame_id) : frame_id_(frame_id) {
     rate_ = 40;
 
-    lrf_.setAngleLimits(-2.09439492226, 2.09439492226);
-    lrf_.setRangeLimits(0.05, 10.0);
-    lrf_.setNumBeams(682);
+    lrf_.setAngleLimits(-2, 2);
+    lrf_.setRangeLimits(0.05, 60.0);
+    lrf_.setNumBeams(918);
 
     ros::NodeHandle nh;
     pub_laser_scan = nh.advertise<sensor_msgs::LaserScan>(topic, 10);
@@ -62,11 +64,15 @@ void LRF::step(World& world) {
     }
 
     scan.ranges.resize(ranges.size());
-    scan.intensities.resize(ranges.size());
+    scan.intensities.clear(); //resize(ranges.size());
 
     for(unsigned int i = 0; i < ranges.size(); ++i) {
-        scan.ranges[i] = ranges[i];
-        scan.intensities[i] = 101;
+        double range = ranges[i];
+        if (range == 0) {
+            range = std::numeric_limits<double>::infinity();
+        }
+        scan.ranges[i] = range;
+//        scan.intensities[i] = 101;
     }
 
     pub_laser_scan.publish(scan);

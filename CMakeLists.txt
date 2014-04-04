@@ -43,6 +43,7 @@ rosbuild_add_executable(simulator src/simulator.cpp
                                   src/Pico.cpp
                                   src/Pera.cpp
                                   src/StandaloneKinect.cpp
+                                  src/StandaloneLRF.cpp
                                   src/Sensor.cpp
                                   src/Sonar.cpp
                                   src/LRF.cpp
