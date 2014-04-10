@@ -86,7 +86,7 @@ Amigo::~Amigo() {
 }
 
 void Amigo::step(double dt) {
-    for (std::map<std::string, Trajectory>::iterator it = joint_trajectories_.begin(); it != joint_trajectories_.end();) {
+    for (std::map<std::string, Trajectory>::iterator it = joint_trajectories_.begin(); it != joint_trajectories_.end(); ++it) {
         Trajectory& t = it->second;
         if (!t.set_points.empty()) {
             int num_steps = std::max(1, (int)(dt / t.dt));
@@ -98,9 +98,6 @@ void Amigo::step(double dt) {
             }
 
             setJointReference(it->first, ref);
-            ++it;
-        } else {
-            joint_trajectories_.erase(it);
         }
     }
 
