@@ -47,37 +47,29 @@ Amigo::Amigo(ros::NodeHandle& nh, bool publish_localization) : Robot(nh, "amigo"
     right_arm_joint_names.push_back("wrist_yaw_joint_right");
 
     pub_head_ = nh.advertise<sensor_msgs::JointState>("/amigo/neck/measurements", 10);
-
     pub_left_arm_ = nh.advertise<sensor_msgs::JointState>("/amigo/left_arm/measurements", 10);
     pub_right_arm_ = nh.advertise<sensor_msgs::JointState>("/amigo/right_arm/measurements", 10);
-
     pub_torso_ = nh.advertise<sensor_msgs::JointState>("/amigo/torso/measurements", 10);
-
     pub_left_gripper_ = nh.advertise<amigo_msgs::AmigoGripperMeasurement>("/amigo/left_gripper/measurements", 10);
     pub_right_gripper_ = nh.advertise<amigo_msgs::AmigoGripperMeasurement>("/amigo/right_gripper/measurements", 10);
 
     // SUBSCRIBERS
 
-    // cmd_vel
-    sub_cmd_vel = nh.subscribe("/amigo/base/references", 10, &Amigo::callbackCmdVel, this);
-
     sub_init_pose = nh.subscribe("/amigo/initialpose", 10, &Amigo::callbackInitialPose, this);
-
-    sub_spindle = nh.subscribe("/amigo/torso/references", 10, &Amigo::callbackJointReference, this);
-
+    sub_cmd_vel = nh.subscribe("/amigo/base/references", 10, &Amigo::callbackCmdVel, this);
     sub_head = nh.subscribe("/amigo/neck/references", 10, &Amigo::callbackJointReference, this);
-
+    sub_spindle = nh.subscribe("/amigo/torso/references", 10, &Amigo::callbackJointReference, this);
     sub_left_arm = nh.subscribe("/amigo/left_arm/references", 10, &Amigo::callbackJointReference, this);
-
     sub_right_arm = nh.subscribe("/amigo/right_arm/references", 10, &Amigo::callbackJointReference, this);
 
+    sub_spindle_traj_ = nh.subscribe("/amigo/torso/ref_trajectory", 10, &Amigo::callbackJointTrajectory, this);
+    sub_left_arm_traj_ = nh.subscribe("/amigo/left_arm/ref_trajectory", 10, &Amigo::callbackJointTrajectory, this);
+    sub_right_arm_traj_ = nh.subscribe("/amigo/right_arm/ref_trajectory", 10, &Amigo::callbackJointTrajectory, this);
 
     left_gripper_direction_ = amigo_msgs::AmigoGripperMeasurement::OPEN;
     right_gripper_direction_ = amigo_msgs::AmigoGripperMeasurement::OPEN;
 
-
     sub_left_gripper = nh.subscribe("/amigo/left_gripper/references", 10, &Amigo::callbackLeftGripper, this);
-
     sub_right_gripper = nh.subscribe("/amigo/right_gripper/references", 10, &Amigo::callbackRightGripper, this);
 
 
@@ -94,6 +86,24 @@ Amigo::~Amigo() {
 }
 
 void Amigo::step(double dt) {
+    for (std::map<std::string, Trajectory>::iterator it = joint_trajectories_.begin(); it != joint_trajectories_.end();) {
+        Trajectory& t = it->second;
+        if (!t.set_points.empty()) {
+            int num_steps = std::max(1, (int)(dt / t.dt));
+
+            double ref = t.set_points.back();
+            for (int i = 0; i < num_steps && !t.set_points.empty(); ++i) {
+                ref = t.set_points.back();
+                t.set_points.pop_back();
+            }
+
+            setJointReference(it->first, ref);
+            ++it;
+        } else {
+            joint_trajectories_.erase(it);
+        }
+    }
+
     Robot::step(dt);
 
     if (ros::Time::now() - t_last_cmd_vel_ > ros::Duration(0.5)) {
@@ -168,8 +178,29 @@ void Amigo::callbackJointReference(const sensor_msgs::JointState::ConstPtr msg) 
     }
 }
 
+void Amigo::callbackJointTrajectory(const trajectory_msgs::JointTrajectory::ConstPtr msg) {
+    for(unsigned int i = 0; i < msg->joint_names.size(); ++i) {
+        Trajectory& trajectory = joint_trajectories_[msg->joint_names[i]];
+        trajectory.set_points.resize(msg->points.size());
+
+        if (msg->points.size() >= 2) {
+            trajectory.dt = (msg->points[1].time_from_start - msg->points[0].time_from_start).toSec();
+        } else {
+            trajectory.dt = 0;
+        }
+
+        for(unsigned int j = 0; j < msg->points.size(); ++j) {
+            trajectory.set_points[msg->points.size() - j - 1] = msg->points[j].positions[i];
+        }
+    }
+}
+
 void Amigo::publishControlRefs() {
+    std_msgs::Header header;
+    header.stamp = ros::Time::now();
+
     sensor_msgs::JointState head_meas_msg;
+    head_meas_msg.header = header;
     head_meas_msg.name.push_back("neck_pan_joint");
     head_meas_msg.name.push_back("neck_tilt_joint");
     head_meas_msg.position.push_back(getJointPosition("neck_pan_joint"));
@@ -177,11 +208,13 @@ void Amigo::publishControlRefs() {
     pub_head_.publish(head_meas_msg);
 
     sensor_msgs::JointState torso_meas_msg;
+    torso_meas_msg.header = header;
     torso_meas_msg.name.push_back("torso_joint");
     torso_meas_msg.position.push_back(getJointPosition("torso_joint"));
     pub_torso_.publish(torso_meas_msg);
 
     sensor_msgs::JointState left_arm_joints;
+    left_arm_joints.header = header;
     for(unsigned int j = 0; j < left_arm_joint_names.size(); ++j) {
         left_arm_joints.name.push_back(left_arm_joint_names[j]);
         left_arm_joints.position.push_back(getJointPosition(left_arm_joint_names[j]));
@@ -189,6 +222,7 @@ void Amigo::publishControlRefs() {
     pub_left_arm_.publish(left_arm_joints);
 
     sensor_msgs::JointState right_arm_joints;
+    right_arm_joints.header = header;
     for(unsigned int j = 0; j < right_arm_joint_names.size(); ++j) {
         right_arm_joints.name.push_back(right_arm_joint_names[j]);
         right_arm_joints.position.push_back(getJointPosition(right_arm_joint_names[j]));
