@@ -1,5 +1,7 @@
 #include "fast_simulator/StandaloneKinect.h"
 
+#include <geolib/ros/tf_conversions.h>
+
 using namespace std;
 
 StandaloneKinect::StandaloneKinect(ros::NodeHandle& nh, const std::string& model_dir) : Robot(nh, "kinect", false) {
@@ -32,8 +34,7 @@ void StandaloneKinect::step(double dt) {
 
     if (event_loc_pub_.isScheduled()) {
         tf_location_.stamp_ = ros::Time::now();
-        tf_location_.setOrigin(getAbsolutePose().getOrigin());
-        tf_location_.setRotation(getAbsolutePose().getRotation());
+        geo::convert(getAbsolutePose(), tf_location_);
         tf_broadcaster_.sendTransform(tf_location_);
     }
 }

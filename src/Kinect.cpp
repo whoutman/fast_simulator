@@ -172,7 +172,7 @@ void Kinect::step(World& world) {
     image_rgb_.header.stamp = time;
     image_depth_.header.stamp = time;
 
-    tf::Transform tf_map_to_kinect = getAbsolutePose() * geo::Pose3D(0, 0, 0, 3.1415, 0, 0);
+    geo::Transform tf_map_to_kinect = getAbsolutePose() * geo::Pose3D(0, 0, 0, 3.1415, 0, 0);
 
     image_depth_.image = cv::Mat(height_, width_, CV_32FC1, 0.0);
 
@@ -182,8 +182,7 @@ void Kinect::step(World& world) {
 
         geo::ShapePtr shape = obj->getShape();
         if (shape) {
-            geo::Pose3D pose(obj->getAbsolutePose().getOrigin(), obj->getAbsolutePose().getRotation());
-            camera_.rasterize(*shape, pose, image_depth_.image);
+            camera_.rasterize(*shape, obj->getAbsolutePose(), image_depth_.image);
         }
 
         std::vector<Object*> children;
@@ -193,9 +192,8 @@ void Kinect::step(World& world) {
             const Object& child = **it;
             geo::ShapePtr child_shape = child.getShape();
             if (child_shape) {
-                tf::Transform t = tf_map_to_kinect.inverse() * child.getAbsolutePose(); // * geo::Pose3D(0, 0, 0, 0, 1.54, 1.54);
-                geo::Pose3D pose(t.getOrigin(), t.getRotation());
-                camera_.rasterize(*child_shape, pose, image_depth_.image);
+                geo::Transform t = tf_map_to_kinect.inverse() * child.getAbsolutePose();
+                camera_.rasterize(*child_shape, t, image_depth_.image);
             }
         }
     }
@@ -215,7 +213,7 @@ void Kinect::step(World& world) {
         }
 
         if (it_image != type_to_image_.end()) {
-            tf::Transform tf_kinect_to_object = getAbsolutePose().inverseTimes(obj.getAbsolutePose());
+            geo::Transform tf_kinect_to_object = getAbsolutePose().inverseTimes(obj.getAbsolutePose());
 
             double x = tf_kinect_to_object.getOrigin().getX();
             double y = tf_kinect_to_object.getOrigin().getY();

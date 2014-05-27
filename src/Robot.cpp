@@ -42,13 +42,13 @@ void Robot::addChildren(Object& obj, const KDL::SegmentMap::const_iterator segme
         Joint* joint = new Joint(0);
         joints_[child_kdl.getJoint().getName()] = joint;
 
-        tf::Transform rel_pose;
-        tf::TransformKDLToTF(child_kdl.pose(joint->position_), rel_pose);
+        KDL::Frame rel_pose_kdl = child_kdl.pose(joint->position_);
+        geo::Transform rel_pose(geo::Matrix3(rel_pose_kdl.M.data), geo::Vector3(rel_pose_kdl.p.data));
 
         Object* child = new Object("robot_link", child_kdl.getName());
         addChildren(*child, children[i]);
 
-        obj.addChild(child, rel_pose.getOrigin(), rel_pose.getRotation());
+        obj.addChild(child, rel_pose);
 
         links_[child_kdl.getName()] = child;
         joint->link_ = child;
@@ -83,9 +83,9 @@ void Robot::step(double dt) {
         joint->step(dt);
 
         // TODO: make this much nicer (see Joint::kdl_segment_)
-        tf::Transform rel_pose;
-        tf::TransformKDLToTF(joint->kdl_segment_.pose(joint->position_), rel_pose);
-        joint->link_->setPose(rel_pose.getOrigin(), rel_pose.getRotation());
+        KDL::Frame rel_pose_kdl = joint->kdl_segment_.pose(joint->position_);
+        geo::Transform rel_pose(geo::Matrix3(rel_pose_kdl.M.data), geo::Vector3(rel_pose_kdl.p.data));
+        joint->link_->setPose(rel_pose);
     }
 
     if (event_loc_pub_.isScheduled()) {

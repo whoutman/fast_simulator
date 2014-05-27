@@ -1,5 +1,8 @@
 #include "fast_simulator/Pera.h"
 
+#include <geolib/ros/msg_conversions.h>
+#include <geolib/ros/tf_conversions.h>
+
 using namespace std;
 
 Pera::Pera(ros::NodeHandle& nh) : Robot(nh, "pera", false) {
@@ -51,8 +54,7 @@ void Pera::step(double dt) {
 
     if (event_loc_pub_.isScheduled()) {
         tf_location_.stamp_ = ros::Time::now();
-        tf_location_.setOrigin(getAbsolutePose().getOrigin());
-        tf_location_.setRotation(getAbsolutePose().getRotation());
+        geo::convert(getAbsolutePose(), tf_location_);
         tf_broadcaster_.sendTransform(tf_location_);
     }
 

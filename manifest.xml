@@ -21,7 +21,7 @@
   <depend package="virtual_cam"/>
   <depend package="amigo_msgs"/>
 
-  <depend package="geolib"/>
+  <depend package="geolib2"/>
 
   <!-- For Simulator Interface -->
   <depend package="psi"/>

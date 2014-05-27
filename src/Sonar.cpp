@@ -20,7 +20,7 @@ Sonar::Sonar(const std::string& topic, const std::string& frame_id) : frame_id_(
     // TODO: nicer solution
     for(double y = -half_fov; y < half_fov; y += 0.025) {
         for(double x = -half_fov; x < half_fov; x += 0.025) {
-            ray_deltas_.push_back(tf::Vector3(1, x, y));
+            ray_deltas_.push_back(geo::Vector3(1, x, y));
         }
     }
 
@@ -33,13 +33,13 @@ Sonar::~Sonar() {
 void Sonar::step(World& world) {
     output_.header.stamp = ros::Time::now();
 
-    tf::Transform tf_map_to_sonar = getAbsolutePose();
+    geo::Transform tf_map_to_sonar = getAbsolutePose();
 
-    tf::Vector3 sonar_origin = tf_map_to_sonar.getOrigin();
+    geo::Vector3 sonar_origin = tf_map_to_sonar.getOrigin();
 
     output_.range = 6.0;
     for(unsigned int i = 0; i < ray_deltas_.size(); ++i) {
-        tf::Vector3 dir = tf::Transform(tf_map_to_sonar.getRotation()) * ray_deltas_[i];
+        geo::Vector3 dir = tf_map_to_sonar.getBasis() * ray_deltas_[i];
         geo::Ray r(sonar_origin, dir);
 
         double distance;

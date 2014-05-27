@@ -7,9 +7,8 @@
 
 using namespace std;
 
-Object::Object(const string& type, const std::string& id) : has_pose_(false), id_(id), type_(type), parent_(0) {
-    pose_.setOrigin(tf::Vector3(0, 0, 0));
-    pose_.setRotation(tf::Quaternion(0, 0, 0, 1));
+Object::Object(const string& type, const std::string& id) : has_pose_(false), id_(id), type_(type), parent_(0) {   
+    pose_ = geo::Transform(geo::Matrix3::identity(), geo::Vector3(0, 0, 0));
     pose_inv_ = pose_.inverse();
 }
 
@@ -35,8 +34,8 @@ void Object::addChild(Object* child) {
 }
 
 //void Object::addChild(Object* child, const tf::Transform& rel_pose) {
-void Object::addChild(Object* child, const tf::Vector3& pos, const tf::Quaternion& rot) {
-    child->setPose(pos, rot);
+void Object::addChild(Object* child, const geo::Transform& pose) {
+    child->setPose(pose);
     addChild(child);
 }
 
@@ -44,11 +43,11 @@ const std::vector<Object>& Object::getChildren() const {
     return parts_;
 }
 
-tf::Transform Object::getRelativePose() const {
+geo::Transform Object::getRelativePose() const {
     return pose_;
 }
 
-tf::Transform Object::getAbsolutePose() const {
+geo::Transform Object::getAbsolutePose() const {
     if (!parent_) {
         return pose_;
     }
@@ -56,16 +55,21 @@ tf::Transform Object::getAbsolutePose() const {
 }
 
 void Object::step(double dt) {
-    tf::Quaternion q;
-    q.setRPY(velocity_.angular.x * dt, velocity_.angular.y * dt, velocity_.angular.z * dt);
+//    tf::Quaternion q;
+//    q.setRPY(velocity_.angular.x * dt, velocity_.angular.y * dt, velocity_.angular.z * dt);
 
-    tf::Transform t1(tf::Quaternion(0, 0, 0, 1), tf::Vector3(velocity_.linear.x * dt, velocity_.linear.y * dt, velocity_.linear.z * dt));
-    tf::Transform t2(pose_.getRotation(), tf::Vector3(0, 0, 0));
+//    tf::Transform t1(tf::Quaternion(0, 0, 0, 1), tf::Vector3(velocity_.linear.x * dt, velocity_.linear.y * dt, velocity_.linear.z * dt));
+//    tf::Transform t2(pose_.getRotation(), tf::Vector3(0, 0, 0));
 
-    tf::Vector3 trans = (t2 * t1).getOrigin();
+//    tf::Vector3 trans = (t2 * t1).getOrigin();
+
+    geo::Vector3 trans = pose_.getBasis() * geo::Vector3(velocity_.linear.x * dt, velocity_.linear.y * dt, velocity_.linear.z * dt);
+
+    geo::Matrix3 rot;
+    rot.setRPY(velocity_.angular.x * dt, velocity_.angular.y * dt, velocity_.angular.z * dt);
 
     pose_.setOrigin(pose_.getOrigin() + trans);
-    pose_.setRotation(pose_.getRotation() * q);
+    pose_.setBasis(pose_.getBasis() * rot);
 }
 
 void Object::setShape(const geo::Shape& shape) {
@@ -76,9 +80,8 @@ geo::ShapePtr Object::getShape() const {
     return shape_;
 }
 
-void Object::setPose(const tf::Vector3& pos, const tf::Quaternion& rot) {
-    pose_.setOrigin(pos);
-    pose_.setRotation(rot);
+void Object::setPose(const geo::Transform& pose) {
+    pose_ = pose;
     pose_inv_ = pose_.inverse();
     has_pose_ = true;
 }
@@ -102,8 +105,7 @@ bool Object::intersect(const geo::Ray& r, float t0, float t1, double& distance) 
 
     geo::Ray r_transformed = r;
     if (has_pose_) {
-        tf::Transform inv_rot(pose_inv_.getRotation(), tf::Vector3(0, 0, 0));
-        r_transformed = geo::Ray(pose_inv_ * r.origin_, inv_rot * r.direction_);
+        r_transformed = geo::Ray(pose_inv_ * r.origin_, pose_inv_.getBasis() * r.direction_);
     }
 
 //    r.nr_intersection_calcs_++;

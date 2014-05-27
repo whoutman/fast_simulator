@@ -33,16 +33,15 @@ public:
 
     void addChild(Object* child);
 
-    //void addChild(Object* child, const tf::Transform& rel_pose);
-    void addChild(Object* child, const tf::Vector3& pos, const tf::Quaternion& rot);
+    void addChild(Object* child, const geo::Transform& pose);
 
     const std::vector<Object>& getChildren() const;
 
     void getChildrenRecursive(std::vector<Object*>& objects);
 
-    tf::Transform getRelativePose() const;
+    geo::Transform getRelativePose() const;
 
-    tf::Transform getAbsolutePose() const;
+    geo::Transform getAbsolutePose() const;
 
     virtual void step(double dt);
 
@@ -54,7 +53,7 @@ public:
 
     geo::ShapePtr getShape() const;
 
-    void setPose(const tf::Vector3& pos, const tf::Quaternion& rot);
+    void setPose(const geo::Transform& pose);
 
     const std::string& getType() const;
 
@@ -70,9 +69,9 @@ private:
 
     bool has_pose_;
 
-    tf::Transform pose_;
+    geo::Transform pose_;
 
-    tf::Transform pose_inv_;
+    geo::Transform pose_inv_;
 
 protected:
 

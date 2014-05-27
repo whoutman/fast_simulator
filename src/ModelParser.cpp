@@ -72,8 +72,8 @@ Object* ModelParser::parse(const std::string& model_name, std::string& error) {
                         xyz = parseArray(xyz_xml);
                     }
 
-                    tf::Vector3 pos(xyz[0], xyz[1], xyz[2]);
-                    tf::Quaternion rot(0, 0, 0, 1);
+                    geo::Vector3 pos(xyz[0], xyz[1], xyz[2]);
+                    geo::Matrix3 rot = geo::Matrix3::identity();
 
                     const TiXmlElement* rpy_xml = shape_xml->FirstChildElement("rpy");
                     if (rpy_xml) {
@@ -95,21 +95,21 @@ Object* ModelParser::parse(const std::string& model_name, std::string& error) {
                         Object* height_map = parseHeightMap(shape_xml, s_error);
 
                         if (height_map) {
-                            height_map->setPose(pos, rot);
+                            height_map->setPose(geo::Transform(rot, pos));
                             model->addChild(height_map);
                         }
 
                     } else if (shape_type == "box") {
                         if (!size.empty()) {
 
-                            tf::Vector3 v_size(size[0], size[1], size[2]);
+                            geo::Vector3 v_size(size[0], size[1], size[2]);
 
                             Object* obj = new Object();
                             if (rpy.empty()) {
                                 obj->setShape(geo::Box(pos - v_size / 2, pos + v_size / 2));
                             } else {
                                 obj->setShape(geo::Box(-v_size / 2, v_size / 2));
-                                obj->setPose(pos, rot);
+                                obj->setPose(geo::Transform(rot, pos));
                             }
                             model->addChild(obj);
                         } else {

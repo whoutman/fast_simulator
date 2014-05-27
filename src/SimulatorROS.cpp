@@ -26,6 +26,7 @@
 
 #include <geolib/Box.h>
 #include <geolib/HeightMap.h>
+#include <geolib/ros/msg_conversions.h>
 
 using namespace std;
 
@@ -154,14 +155,14 @@ Object* SimulatorROS::getObjectFromModel(const std::string& model_name, const st
         return lrf;
     } else if (model_name == "box") {
         Object* obj = new Object(model_name);
-        obj->setShape(geo::Box(tf::Vector3(-0.4, -0.4, 0), tf::Vector3(0.4, 0.4, 1)));
+        obj->setShape(geo::Box(geo::Vector3(-0.4, -0.4, 0), geo::Vector3(0.4, 0.4, 1)));
         return obj;
     } else if (model_name == "person") {
         Object* obj = new Object(model_name);
 
         Object* body = new Object("body", id + "-body");
         body->setShape(ModelParser::getHeightMapFromImage(model_dir_ + "/laser/body.pgm", 1, 0.025));
-        obj->addChild(body, tf::Vector3(0, 0, 0.5), tf::Quaternion(0, 0, 0, 1));
+        obj->addChild(body, geo::Transform(geo::Matrix3::identity(), geo::Vector3(0, 0, 0.5)));
         //body->setPose(tf::Vector3(0, 0, 1), tf::Quaternion(0, 0, 0, 1));
         //obj->addChild(body, tf::Transform(tf::Quaternion(0, 0, 0, 1), tf::Vector3(0.5, 0.5, 0.5)));
 
@@ -172,7 +173,7 @@ Object* SimulatorROS::getObjectFromModel(const std::string& model_name, const st
         }
 
         Object* face = new Object("face_" + face_type, id + "-face");
-        obj->addChild(face, tf::Vector3(0, 0, 1.6), tf::Quaternion(0, 0, 0, 1));
+        obj->addChild(face, geo::Transform(geo::Matrix3::identity(), geo::Vector3(0, 0, 1.6)));
 
     }
 
@@ -241,16 +242,11 @@ bool SimulatorROS::setObject(fast_simulator::SetObject::Request& req, fast_simul
             simulator_.addObject(req.id, obj);
         }
 
-        tf::Point pos;
-        tf::pointMsgToTF(req.pose.position, pos);
-        tf::Quaternion rot;
-        tf::quaternionMsgToTF(req.pose.orientation, rot);
-        obj->setPose(pos, rot);
+        geo::Transform pose;
+        geo::convert(req.pose, pose);
+        obj->setPose(pose);
 
-        cout << "Set " << req.id << " (type: " << req.type << "): " << endl;
-        cout << "    position: (" << pos.x() << ", " << pos.y() << ", " << pos.z() << ")" << endl;
-        cout << "    rotation: (" << rot.x() << ", " << rot.y() << ", " << rot.z() << ", " << rot.w() << ")" << endl;
-
+        cout << "Set " << req.id << " (type: " << req.type << "): " << pose << endl;
     } else {
         if (!obj) {
             res.result_msg = "Object with id " + req.id + " does not exist";
@@ -290,7 +286,7 @@ visualization_msgs::MarkerArray SimulatorROS::getROSVisualizationMessage() {
 
         Object& obj = *it_obj->second;
 
-        tf::Transform pose = obj.getAbsolutePose();
+        geo::Transform pose = obj.getAbsolutePose();
 
         const vector<Object>& children = obj.getChildren();
         for(vector<Object>::const_iterator it_child = children.begin(); it_child != children.end(); ++it_child) {
@@ -300,19 +296,19 @@ visualization_msgs::MarkerArray SimulatorROS::getROSVisualizationMessage() {
             if (shape) {
                 const geo::Box* box = dynamic_cast<const geo::Box*>(shape.get());
                 if (box) {
-                    tf::Vector3 size = box->getSize();
+                    geo::Vector3 size = box->getSize();
 
-                    if (size.x() < 20 && size.y() < 20 && size.z() < 20) { // quick hack to prevent visualization of ground plane
+                    if (size.x < 20 && size.y < 20 && size.z < 20) { // quick hack to prevent visualization of ground plane
 
                         visualization_msgs::Marker m_box;
                         m_box.action =  visualization_msgs::Marker::ADD;
                         m_box.header.frame_id = "/map";
                         m_box.header.stamp = ros::Time::now();
 
-                        tf::Transform child_rel_pose = child.getRelativePose();
+                        geo::Transform child_rel_pose = child.getRelativePose();
                         child_rel_pose.setOrigin(child_rel_pose.getOrigin() + box->getCenter());
 
-                        tf::poseTFToMsg(pose * child_rel_pose, m_box.pose);
+                        geo::convert(pose * child_rel_pose, m_box.pose);
 
                         m_box.color.a = 1;
                         m_box.color.r = 0.8;
@@ -351,7 +347,7 @@ visualization_msgs::MarkerArray SimulatorROS::getROSVisualizationMessage() {
         */
 
         m.header.frame_id = "/map";
-        tf::poseTFToMsg(pose, m.pose);
+        geo::convert(pose, m.pose);
 
         m.color.a = 1;
         m.color.r = 1;
@@ -384,7 +380,7 @@ visualization_msgs::MarkerArray SimulatorROS::getROSVisualizationMessage() {
 
         m_text.action = visualization_msgs::Marker::ADD;
         m_text.header.frame_id = "/map";
-        tf::poseTFToMsg(pose, m_text.pose);
+        geo::convert(pose, m_text.pose);
         m_text.pose.position.z += 0.2;
         m_text.color.a = 1;
 

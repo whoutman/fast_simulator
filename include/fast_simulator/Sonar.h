@@ -24,7 +24,7 @@ protected:
 
     ros::Publisher pub_;
 
-    std::vector<tf::Vector3> ray_deltas_;
+    std::vector<geo::Vector3> ray_deltas_;
 
 };
 

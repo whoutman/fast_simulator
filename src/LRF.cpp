@@ -33,8 +33,7 @@ void LRF::step(World& world) {
     scan.header.stamp = ros::Time::now();
     scan.ranges.clear();
 
-    tf::Transform tf_map_to_laser = getAbsolutePose();
-    geo::Pose3D laser_pose(tf_map_to_laser.getOrigin(), tf_map_to_laser.getRotation());
+    geo::Transform laser_pose = getAbsolutePose();
 
     std::vector<double> ranges;
 
@@ -45,8 +44,7 @@ void LRF::step(World& world) {
 
         geo::ShapePtr shape = obj->getShape();
         if (shape) {
-            geo::Pose3D pose(obj->getAbsolutePose().getOrigin(), obj->getAbsolutePose().getRotation());
-            lrf_.render(*shape, laser_pose, pose, ranges);
+            lrf_.render(*shape, laser_pose, obj->getAbsolutePose(), ranges);
         }
 
         std::vector<Object*> children;
@@ -56,9 +54,7 @@ void LRF::step(World& world) {
             const Object& child = **it;
             geo::ShapePtr child_shape = child.getShape();
             if (child_shape) {
-                tf::Transform t = child.getAbsolutePose();
-                geo::Pose3D pose(t.getOrigin(), t.getRotation());
-                lrf_.render(*child_shape, laser_pose, pose, ranges);
+                lrf_.render(*child_shape, laser_pose, child.getAbsolutePose(), ranges);
             }
         }
     }

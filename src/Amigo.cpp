@@ -1,5 +1,8 @@
 #include "fast_simulator/Amigo.h"
 
+#include <geolib/ros/msg_conversions.h>
+#include <geolib/ros/tf_conversions.h>
+
 using namespace std;
 
 Amigo::Amigo(ros::NodeHandle& nh, bool publish_localization) : Robot(nh, "amigo", publish_localization) {
@@ -115,10 +118,9 @@ void Amigo::step(double dt) {
         vel.linear.z = 0;
     }
 
-    if (event_odom_pub_.isScheduled()) {
+    if (event_odom_pub_.isScheduled()) {        
         tf_odom_to_base_link.stamp_ = ros::Time::now();
-        tf_odom_to_base_link.setOrigin(getAbsolutePose().getOrigin());
-        tf_odom_to_base_link.setRotation(getAbsolutePose().getRotation());
+        geo::convert(getAbsolutePose(), tf_odom_to_base_link);
         tf_broadcaster_.sendTransform(tf_odom_to_base_link);
     }
 
@@ -164,9 +166,9 @@ void Amigo::callbackRightGripper(const amigo_msgs::AmigoGripperCommand::ConstPtr
 }
 
 void Amigo::callbackInitialPose(const geometry_msgs::PoseWithCovarianceStamped::ConstPtr& msg) {
-    tf::Transform pose;
-    tf::poseMsgToTF(msg->pose.pose, pose);
-    setPose(pose.getOrigin(), pose.getRotation());
+    geo::Transform pose;
+    geo::convert(msg->pose.pose, pose);
+    setPose(pose);
 }
 
 void Amigo::callbackJointReference(const sensor_msgs::JointState::ConstPtr msg) {

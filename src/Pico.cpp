@@ -1,5 +1,8 @@
 #include "fast_simulator/Pico.h"
 
+#include <geolib/ros/msg_conversions.h>
+#include <geolib/ros/tf_conversions.h>
+
 using namespace std;
 
 Pico::Pico(ros::NodeHandle& nh, bool publish_localization) : Robot(nh, "pico", publish_localization) {
@@ -46,8 +49,7 @@ void Pico::step(double dt) {
 
     if (event_odom_pub_.isScheduled()) {
         tf_odom_to_base_link.stamp_ = ros::Time::now();
-        tf_odom_to_base_link.setOrigin(getAbsolutePose().getOrigin());
-        tf_odom_to_base_link.setRotation(getAbsolutePose().getRotation());
+        geo::convert(getAbsolutePose(), tf_odom_to_base_link);
         tf_broadcaster_.sendTransform(tf_odom_to_base_link);
     }
 
@@ -69,9 +71,9 @@ void Pico::callbackHeadTilt(const std_msgs::Float64::ConstPtr& msg) {
 }
 
 void Pico::callbackInitialPose(const geometry_msgs::PoseWithCovarianceStamped::ConstPtr& msg) {
-    tf::Transform pose;
-    tf::poseMsgToTF(msg->pose.pose, pose);
-    setPose(pose.getOrigin(), pose.getRotation());
+    geo::Transform pose;
+    geo::convert(msg->pose.pose, pose);
+    setPose(pose);
 }
 
 void Pico::publishControlRefs() {
