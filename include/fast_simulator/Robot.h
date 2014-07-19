@@ -58,8 +58,6 @@ private:
 
     KDL::Tree tree;
 
-    bool publish_localization_;    
-
     std::map<std::string, Joint*> joints_;
 
     std::vector<Sensor*> sensors_;
@@ -68,9 +66,6 @@ private:
 
     std::map<std::string, Object*> links_;
 
-    tf::StampedTransform tf_localization_;
-
-    Event event_loc_pub_;
     Event event_joint_states_pub_;
     Event event_sensors_pub_;
 
