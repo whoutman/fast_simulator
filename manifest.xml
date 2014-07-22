@@ -22,6 +22,7 @@
   <depend package="amigo_msgs"/>
 
   <depend package="geolib2"/>
+  <depend package="tue_filesystem"/>
 
   <!-- For Simulator Interface -->
   <depend package="psi"/>
