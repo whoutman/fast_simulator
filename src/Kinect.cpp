@@ -254,7 +254,7 @@ void Kinect::step(World& world) {
 
                                 unsigned char alpha = mask.at<unsigned char>(y, x);
                                 if (alpha > 0) {
-                                    image_depth_.image.at<float>(iy, ix) = depth_img.at<float>(y, x) - distance + z;
+//                                    image_depth_.image.at<float>(iy, ix) = depth_img.at<float>(y, x) - distance + z;
                                     //cout << "   " << image_depth_.image.at<float>(iy, ix);
 
                                     cv::Vec3b image_clr =  image_rgb_.image.at<cv::Vec3b>(iy, ix);
