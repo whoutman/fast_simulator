@@ -13,6 +13,13 @@
 
 using namespace std;
 
+// ----------------------------------------------------------------------------------------------------
+
+float randomUniform(float min, float max)
+{
+    return ((float)rand() / RAND_MAX) * (max - min) + min;
+}
+
 Kinect::Kinect()
     : width_(640), height_(480), x_res_(2), y_res_(2) {
 
@@ -195,6 +202,17 @@ void Kinect::step(World& world) {
                 geo::Transform t = tf_map_to_kinect.inverse() * child.getAbsolutePose();
                 camera_.rasterize(*child_shape, t, image_depth_.image);
             }
+        }
+    }
+
+    // Add noise to depth image
+    for(int y = 0; y < image_depth_.image.rows; ++y)
+    {
+        for(int x = 0; x < image_depth_.image.cols; ++x)
+        {
+            float& d = image_depth_.image.at<float>(y, x);
+            if (d > 0)
+                d += randomUniform(d * -0.005, d * 0.005);
         }
     }
 
