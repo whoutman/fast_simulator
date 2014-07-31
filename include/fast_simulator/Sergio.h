@@ -1,5 +1,5 @@
-#ifndef _FAST_SIMULATOR_AMIGO_H_
-#define _FAST_SIMULATOR_AMIGO_H_
+#ifndef _FAST_SIMULATOR_SERGIO_H_
+#define _FAST_SIMULATOR_SERGIO_H_
 
 #include "amigo_msgs/AmigoGripperCommand.h"
 #include "amigo_msgs/AmigoGripperMeasurement.h"
@@ -7,13 +7,13 @@
 
 #include "fast_simulator/Robot.h"
 
-class Amigo : public Robot {
+class Sergio : public Robot {
 
 public:
 
-    Amigo(ros::NodeHandle& nh, bool publish_localization = true);
+    Sergio(ros::NodeHandle& nh, bool publish_localization = true);
 
-    virtual ~Amigo();
+    virtual ~Sergio();
 
     void step(double dt);
 
@@ -45,6 +45,7 @@ protected:
 
     std::vector<std::string> left_arm_joint_names;
     std::vector<std::string> right_arm_joint_names;
+    std::vector<std::string> torso_joint_names;
 
     std::map<std::string, Trajectory> joint_trajectories_;
 

@@ -40,6 +40,7 @@ rosbuild_add_executable(simulator src/simulator.cpp
                                   src/Joint.cpp
                                   src/World.cpp
                                   src/Amigo.cpp
+                                  src/Sergio.cpp
                                   src/Pico.cpp
                                   src/Pera.cpp
                                   src/StandaloneKinect.cpp
@@ -56,5 +57,5 @@ rosbuild_add_executable(simulator src/simulator.cpp
 rosbuild_link_boost(simulator system program_options)
 target_link_libraries(simulator tinyxml)
 
-rosbuild_add_executable(amigo_teleporter src/amigo_teleporter.cpp)
+rosbuild_add_executable(robot_teleporter src/robot_teleporter.cpp)
 

@@ -20,6 +20,11 @@
 #include "fast_simulator/LRF.h"
 #include "fast_simulator/Kinect.h"
 
+struct Trajectory {
+    std::vector<double> set_points;
+    double dt;
+};
+
 class Robot : public Object {
 
 public:

@@ -13,6 +13,7 @@
 #include "fast_simulator/SimulatorROS.h"
 
 #include "fast_simulator/Amigo.h"
+#include "fast_simulator/Sergio.h"
 #include "fast_simulator/Pico.h"
 #include "fast_simulator/Pera.h"
 #include "fast_simulator/StandaloneKinect.h"
@@ -160,6 +161,46 @@ Object* SimulatorROS::getObjectFromModel(const std::string& model_name, const st
         //this->registerSensor(laser_range_finder_top_, tf_base_link_to_top_laser);
 
         return amigo;
+    } else if (model_name == "sergio") {
+        Sergio* sergio = new Sergio(nh_, true); //publish_localization);
+
+        // add kinect
+        Kinect* top_kinect = new Kinect();
+
+        top_kinect->addRGBTopic("/sergio/top_kinect/rgb/image_rect_color");
+        top_kinect->addRGBTopic("/sergio/top_kinect/rgb/image_color");
+        top_kinect->addDepthTopic("/sergio/top_kinect/depth_registered/image");
+        top_kinect->addDepthTopic("/sergio/top_kinect/depth_registered/image_rect");
+        top_kinect->addRGBCameraInfoTopic("/sergio/top_kinect/rgb/camera_info");
+        top_kinect->addDepthCameraInfoTopic("/sergio/top_kinect/depth_registered/camera_info");
+        top_kinect->addPointCloudTopic("/sergio/top_kinect/rgb/points");
+        top_kinect->addPointCloudTopic("/sergio/top_kinect/depth_registered/points");
+        top_kinect->setRGBFrame("/sergio/top_kinect/openni_rgb_optical_frame");
+        top_kinect->setDepthFrame("/sergio/top_kinect/openni_rgb_optical_frame");
+
+        // load object models
+        tue::filesystem::Crawler crawler(model_dir_ + "/kinect");
+        crawler.setIgnoreHiddenDirectories(true);
+        crawler.setRecursive(false);
+
+        tue::filesystem::Path p;
+        while (crawler.nextPath(p))
+        {
+            top_kinect->addModel(p.filename(), p.string());
+        }
+
+        sergio->registerSensor(top_kinect);
+        sergio->getLink("top_kinect/openni_rgb_optical_frame")->addChild(top_kinect);
+
+        LRF* base_lrf = new LRF("/sergio/base_front_scan", "/sergio/base_laser");
+        sergio->registerSensor(base_lrf);
+        sergio->getLink("base_laser")->addChild(base_lrf);
+
+        LRF* torso_lrf = new LRF("/sergio/torso_scan", "/sergio/torso_laser");
+        sergio->registerSensor(torso_lrf);
+        sergio->getLink("torso_laser")->addChild(torso_lrf);
+
+        return sergio;
     } else if (model_name == "kinect") {
         StandaloneKinect* kinect = new StandaloneKinect(nh_, model_dir_);
         return kinect;

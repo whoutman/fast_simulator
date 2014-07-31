@@ -19,10 +19,11 @@ void callbackMoveBase(const tue_move_base_msgs::MoveBaseActionGoal::ConstPtr& ms
 
 int main(int argc, char **argv) {
     // Initialize node
-    ros::init(argc, argv, "amigo_teleporter");
+    ros::init(argc, argv, "robot_teleporter");
     ros::NodeHandle nh;
+    std::string ns = nh.getNamespace();
 
-    pub_initial_pose_ = nh.advertise<geometry_msgs::PoseWithCovarianceStamped>("/amigo/initialpose", 10);
+    pub_initial_pose_ = nh.advertise<geometry_msgs::PoseWithCovarianceStamped>(ns+"/initialpose", 10);
 
     ros::Subscriber sub_move_base_goal = nh.subscribe("/move_base/goal", 10, &callbackMoveBase);
 
