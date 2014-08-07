@@ -29,6 +29,7 @@ protected:
     ros::Publisher pub_torso_;
     ros::Publisher pub_left_gripper_;
     ros::Publisher pub_right_gripper_;
+    ros::Publisher pub_odom_;
 
     ros::Subscriber sub_cmd_vel;
     ros::Subscriber sub_init_pose;

@@ -55,6 +55,7 @@ Amigo::Amigo(ros::NodeHandle& nh, bool publish_localization) : Robot(nh, "amigo"
     pub_torso_ = nh.advertise<sensor_msgs::JointState>("/amigo/torso/measurements", 10);
     pub_left_gripper_ = nh.advertise<amigo_msgs::AmigoGripperMeasurement>("/amigo/left_gripper/measurements", 10);
     pub_right_gripper_ = nh.advertise<amigo_msgs::AmigoGripperMeasurement>("/amigo/right_gripper/measurements", 10);
+    pub_odom_ = nh.advertise<nav_msgs::Odometry>("/amigo/base/measurements", 10);
 
     // SUBSCRIBERS
 
@@ -122,6 +123,37 @@ void Amigo::step(double dt) {
         tf_odom_to_base_link.stamp_ = ros::Time::now();
         geo::convert(getAbsolutePose(), tf_odom_to_base_link);
         tf_broadcaster_.sendTransform(tf_odom_to_base_link);
+
+        /// Send odom message
+        // Fill pose
+        nav_msgs::Odometry odom_msg;
+        odom_msg.header.frame_id = "/amigo/odom";
+        odom_msg.header.stamp    = ros::Time::now();
+        odom_msg.child_frame_id  = "/amigo/base_link";
+        tf::Vector3 position = tf_odom_to_base_link.getOrigin();
+        odom_msg.pose.pose.position.x = position.getX();
+        odom_msg.pose.pose.position.y = position.getY();
+        odom_msg.pose.pose.position.z = position.getZ();
+        tf::Quaternion orientation = tf_odom_to_base_link.getRotation();
+        odom_msg.pose.pose.orientation.x = orientation.getX();
+        odom_msg.pose.pose.orientation.y = orientation.getY();
+        odom_msg.pose.pose.orientation.z = orientation.getZ();
+        odom_msg.pose.pose.orientation.w = orientation.getW();
+        //ROS_INFO("Position = [%f, %f, %f]",position.getX(),position.getY(),position.getZ());
+        // ToDo: fill covariance
+
+        // Fill twist (assume base controller can follow this->velocity_)
+        geometry_msgs::Twist base_vel = this->velocity_;
+        double theta = tf::getYaw(odom_msg.pose.pose.orientation);
+        double costh = cos(theta);
+        double sinth = sin(theta);
+        odom_msg.twist.twist.linear.x  = base_vel.linear.x * costh - base_vel.linear.y * sinth;
+        odom_msg.twist.twist.linear.y  = base_vel.linear.x * sinth + base_vel.linear.y * costh;
+        odom_msg.twist.twist.angular.z = base_vel.angular.z;
+        //ROS_INFO("Twist: [%f, %f, %f]", odom_msg.twist.twist.linear.x, odom_msg.twist.twist.linear.y, odom_msg.twist.twist.angular.z);
+        // ToDo: fill covariance
+
+        pub_odom_.publish(odom_msg);
     }
 
     publishControlRefs();

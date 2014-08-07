@@ -3,6 +3,8 @@
 #include <geolib/ros/msg_conversions.h>
 #include <geolib/ros/tf_conversions.h>
 
+#include <nav_msgs/Odometry.h>
+
 using namespace std;
 
 Sergio::Sergio(ros::NodeHandle& nh, bool publish_localization) : Robot(nh, "sergio", publish_localization) {
@@ -61,6 +63,7 @@ Sergio::Sergio(ros::NodeHandle& nh, bool publish_localization) : Robot(nh, "serg
     pub_torso_ = nh.advertise<sensor_msgs::JointState>("/sergio/torso/measurements", 10);
     pub_left_gripper_ = nh.advertise<amigo_msgs::AmigoGripperMeasurement>("/sergio/left_gripper/measurements", 10);
     pub_right_gripper_ = nh.advertise<amigo_msgs::AmigoGripperMeasurement>("/sergio/right_gripper/measurements", 10);
+    pub_odom_ = nh.advertise<nav_msgs::Odometry>("/sergio/base/measurements", 10);
 
     // SUBSCRIBERS
 
@@ -80,8 +83,6 @@ Sergio::Sergio(ros::NodeHandle& nh, bool publish_localization) : Robot(nh, "serg
 
     sub_left_gripper = nh.subscribe("/sergio/left_gripper/references", 10, &Sergio::callbackLeftGripper, this);
     sub_right_gripper = nh.subscribe("/sergio/right_gripper/references", 10, &Sergio::callbackRightGripper, this);
-
-
 
     tf_odom_to_base_link.frame_id_ = "/sergio/odom";
     tf_odom_to_base_link.child_frame_id_ = "/sergio/base_link";
@@ -125,9 +126,42 @@ void Sergio::step(double dt) {
     }
 
     if (event_odom_pub_.isScheduled()) {        
+        /// Send tf
         tf_odom_to_base_link.stamp_ = ros::Time::now();
         geo::convert(getAbsolutePose(), tf_odom_to_base_link);
         tf_broadcaster_.sendTransform(tf_odom_to_base_link);
+
+        /// Send odom message
+        // Fill pose
+        nav_msgs::Odometry odom_msg;
+        odom_msg.header.frame_id = "/sergio/odom";
+        odom_msg.header.stamp    = ros::Time::now();
+        odom_msg.child_frame_id  = "/sergio/base_link";
+        tf::Vector3 position = tf_odom_to_base_link.getOrigin();
+        odom_msg.pose.pose.position.x = position.getX();
+        odom_msg.pose.pose.position.y = position.getY();
+        odom_msg.pose.pose.position.z = position.getZ();
+        tf::Quaternion orientation = tf_odom_to_base_link.getRotation();
+        odom_msg.pose.pose.orientation.x = orientation.getX();
+        odom_msg.pose.pose.orientation.y = orientation.getY();
+        odom_msg.pose.pose.orientation.z = orientation.getZ();
+        odom_msg.pose.pose.orientation.w = orientation.getW();
+        //ROS_INFO("Position = [%f, %f, %f]",position.getX(),position.getY(),position.getZ());
+        // ToDo: fill covariance
+
+        // Fill twist (assume base controller can follow this->velocity_)
+        geometry_msgs::Twist base_vel = this->velocity_;
+        double theta = tf::getYaw(odom_msg.pose.pose.orientation);
+        double costh = cos(theta);
+        double sinth = sin(theta);
+        odom_msg.twist.twist.linear.x  = base_vel.linear.x * costh - base_vel.linear.y * sinth;
+        odom_msg.twist.twist.linear.y  = base_vel.linear.x * sinth + base_vel.linear.y * costh;
+        odom_msg.twist.twist.angular.z = base_vel.angular.z;
+        //ROS_INFO("Twist: [%f, %f, %f]", odom_msg.twist.twist.linear.x, odom_msg.twist.twist.linear.y, odom_msg.twist.twist.angular.z);
+        // ToDo: fill covariance
+
+        pub_odom_.publish(odom_msg);
+
     }
 
     publishControlRefs();
