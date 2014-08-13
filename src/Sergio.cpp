@@ -151,11 +151,8 @@ void Sergio::step(double dt) {
 
         // Fill twist (assume base controller can follow this->velocity_)
         geometry_msgs::Twist base_vel = this->velocity_;
-        double theta = tf::getYaw(odom_msg.pose.pose.orientation);
-        double costh = cos(theta);
-        double sinth = sin(theta);
-        odom_msg.twist.twist.linear.x  = base_vel.linear.x * costh - base_vel.linear.y * sinth;
-        odom_msg.twist.twist.linear.y  = base_vel.linear.x * sinth + base_vel.linear.y * costh;
+        odom_msg.twist.twist.linear.x  = base_vel.linear.x;
+        odom_msg.twist.twist.linear.y  = base_vel.linear.y;
         odom_msg.twist.twist.angular.z = base_vel.angular.z;
         //ROS_INFO("Twist: [%f, %f, %f]", odom_msg.twist.twist.linear.x, odom_msg.twist.twist.linear.y, odom_msg.twist.twist.angular.z);
         // ToDo: fill covariance
