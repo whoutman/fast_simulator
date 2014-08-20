@@ -29,6 +29,14 @@ find_package(Boost REQUIRED COMPONENTS system program_options)
 
 ################################################
 #                                              #
+#                PYTHON SETUP                  #
+#                                              #
+################################################
+
+catkin_python_setup()
+
+################################################
+#                                              #
 #      ROS MESSAGES, SERVICES AND ACTIONS      #
 #                                              #
 ################################################
