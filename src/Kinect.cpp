@@ -11,6 +11,8 @@
 #include <geolib/Ray.h>
 #include <geolib/Box.h>
 
+#include <pcl_conversions/pcl_conversions.h>
+
 using namespace std;
 
 // ----------------------------------------------------------------------------------------------------
@@ -309,9 +311,12 @@ void Kinect::step(World& world) {
         }
     }
 
+    std_msgs::Header ros_msg_header;
+    ros_msg_header.frame_id = image_rgb_.header.frame_id;
+    ros_msg_header.stamp = time;
+
     pcl::PointCloud<pcl::PointXYZ>::Ptr msg(new pcl::PointCloud<pcl::PointXYZ>);
-    msg->header.frame_id = image_rgb_.header.frame_id;
-    msg->header.stamp = time;
+    msg->header = pcl_conversions::toPCL(ros_msg_header);
     msg->width  = height_;
     msg->height = width_;
     msg->is_dense = true;
