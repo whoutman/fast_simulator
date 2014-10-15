@@ -193,7 +193,7 @@ Object* SimulatorROS::getObjectFromModel(const std::string& model_name, const st
         sergio->registerSensor(top_kinect);
         sergio->getLink("top_kinect/openni_rgb_optical_frame")->addChild(top_kinect);
 
-        LRF* base_lrf = new LRF("/sergio/base_front_scan", "/sergio/base_laser");
+        LRF* base_lrf = new LRF("/sergio/base_front_laser", "/sergio/base_laser");
         sergio->registerSensor(base_lrf);
         sergio->getLink("base_laser")->addChild(base_lrf);
 
