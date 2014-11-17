@@ -1,61 +1,96 @@
-cmake_minimum_required(VERSION 2.4.6)
-include($ENV{ROS_ROOT}/core/rosbuild/rosbuild.cmake)
+cmake_minimum_required(VERSION 2.8.3)
+project(fast_simulator)
 
-# Set the build type.  Options are:
-#  Coverage       : w/ debug symbols, w/o optimization, w/ code-coverage
-#  Debug          : w/ debug symbols, w/o optimization
-#  Release        : w/o debug symbols, w/ optimization
-#  RelWithDebInfo : w/ debug symbols, w/ optimization
-#  MinSizeRel     : w/o debug symbols, w/ optimization, stripped binaries
-set(ROS_BUILD_TYPE RelWithDebInfo)
-#set(ROS_BUILD_TYPE Debug)
+find_package(catkin REQUIRED COMPONENTS
+    message_generation
 
-rosbuild_init()
+    roscpp
+    amigo_msgs
+    cv_bridge
+    geolib2
+    geometry_msgs
+    image_transport
+    image_geometry
+    kdl_parser
+    nav_msgs
+    pcl_ros
+    psi
+    roslib
+    sensor_msgs
+    std_msgs
+    tf
+    tf_conversions
+    tue_filesystem
+    tue_move_base_msgs
+    virtual_cam
+)
 
-#set the default path for built executables to the "bin" directory
-set(EXECUTABLE_OUTPUT_PATH ${PROJECT_SOURCE_DIR}/bin)
-#set the default path for built libraries to the "lib" directory
-set(LIBRARY_OUTPUT_PATH ${PROJECT_SOURCE_DIR}/lib)
+find_package(Boost REQUIRED COMPONENTS system program_options)
 
-#uncomment if you have defined messages
-#rosbuild_genmsg()
-#uncomment if you have defined services
-rosbuild_gensrv()
+################################################
+#                                              #
+#      ROS MESSAGES, SERVICES AND ACTIONS      #
+#                                              #
+################################################
 
-# to show include files in Qt Creator
-file(GLOB_RECURSE HEADER_FILES include/*.h)
+# Generate services in the 'srv' folder
+add_service_files(
+    FILES
+    SetObject.srv
+)
 
-rosbuild_add_boost_directories()
+generate_messages(
+    DEPENDENCIES
+    std_msgs
+    geometry_msgs
+)
 
-#common commands for building c++ executables and libraries
-#rosbuild_add_library(${PROJECT_NAME} src/example.cpp)
-#target_link_libraries(${PROJECT_NAME} another_library)
-#rosbuild_add_boost_directories()
-#rosbuild_link_boost(${PROJECT_NAME} thread)
-rosbuild_add_executable(simulator src/simulator.cpp
-                                  src/Simulator.cpp
-                                  src/SimulatorROS.cpp
-                                  src/Object.cpp
-                                  src/Robot.cpp
-                                  src/Joint.cpp
-                                  src/World.cpp
-                                  src/Amigo.cpp
-                                  src/Sergio.cpp
-                                  src/Pico.cpp
-                                  src/Pera.cpp
-                                  src/StandaloneKinect.cpp
-                                  src/StandaloneLRF.cpp
-                                  src/Sensor.cpp
-                                  src/Sonar.cpp
-                                  src/LRF.cpp
-                                  src/Sonar.cpp
-                                  src/Kinect.cpp
-#                                  src/Sprite.cpp
-                                  src/Event.cpp
-                                  src/ModelParser.cpp
-                                  src/util.cpp ${HEADER_FILES})
-rosbuild_link_boost(simulator system program_options)
-target_link_libraries(simulator tinyxml)
+################################################
+#                                              #
+#       CATKIN SPECIFIC CONFIGURATION          #
+#                                              #
+################################################
 
-rosbuild_add_executable(robot_teleporter src/robot_teleporter.cpp)
+catkin_package(
+    CATKIN_DEPENDS message_runtime
+)
+
+################################################
+#                                              #
+#                    BUILD                     #
+#                                              #
+################################################
+
+include_directories(include ${catkin_INCLUDE_DIRS})
+
+add_executable(simulator
+    src/simulator.cpp
+    src/Simulator.cpp
+    src/SimulatorROS.cpp
+    src/Object.cpp
+    src/Robot.cpp
+    src/Joint.cpp
+    src/World.cpp
+    src/Amigo.cpp
+    src/Sergio.cpp
+    src/Pico.cpp
+    src/Pera.cpp
+    src/StandaloneKinect.cpp
+    src/StandaloneLRF.cpp
+    src/Sensor.cpp
+    src/Sonar.cpp
+    src/LRF.cpp
+    src/Sonar.cpp
+    src/Kinect.cpp
+    src/Event.cpp
+    src/ModelParser.cpp
+    src/util.cpp ${HEADER_FILES})
+#rosbuild_link_boost(simulator system program_options)
+target_link_libraries(simulator tinyxml ${Boost_LIBRARIES} ${catkin_LIBRARIES})
+
+add_executable(robot_teleporter src/robot_teleporter.cpp)
+target_link_libraries(robot_teleporter ${catkin_LIBRARIES})
+
+# TODO: Add the following line for each target that uses one or more messages / services defined in this package:
+add_dependencies(simulator ${PROJECT_NAME}_gencpp)
 
