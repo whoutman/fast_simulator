@@ -53,8 +53,8 @@ Amigo::Amigo(ros::NodeHandle& nh, bool publish_localization) : Robot(nh, "amigo"
     pub_left_arm_ = nh.advertise<sensor_msgs::JointState>("/amigo/left_arm/measurements", 10);
     pub_right_arm_ = nh.advertise<sensor_msgs::JointState>("/amigo/right_arm/measurements", 10);
     pub_torso_ = nh.advertise<sensor_msgs::JointState>("/amigo/torso/measurements", 10);
-    pub_left_gripper_ = nh.advertise<amigo_msgs::AmigoGripperMeasurement>("/amigo/left_gripper/measurements", 10);
-    pub_right_gripper_ = nh.advertise<amigo_msgs::AmigoGripperMeasurement>("/amigo/right_gripper/measurements", 10);
+    pub_left_gripper_ = nh.advertise<tue_msgs::GripperMeasurement>("/amigo/left_gripper/measurements", 10);
+    pub_right_gripper_ = nh.advertise<tue_msgs::GripperMeasurement>("/amigo/right_gripper/measurements", 10);
     pub_odom_ = nh.advertise<nav_msgs::Odometry>("/amigo/base/measurements", 10);
 
     // SUBSCRIBERS
@@ -70,8 +70,8 @@ Amigo::Amigo(ros::NodeHandle& nh, bool publish_localization) : Robot(nh, "amigo"
     sub_left_arm_traj_ = nh.subscribe("/amigo/left_arm/ref_trajectory", 10, &Amigo::callbackJointTrajectory, this);
     sub_right_arm_traj_ = nh.subscribe("/amigo/right_arm/ref_trajectory", 10, &Amigo::callbackJointTrajectory, this);
 
-    left_gripper_direction_ = amigo_msgs::AmigoGripperMeasurement::OPEN;
-    right_gripper_direction_ = amigo_msgs::AmigoGripperMeasurement::OPEN;
+    left_gripper_direction_ = tue_msgs::GripperMeasurement::OPEN;
+    right_gripper_direction_ = tue_msgs::GripperMeasurement::OPEN;
 
     sub_left_gripper = nh.subscribe("/amigo/left_gripper/references", 10, &Amigo::callbackLeftGripper, this);
     sub_right_gripper = nh.subscribe("/amigo/right_gripper/references", 10, &Amigo::callbackRightGripper, this);
@@ -162,35 +162,35 @@ void Amigo::callbackCmdVel(const geometry_msgs::Twist::ConstPtr& msg) {
     t_last_cmd_vel_ = ros::Time::now();
 }
 
-void Amigo::callbackLeftGripper(const amigo_msgs::AmigoGripperCommand::ConstPtr& msg) {
-    if (msg->direction == amigo_msgs::AmigoGripperCommand::CLOSE) {
+void Amigo::callbackLeftGripper(const tue_msgs::GripperCommand::ConstPtr& msg) {
+    if (msg->direction == tue_msgs::GripperCommand::CLOSE) {
         setJointReference("finger1_joint_left", 0.20);
         setJointReference("finger2_joint_left", 0.20);
         setJointReference("finger1_tip_joint_left", -0.60);
         setJointReference("finger2_tip_joint_left", -0.60);
-        left_gripper_direction_ = amigo_msgs::AmigoGripperMeasurement::CLOSE;
-    } else if  (msg->direction == amigo_msgs::AmigoGripperCommand::OPEN) {
+        left_gripper_direction_ = tue_msgs::GripperMeasurement::CLOSE;
+    } else if  (msg->direction == tue_msgs::GripperCommand::OPEN) {
         setJointReference("finger1_joint_left", 0.60);
         setJointReference("finger2_joint_left", 0.60);
         setJointReference("finger1_tip_joint_left", -0.18);
         setJointReference("finger2_tip_joint_left", -0.18);
-        left_gripper_direction_ = amigo_msgs::AmigoGripperMeasurement::OPEN;
+        left_gripper_direction_ = tue_msgs::GripperMeasurement::OPEN;
     }
 }
 
-void Amigo::callbackRightGripper(const amigo_msgs::AmigoGripperCommand::ConstPtr& msg) {
-    if (msg->direction == amigo_msgs::AmigoGripperCommand::CLOSE) {
+void Amigo::callbackRightGripper(const tue_msgs::GripperCommand::ConstPtr& msg) {
+    if (msg->direction == tue_msgs::GripperCommand::CLOSE) {
         setJointReference("finger1_joint_right", 0.20);
         setJointReference("finger2_joint_right", 0.20);
         setJointReference("finger1_tip_joint_right", -0.60);
         setJointReference("finger2_tip_joint_right", -0.60);
-        right_gripper_direction_ = amigo_msgs::AmigoGripperMeasurement::CLOSE;
-    } else if  (msg->direction == amigo_msgs::AmigoGripperCommand::OPEN) {
+        right_gripper_direction_ = tue_msgs::GripperMeasurement::CLOSE;
+    } else if  (msg->direction == tue_msgs::GripperCommand::OPEN) {
         setJointReference("finger1_joint_right", 0.60);
         setJointReference("finger2_joint_right", 0.60);
         setJointReference("finger1_tip_joint_right", -0.18);
         setJointReference("finger2_tip_joint_right", -0.18);
-        right_gripper_direction_ = amigo_msgs::AmigoGripperMeasurement::OPEN;
+        right_gripper_direction_ = tue_msgs::GripperMeasurement::OPEN;
     }
 }
 
@@ -257,18 +257,18 @@ void Amigo::publishControlRefs() {
     }
     pub_right_arm_.publish(right_arm_joints);
 
-    amigo_msgs::AmigoGripperMeasurement left_gripper;
+    tue_msgs::GripperMeasurement left_gripper;
     left_gripper.direction = left_gripper_direction_;
-    if ((left_gripper.direction == amigo_msgs::AmigoGripperMeasurement::CLOSE && getJointPosition("finger1_tip_joint_left") < -0.58)
-            || (left_gripper.direction == amigo_msgs::AmigoGripperMeasurement::OPEN && getJointPosition("finger1_joint_left") > 0.58)) {
+    if ((left_gripper.direction == tue_msgs::GripperMeasurement::CLOSE && getJointPosition("finger1_tip_joint_left") < -0.58)
+            || (left_gripper.direction == tue_msgs::GripperMeasurement::OPEN && getJointPosition("finger1_joint_left") > 0.58)) {
         left_gripper.end_position_reached = true;
     }
     pub_left_gripper_.publish(left_gripper);
 
-    amigo_msgs::AmigoGripperMeasurement right_gripper;
+    tue_msgs::GripperMeasurement right_gripper;
     right_gripper.direction = right_gripper_direction_;
-    if ((right_gripper.direction == amigo_msgs::AmigoGripperMeasurement::CLOSE && getJointPosition("finger1_tip_joint_right") < -0.58)
-            || (right_gripper.direction == amigo_msgs::AmigoGripperMeasurement::OPEN && getJointPosition("finger1_joint_right") > 0.58)) {
+    if ((right_gripper.direction == tue_msgs::GripperMeasurement::CLOSE && getJointPosition("finger1_tip_joint_right") < -0.58)
+            || (right_gripper.direction == tue_msgs::GripperMeasurement::OPEN && getJointPosition("finger1_joint_right") > 0.58)) {
         right_gripper.end_position_reached = true;
     }
     pub_right_gripper_.publish(right_gripper);

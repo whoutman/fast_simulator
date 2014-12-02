@@ -1,8 +1,8 @@
 #ifndef _FAST_SIMULATOR_SERGIO_H_
 #define _FAST_SIMULATOR_SERGIO_H_
 
-#include "amigo_msgs/AmigoGripperCommand.h"
-#include "amigo_msgs/AmigoGripperMeasurement.h"
+#include "tue_msgs/GripperCommand.h"
+#include "tue_msgs/GripperMeasurement.h"
 #include <trajectory_msgs/JointTrajectory.h>
 
 #include "fast_simulator/Robot.h"
@@ -52,9 +52,9 @@ protected:
 
     void callbackCmdVel(const geometry_msgs::Twist::ConstPtr& msg);
 
-    void callbackLeftGripper(const amigo_msgs::AmigoGripperCommand::ConstPtr& msg);
+    void callbackLeftGripper(const tue_msgs::GripperCommand::ConstPtr& msg);
 
-    void callbackRightGripper(const amigo_msgs::AmigoGripperCommand::ConstPtr& msg);    
+    void callbackRightGripper(const tue_msgs::GripperCommand::ConstPtr& msg);    
 
     void callbackJointReference(const sensor_msgs::JointState::ConstPtr msg);
 

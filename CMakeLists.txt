@@ -5,7 +5,7 @@ find_package(catkin REQUIRED COMPONENTS
     message_generation
 
     roscpp
-    amigo_msgs
+    tue_msgs
     cv_bridge
     geolib2
     geometry_msgs
