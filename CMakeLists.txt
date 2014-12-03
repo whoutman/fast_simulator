@@ -23,6 +23,7 @@ find_package(catkin REQUIRED COMPONENTS
     tue_filesystem
     tue_move_base_msgs
     virtual_cam
+    ed_object_models
 )
 
 find_package(Boost REQUIRED COMPONENTS system program_options)

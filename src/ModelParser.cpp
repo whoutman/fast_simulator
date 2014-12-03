@@ -7,6 +7,8 @@
 // for loading images
 #include <opencv2/highgui/highgui.hpp>
 
+#include <ed/models/models.h>
+
 #include <tinyxml.h>
 
 using namespace std;
@@ -33,7 +35,40 @@ vector<double> ModelParser::parseArray(const TiXmlElement* xml_elem) {
     return v;
 }
 
-Object* ModelParser::parse(const std::string& model_name, std::string& error) {
+// ----------------------------------------------------------------------------------------------------
+
+void addObjectRecursive(const ed::models::NewEntityConstPtr& e, Object* obj)
+{
+    if (e->shape)
+        obj->setShape(*e->shape);
+
+    for(std::vector<ed::models::NewEntityPtr>::const_iterator it = e->children.begin(); it != e->children.end(); ++it)
+    {
+        const ed::models::NewEntityPtr& e_child = *it;
+
+        Object* child = new Object(e_child->type, e_child->id);
+        addObjectRecursive(e_child, child);
+
+        obj->addChild(child, e_child->pose);
+    }
+}
+
+// ----------------------------------------------------------------------------------------------------
+
+Object* ModelParser::parse(const std::string& model_name, const std::string& id, std::string& error)
+{
+    ed::models::NewEntityConstPtr e = ed::models::create(model_name, tue::Configuration(), id);
+    if (e)
+    {
+        Object* obj = new Object(model_name, id);
+        obj->setPose(e->pose);
+        addObjectRecursive(e, obj);
+
+        std::cout << "LOADED FROM ED MODELS!" << std::endl;
+
+        return obj;
+    }
+
     stringstream s_error;
 
     //error_ = stringstream("");

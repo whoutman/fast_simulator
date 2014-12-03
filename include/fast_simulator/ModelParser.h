@@ -24,7 +24,7 @@ public:
 
     std::vector<double> parseArray(const TiXmlElement* xml_elem);
 
-    Object* parse(const std::string& model_name, std::string& error);
+    Object* parse(const std::string& model_name, const std::string& id, std::string& error);
 
     Object* parseHeightMap(const TiXmlElement* xml_elem, std::stringstream& s_error);
 

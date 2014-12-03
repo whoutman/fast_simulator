@@ -55,7 +55,7 @@ void SimulatorROS::parseModelFile(const std::string& filename, const std::string
 
 Object* SimulatorROS::getObjectFromModel(const std::string& model_name, const std::string& id) {
     string parse_error;
-    Object* obj = model_parser_->parse(model_name, parse_error);
+    Object* obj = model_parser_->parse(model_name, id, parse_error);
     if (!parse_error.empty()) {
         ROS_ERROR("While parsing model file: %s", parse_error.c_str());
     }
