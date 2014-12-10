@@ -36,6 +36,7 @@ Sergio::Sergio(ros::NodeHandle& nh, bool publish_localization) : Robot(nh, "serg
     setJointPosition("finger2_tip_joint_right", -0.20000480019727807);
     setJointPosition("neck_pan_joint", -3.033573445776483e-07);
     setJointPosition("neck_tilt_joint", 0.00029286782768789266);
+    setJointPosition("laser_tilt_joint", 0.00029286782768789266);
 
     left_arm_joint_names.push_back("shoulder_yaw_joint_left");
     left_arm_joint_names.push_back("shoulder_pitch_joint_left");
@@ -58,6 +59,7 @@ Sergio::Sergio(ros::NodeHandle& nh, bool publish_localization) : Robot(nh, "serg
     torso_joint_names.push_back("hip_joint");
 
     pub_head_ = nh.advertise<sensor_msgs::JointState>("/sergio/neck/measurements", 10);
+    pub_dynamixel_ = nh.advertise<sensor_msgs::JointState>("/sergio/dynamixel/measurements", 10);
     pub_left_arm_ = nh.advertise<sensor_msgs::JointState>("/sergio/left_arm/measurements", 10);
     pub_right_arm_ = nh.advertise<sensor_msgs::JointState>("/sergio/right_arm/measurements", 10);
     pub_torso_ = nh.advertise<sensor_msgs::JointState>("/sergio/torso/measurements", 10);
@@ -70,6 +72,7 @@ Sergio::Sergio(ros::NodeHandle& nh, bool publish_localization) : Robot(nh, "serg
     sub_init_pose = nh.subscribe("/sergio/initialpose", 10, &Sergio::callbackInitialPose, this);
     sub_cmd_vel = nh.subscribe("/sergio/base/references", 10, &Sergio::callbackCmdVel, this);
     sub_head = nh.subscribe("/sergio/neck/references", 10, &Sergio::callbackJointReference, this);
+    sub_dynamixel = nh.subscribe("/sergio/dynamixel/references", 10, &Sergio::callbackJointReference, this);
     sub_spindle = nh.subscribe("/sergio/torso/references", 10, &Sergio::callbackJointReference, this);
     sub_left_arm = nh.subscribe("/sergio/left_arm/references", 10, &Sergio::callbackJointReference, this);
     sub_right_arm = nh.subscribe("/sergio/right_arm/references", 10, &Sergio::callbackJointReference, this);
@@ -242,6 +245,12 @@ void Sergio::publishControlRefs() {
     head_meas_msg.position.push_back(getJointPosition("neck_pan_joint"));
     head_meas_msg.position.push_back(getJointPosition("neck_tilt_joint"));
     pub_head_.publish(head_meas_msg);
+
+    sensor_msgs::JointState dynamixel_msg;
+    dynamixel_msg.header = header;
+    dynamixel_msg.name.push_back("laser_tilt_joint");
+    dynamixel_msg.position.push_back(getJointPosition("laser_tilt_joint"));
+    pub_dynamixel_.publish(dynamixel_msg);
 
     sensor_msgs::JointState torso_meas_msg;
     torso_meas_msg.header = header;

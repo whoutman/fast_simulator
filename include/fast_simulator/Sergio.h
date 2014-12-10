@@ -24,6 +24,7 @@ protected:
     ros::Time t_last_cmd_vel_;
 
     ros::Publisher pub_head_;
+    ros::Publisher pub_dynamixel_;
     ros::Publisher pub_left_arm_;
     ros::Publisher pub_right_arm_;
     ros::Publisher pub_torso_;
@@ -34,6 +35,7 @@ protected:
     ros::Subscriber sub_cmd_vel;
     ros::Subscriber sub_init_pose;
     ros::Subscriber sub_head;
+    ros::Subscriber sub_dynamixel;
     ros::Subscriber sub_spindle, sub_spindle_traj_;
     ros::Subscriber sub_left_arm, sub_left_arm_traj_;
     ros::Subscriber sub_right_arm, sub_right_arm_traj_;
