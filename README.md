@@ -1,4 +1,4 @@
-ED : Environment Descriptor
+Fast Simulator
 ======
 
 ## Introduction
