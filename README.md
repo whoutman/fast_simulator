@@ -25,7 +25,7 @@ We assume you have successfully installed ROS and set-up a Catkin workspace. Che
    
 You will also need the following system dependencies:
 
-sudo apt-get install ros-hydro-geometry-msgs ros-hydro-kdl-parser yaml-cpp ros-hydro-roslib ros-hydro-navigation ros-hydro-pcl-ros ros-hydro-tf-conversions libassimp-dev ros-hydro-image-transport ros-hydro-common-msgs ros-hydro-ros-comm ros-hydro-message-generation ros-hydro-stereo-msgs ros-hydro-tf ros-hydro-opencv2 ros-hydro-std-msgs ros-hydro-message-runtime ros-hydro-sensor-msgs ros-hydro-cv-bridge ros-hydro-message-filters ros-hydro-roscpp ros-hydro-image-geometry 
+    sudo apt-get install ros-hydro-geometry-msgs ros-hydro-kdl-parser yaml-cpp ros-hydro-roslib ros-hydro-navigation ros-hydro-pcl-ros ros-hydro-tf-conversions libassimp-dev ros-hydro-image-transport ros-hydro-common-msgs ros-hydro-ros-comm ros-hydro-message-generation ros-hydro-stereo-msgs ros-hydro-tf ros-hydro-opencv2 ros-hydro-std-msgs ros-hydro-message-runtime ros-hydro-sensor-msgs ros-hydro-cv-bridge ros-hydro-message-filters ros-hydro-roscpp ros-hydro-image-geometry 
     
 This should be sufficient to successfully compile the simulator:
 
