@@ -3,7 +3,6 @@ project(fast_simulator)
 
 find_package(catkin REQUIRED COMPONENTS
     message_generation
-
     roscpp
     tue_msgs
     cv_bridge
@@ -14,14 +13,12 @@ find_package(catkin REQUIRED COMPONENTS
     kdl_parser
     nav_msgs
     pcl_ros
-    psi
     roslib
     sensor_msgs
     std_msgs
     tf
     tf_conversions
     tue_filesystem
-    # tue_move_base_msgs
     virtual_cam
     ed_object_models
 )
