@@ -21,7 +21,7 @@ find_package(catkin REQUIRED COMPONENTS
     tf
     tf_conversions
     tue_filesystem
-    tue_move_base_msgs
+    # tue_move_base_msgs
     virtual_cam
     ed_object_models
 )

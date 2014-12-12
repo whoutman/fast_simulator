@@ -57,7 +57,6 @@
   <build_depend>tf</build_depend>
   <build_depend>tf_conversions</build_depend>
   <build_depend>tue_filesystem</build_depend>
-  <build_depend>tue_move_base_msgs</build_depend>
   <build_depend>virtual_cam</build_depend>
   <build_depend>trajectory_msgs</build_depend>
   <build_depend>ed_object_models</build_depend>
@@ -78,7 +77,6 @@
   <run_depend>tf</run_depend>
   <run_depend>tf_conversions</run_depend>
   <run_depend>tue_filesystem</run_depend>
-  <run_depend>tue_move_base_msgs</run_depend>
   <run_depend>virtual_cam</run_depend>
   <run_depend>trajectory_msgs</run_depend>
   <run_depend>ed_object_models</run_depend>
