@@ -3,7 +3,6 @@ project(fast_simulator)
 
 find_package(catkin REQUIRED COMPONENTS
     message_generation
-
     roscpp
     tue_msgs
     cv_bridge
@@ -14,14 +13,12 @@ find_package(catkin REQUIRED COMPONENTS
     kdl_parser
     nav_msgs
     pcl_ros
-    psi
     roslib
     sensor_msgs
     std_msgs
     tf
     tf_conversions
     tue_filesystem
-    tue_move_base_msgs
     virtual_cam
     ed_object_models
 )
@@ -97,8 +94,8 @@ add_executable(simulator
 #rosbuild_link_boost(simulator system program_options)
 target_link_libraries(simulator tinyxml ${Boost_LIBRARIES} ${catkin_LIBRARIES})
 
-add_executable(robot_teleporter src/robot_teleporter.cpp)
-target_link_libraries(robot_teleporter ${catkin_LIBRARIES})
+#add_executable(robot_teleporter src/robot_teleporter.cpp)
+#target_link_libraries(robot_teleporter ${catkin_LIBRARIES})
 
 # TODO: Add the following line for each target that uses one or more messages / services defined in this package:
 add_dependencies(simulator ${PROJECT_NAME}_gencpp)
