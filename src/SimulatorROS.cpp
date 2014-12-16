@@ -201,23 +201,23 @@ Object* SimulatorROS::getObjectFromModel(const std::string& model_name, const st
         sergio->registerSensor(torso_lrf);
         sergio->getLink("torso_laser")->addChild(torso_lrf);
 
-        Sonar* base_us1 = new Sonar("/sergio/sonar1","/sergio/base_sonar1");
+        Sonar* base_us1 = new Sonar("/sergio/base_sonar1","/sergio/base_sonar1");
         sergio->registerSensor(base_us1);
         sergio->getLink("base_sonar1")->addChild(base_us1);
 
-        Sonar* base_us2 = new Sonar("/sergio/sonar2","/sergio/base_sonar2");
+        Sonar* base_us2 = new Sonar("/sergio/base_sonar2","/sergio/base_sonar2");
         sergio->registerSensor(base_us2);
         sergio->getLink("base_sonar2")->addChild(base_us2);
 
-        Sonar* base_us3 = new Sonar("/sergio/sonar3","/sergio/base_sonar3");
+        Sonar* base_us3 = new Sonar("/sergio/base_sonar3","/sergio/base_sonar3");
         sergio->registerSensor(base_us3);
         sergio->getLink("base_sonar3")->addChild(base_us3);
 
-        Sonar* base_us4 = new Sonar("/sergio/sonar4","/sergio/base_sonar4");
+        Sonar* base_us4 = new Sonar("/sergio/base_sonar4","/sergio/base_sonar4");
         sergio->registerSensor(base_us4);
         sergio->getLink("base_sonar4")->addChild(base_us4);
 
-        Sonar* base_us5 = new Sonar("/sergio/sonar5","/sergio/base_sonar5");
+        Sonar* base_us5 = new Sonar("/sergio/base_sonar5","/sergio/base_sonar5");
         sergio->registerSensor(base_us5);
         sergio->getLink("base_sonar5")->addChild(base_us5);
 
