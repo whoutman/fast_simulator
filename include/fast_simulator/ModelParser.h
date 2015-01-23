@@ -12,6 +12,8 @@
 
 #include <geolib/HeightMap.h>
 
+#include <ed/models/model_loader.h>
+
 class TiXmlElement;
 
 class ModelParser {
@@ -35,6 +37,8 @@ protected:
     std::string filename_;
 
     std::string model_dir_;
+
+    ed::models::ModelLoader ed_model_loader_;
 
 };
 

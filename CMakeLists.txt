@@ -20,7 +20,7 @@ find_package(catkin REQUIRED COMPONENTS
     tf_conversions
     tue_filesystem
     virtual_cam
-    ed_object_models
+    ed
 )
 
 find_package(Boost REQUIRED COMPONENTS system program_options)

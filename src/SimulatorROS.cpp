@@ -54,15 +54,6 @@ void SimulatorROS::parseModelFile(const std::string& filename, const std::string
 }
 
 Object* SimulatorROS::getObjectFromModel(const std::string& model_name, const std::string& id) {
-    string parse_error;
-    Object* obj = model_parser_->parse(model_name, id, parse_error);
-    if (!parse_error.empty()) {
-        ROS_ERROR("While parsing model file: %s", parse_error.c_str());
-    }
-
-    if (obj) {
-        return obj;
-    }
 
     if (model_name == "pico") {
         Pico* pico = new Pico(nh_, true); //publish_localization);
@@ -213,25 +204,35 @@ Object* SimulatorROS::getObjectFromModel(const std::string& model_name, const st
         obj->setShape(geo::Box(geo::Vector3(-0.4, -0.4, 0), geo::Vector3(0.4, 0.4, 1)));
         return obj;
     }
-//    else if (model_name == "person") {
-//        Object* obj = new Object(model_name);
+    //    else if (model_name == "person") {
+    //        Object* obj = new Object(model_name);
 
-//        Object* body = new Object("body", id + "-body");
-//        body->setShape(ModelParser::getHeightMapFromImage(model_dir_ + "/laser/body.pgm", 1, 0.025));
-//        obj->addChild(body, geo::Transform(geo::Matrix3::identity(), geo::Vector3(0, 0, 0.5)));
-//        //body->setPose(tf::Vector3(0, 0, 1), tf::Quaternion(0, 0, 0, 1));
-//        //obj->addChild(body, tf::Transform(tf::Quaternion(0, 0, 0, 1), tf::Vector3(0.5, 0.5, 0.5)));
+    //        Object* body = new Object("body", id + "-body");
+    //        body->setShape(ModelParser::getHeightMapFromImage(model_dir_ + "/laser/body.pgm", 1, 0.025));
+    //        obj->addChild(body, geo::Transform(geo::Matrix3::identity(), geo::Vector3(0, 0, 0.5)));
+    //        //body->setPose(tf::Vector3(0, 0, 1), tf::Quaternion(0, 0, 0, 1));
+    //        //obj->addChild(body, tf::Transform(tf::Quaternion(0, 0, 0, 1), tf::Vector3(0.5, 0.5, 0.5)));
 
-//        string face_type = "loy";
-//        set<string>::iterator it_face_type = faces_.find(id);
-//        if (it_face_type != faces_.end()) {
-//            face_type = *it_face_type;
-//        }
+    //        string face_type = "loy";
+    //        set<string>::iterator it_face_type = faces_.find(id);
+    //        if (it_face_type != faces_.end()) {
+    //            face_type = *it_face_type;
+    //        }
 
-//        Object* face = new Object("face_" + face_type, id + "-face");
-//        obj->addChild(face, geo::Transform(geo::Matrix3::identity(), geo::Vector3(0, 0, 1.6)));
+    //        Object* face = new Object("face_" + face_type, id + "-face");
+    //        obj->addChild(face, geo::Transform(geo::Matrix3::identity(), geo::Vector3(0, 0, 1.6)));
 
-//    }
+    //    }
+
+    string parse_error;
+    Object* obj = model_parser_->parse(model_name, id, parse_error);
+    if (!parse_error.empty()) {
+        ROS_ERROR("While parsing model file: %s", parse_error.c_str());
+    }
+
+    if (obj) {
+        return obj;
+    }
 
     cout << "Model " << model_name << " not found" << endl;
 
