@@ -14,7 +14,7 @@ class SimWorld(object):
         rospy.wait_for_service("/fast_simulator/set_object")
         self.srv_set = rospy.ServiceProxy("/fast_simulator/set_object", fast_simulator.srv.SetObject)
 
-        self.pub_speech = rospy.Publisher("/pocketsphinx/output", std_msgs.msg.String)
+        self.pub_speech = rospy.Publisher("/pocketsphinx/output", std_msgs.msg.String, queue_size=10)
 
         self.sub_amigo_speech = rospy.Subscriber("/amigo_speech_sim", std_msgs.msg.String, self.callback_amigo_speech) 
         self.amigo_sentence = ""
