@@ -60,8 +60,7 @@ Sergio::Sergio(ros::NodeHandle& nh, bool publish_localization) : Robot(nh, "serg
 
     pub_head_ = nh.advertise<sensor_msgs::JointState>("/sergio/neck/measurements", 10);
     pub_dynamixel_ = nh.advertise<sensor_msgs::JointState>("/sergio/dynamixel/measurements", 10);
-    pub_left_arm_ = nh.advertise<sensor_msgs::JointState>("/sergio/left_arm/measurements", 10);
-    pub_right_arm_ = nh.advertise<sensor_msgs::JointState>("/sergio/right_arm/measurements", 10);
+    pub_arms_ = nh.advertise<sensor_msgs::JointState>("/sergio/joint_states", 10);
     pub_torso_ = nh.advertise<sensor_msgs::JointState>("/sergio/torso/measurements", 10);
     pub_left_gripper_ = nh.advertise<tue_msgs::GripperMeasurement>("/sergio/left_gripper/measurements", 10);
     pub_right_gripper_ = nh.advertise<tue_msgs::GripperMeasurement>("/sergio/right_gripper/measurements", 10);
@@ -266,21 +265,17 @@ void Sergio::publishControlRefs() {
     torso_meas_msg.position[1] = q_knee;
     pub_torso_.publish(torso_meas_msg);
 
-    sensor_msgs::JointState left_arm_joints;
-    left_arm_joints.header = header;
+    sensor_msgs::JointState arm_joints;
+    arm_joints.header = header;
     for(unsigned int j = 0; j < left_arm_joint_names.size(); ++j) {
-        left_arm_joints.name.push_back(left_arm_joint_names[j]);
-        left_arm_joints.position.push_back(getJointPosition(left_arm_joint_names[j]));
+        arm_joints.name.push_back(left_arm_joint_names[j]);
+        arm_joints.position.push_back(getJointPosition(left_arm_joint_names[j]));
     }
-    pub_left_arm_.publish(left_arm_joints);
-
-    sensor_msgs::JointState right_arm_joints;
-    right_arm_joints.header = header;
     for(unsigned int j = 0; j < right_arm_joint_names.size(); ++j) {
-        right_arm_joints.name.push_back(right_arm_joint_names[j]);
-        right_arm_joints.position.push_back(getJointPosition(right_arm_joint_names[j]));
+        arm_joints.name.push_back(right_arm_joint_names[j]);
+        arm_joints.position.push_back(getJointPosition(right_arm_joint_names[j]));
     }
-    pub_right_arm_.publish(right_arm_joints);
+    pub_arms_.publish(arm_joints);
 
     tue_msgs::GripperMeasurement left_gripper;
     left_gripper.direction = left_gripper_direction_;

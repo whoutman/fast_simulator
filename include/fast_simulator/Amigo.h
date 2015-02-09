@@ -24,8 +24,7 @@ protected:
     ros::Time t_last_cmd_vel_;
 
     ros::Publisher pub_head_;
-    ros::Publisher pub_left_arm_;
-    ros::Publisher pub_right_arm_;
+    ros::Publisher pub_arms_;
     ros::Publisher pub_torso_;
     ros::Publisher pub_left_gripper_;
     ros::Publisher pub_right_gripper_;
