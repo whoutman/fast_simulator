@@ -142,7 +142,7 @@ Object* SimulatorROS::getObjectFromModel(const std::string& model_name, const st
         amigo->registerSensor(base_lrf);
         amigo->getLink("base_laser")->addChild(base_lrf);
 
-        LRF* torso_lrf = new LRF("/amigo/torso_laser", "/amigo/torso_laser");
+        LRF* torso_lrf = new LRF("/amigo/torso_laser/scan", "/amigo/torso_laser");
         amigo->registerSensor(torso_lrf);
         amigo->getLink("torso_laser")->addChild(torso_lrf);
 
@@ -188,7 +188,7 @@ Object* SimulatorROS::getObjectFromModel(const std::string& model_name, const st
         sergio->registerSensor(base_lrf);
         sergio->getLink("base_laser")->addChild(base_lrf);
 
-        LRF* torso_lrf = new LRF("/sergio/torso_scan", "/sergio/torso_laser");
+        LRF* torso_lrf = new LRF("/sergio/torso_laser/scan", "/sergio/torso_laser");
         sergio->registerSensor(torso_lrf);
         sergio->getLink("torso_laser")->addChild(torso_lrf);
 
