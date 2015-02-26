@@ -191,7 +191,8 @@ void Kinect::step(World& world) {
 
         geo::ShapePtr shape = obj->getShape();
         if (shape) {
-            camera_.rasterize(*shape, obj->getAbsolutePose(), image_depth_.image);
+            geo::Transform t = tf_map_to_kinect.inverse() * obj->getAbsolutePose();
+            camera_.rasterize(*shape, t, image_depth_.image);
         }
 
         std::vector<Object*> children;
