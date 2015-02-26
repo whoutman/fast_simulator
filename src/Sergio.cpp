@@ -63,8 +63,8 @@ Sergio::Sergio(ros::NodeHandle& nh, bool publish_localization) : Robot(nh, "serg
     pub_left_arm_ = nh.advertise<sensor_msgs::JointState>("/sergio/left_arm/measurements", 10);
     pub_right_arm_ = nh.advertise<sensor_msgs::JointState>("/sergio/right_arm/measurements", 10);
     pub_torso_ = nh.advertise<sensor_msgs::JointState>("/sergio/torso/measurements", 10);
-    pub_left_gripper_ = nh.advertise<tue_msgs::GripperMeasurement>("/sergio/left_gripper/measurements", 10);
-    pub_right_gripper_ = nh.advertise<tue_msgs::GripperMeasurement>("/sergio/right_gripper/measurements", 10);
+    pub_left_gripper_ = nh.advertise<tue_msgs::GripperMeasurement>("/sergio/left_arm/gripper/measurements", 10);
+    pub_right_gripper_ = nh.advertise<tue_msgs::GripperMeasurement>("/sergio/right_arm/gripper/measurements", 10);
     pub_odom_ = nh.advertise<nav_msgs::Odometry>("/sergio/base/measurements", 10);
 
     // SUBSCRIBERS
@@ -84,8 +84,8 @@ Sergio::Sergio(ros::NodeHandle& nh, bool publish_localization) : Robot(nh, "serg
     left_gripper_direction_ = tue_msgs::GripperMeasurement::OPEN;
     right_gripper_direction_ = tue_msgs::GripperMeasurement::OPEN;
 
-    sub_left_gripper = nh.subscribe("/sergio/left_gripper/references", 10, &Sergio::callbackLeftGripper, this);
-    sub_right_gripper = nh.subscribe("/sergio/right_gripper/references", 10, &Sergio::callbackRightGripper, this);
+    sub_left_gripper = nh.subscribe("/sergio/left_arm/gripper/references", 10, &Sergio::callbackLeftGripper, this);
+    sub_right_gripper = nh.subscribe("/sergio/right_arm/gripper/references", 10, &Sergio::callbackRightGripper, this);
 
     tf_odom_to_base_link.frame_id_ = "/sergio/odom";
     tf_odom_to_base_link.child_frame_id_ = "/sergio/base_link";

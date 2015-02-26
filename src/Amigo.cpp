@@ -53,8 +53,8 @@ Amigo::Amigo(ros::NodeHandle& nh, bool publish_localization) : Robot(nh, "amigo"
     pub_left_arm_ = nh.advertise<sensor_msgs::JointState>("/amigo/left_arm/measurements", 10);
     pub_right_arm_ = nh.advertise<sensor_msgs::JointState>("/amigo/right_arm/measurements", 10);
     pub_torso_ = nh.advertise<sensor_msgs::JointState>("/amigo/torso/measurements", 10);
-    pub_left_gripper_ = nh.advertise<tue_msgs::GripperMeasurement>("/amigo/left_gripper/measurements", 10);
-    pub_right_gripper_ = nh.advertise<tue_msgs::GripperMeasurement>("/amigo/right_gripper/measurements", 10);
+    pub_left_gripper_ = nh.advertise<tue_msgs::GripperMeasurement>("/amigo/left_arm/gripper/measurements", 10);
+    pub_right_gripper_ = nh.advertise<tue_msgs::GripperMeasurement>("/amigo/right_arm/gripper/measurements", 10);
     pub_odom_ = nh.advertise<nav_msgs::Odometry>("/amigo/base/measurements", 10);
 
     // SUBSCRIBERS
@@ -73,10 +73,8 @@ Amigo::Amigo(ros::NodeHandle& nh, bool publish_localization) : Robot(nh, "amigo"
     left_gripper_direction_ = tue_msgs::GripperMeasurement::OPEN;
     right_gripper_direction_ = tue_msgs::GripperMeasurement::OPEN;
 
-    sub_left_gripper = nh.subscribe("/amigo/left_gripper/references", 10, &Amigo::callbackLeftGripper, this);
-    sub_right_gripper = nh.subscribe("/amigo/right_gripper/references", 10, &Amigo::callbackRightGripper, this);
-
-
+    sub_left_gripper = nh.subscribe("/amigo/left_arm/gripper/references", 10, &Amigo::callbackLeftGripper, this);
+    sub_right_gripper = nh.subscribe("/amigo/right_arm/gripper/references", 10, &Amigo::callbackRightGripper, this);
 
     tf_odom_to_base_link.frame_id_ = "/amigo/odom";
     tf_odom_to_base_link.child_frame_id_ = "/amigo/base_link";
