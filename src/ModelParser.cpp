@@ -57,9 +57,16 @@ vector<double> ModelParser::parseArray(const TiXmlElement* xml_elem) {
 
 Object* ModelParser::parse(const std::string& model_name, const std::string& id, std::string& error)
 {
-    ed::UpdateRequest req;
-    if (ed_model_loader_.create(id, model_name, req))
+    if (ed_model_loader_.exists(model_name))
     {
+        std::stringstream s_error_ed;
+        ed::UpdateRequest req;
+        if (!ed_model_loader_.create(id, model_name, req, s_error_ed))
+        {
+            error = s_error_ed.str();
+            return 0;
+        }
+
         Object* obj_root = new Object(model_name, id);
 
         for(std::map<ed::UUID, geo::Pose3D>::const_iterator it = req.poses.begin(); it != req.poses.end(); ++it)
@@ -92,7 +99,7 @@ Object* ModelParser::parse(const std::string& model_name, const std::string& id,
             }
         }
 
-        std::cout << "LOADED FROM ED MODELS!" << std::endl;
+        std::cout << "Model '" << model_name << "' loaded from ed_object_models" << std::endl;
         return obj_root;
     }
 
