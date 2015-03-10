@@ -59,6 +59,8 @@
   <build_depend>virtual_cam</build_depend>
   <build_depend>trajectory_msgs</build_depend>
   <build_depend>ed</build_depend>
+  <build_depend>rgbd</build_depend>
+
   <run_depend>tue_msgs</run_depend>
   <run_depend>cv_bridge</run_depend>
   <run_depend>geolib2</run_depend>
@@ -78,6 +80,7 @@
   <run_depend>virtual_cam</run_depend>
   <run_depend>trajectory_msgs</run_depend>
   <run_depend>ed</run_depend>
+  <run_depend>rgbd</run_depend>
 
   <run_depend>message_runtime</run_depend>
 

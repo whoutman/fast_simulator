@@ -77,17 +77,9 @@ Object* SimulatorROS::getObjectFromModel(const std::string& model_name, const st
         // add kinect
         Kinect* top_kinect = new Kinect();
 
-        top_kinect->addRGBTopic("/amigo/top_kinect/rgb/image_rect_color");
-        top_kinect->addRGBTopic("/amigo/top_kinect/rgb/image_color");
-        top_kinect->addDepthTopic("/amigo/top_kinect/depth_registered/image");
-        top_kinect->addDepthTopic("/amigo/top_kinect/depth_registered/image_rect");
-        top_kinect->addDepthTopic("/amigo/top_kinect/depth_registered/hw_registered/image_rect_raw");
-        top_kinect->addRGBCameraInfoTopic("/amigo/top_kinect/rgb/camera_info");
-        top_kinect->addDepthCameraInfoTopic("/amigo/top_kinect/depth_registered/camera_info");
-        top_kinect->addPointCloudTopic("/amigo/top_kinect/rgb/points");
-        top_kinect->addPointCloudTopic("/amigo/top_kinect/depth_registered/points");
         top_kinect->setRGBFrame("/amigo/top_kinect/openni_rgb_optical_frame");
         top_kinect->setDepthFrame("/amigo/top_kinect/openni_rgb_optical_frame");
+        top_kinect->setRGBDName("/amigo/top_kinect/rgbd");
 
         // load object models
         tue::filesystem::Crawler crawler(model_dir_ + "/kinect");
@@ -99,40 +91,6 @@ Object* SimulatorROS::getObjectFromModel(const std::string& model_name, const st
         {
             top_kinect->addModel(p.filename(), p.string());
         }
-
-//        //top_kinect->addModel("loy", MODEL_DIR + "/kinect/loy");
-//        top_kinect->addModel("coke", model_dir_ + "/kinect/coke_cropped");
-//        top_kinect->addModel("cif", model_dir_ + "/kinect/cif_cropped");
-//        top_kinect->addModel("tea_pack", model_dir_ + "/kinect/tea_pack_cropped");
-
-//        for(set<string>::iterator it = faces_.begin(); it != faces_.end(); ++it) {
-//            top_kinect->addModel("face_" + *it, model_dir_ + "/kinect/face_" + *it);
-//        }
-
-//        top_kinect->addModel("drops", model_dir_ + "/kinect/drops_cropped");
-//        top_kinect->addModel("marmalade", model_dir_ + "/kinect/marmalade_cropped");
-//        top_kinect->addModel("tomato_soup", model_dir_ + "/kinect/tomato_soup_cropped");
-//        top_kinect->addModel("cleaner", model_dir_ + "/kinect/cleaner_cropped");
-
-//        top_kinect->addModel("energy_drink", model_dir_ + "/kinect/energy_drink_cropped");
-//        top_kinect->addModel("sponge", model_dir_ + "/kinect/sponge_cropped");
-//        top_kinect->addModel("veggie_noodles", model_dir_ + "/kinect/veggie_noodles_cropped");
-
-//        top_kinect->addModel("apple_juice", model_dir_ + "/kinect/apple_juice");
-//        top_kinect->addModel("beer_bottle", model_dir_ + "/kinect/beer_bottle");
-//        top_kinect->addModel("chocolate_milk", model_dir_ + "/kinect/chocolate_milk");
-//        top_kinect->addModel("coke_rwc2013", model_dir_ + "/kinect/coke_rwc2013");
-//        top_kinect->addModel("cookies", model_dir_ + "/kinect/cookies");
-//        top_kinect->addModel("crackers", model_dir_ + "/kinect/crackers");
-//        top_kinect->addModel("deodorant", model_dir_ + "/kinect/deodorant");
-//        top_kinect->addModel("fanta", model_dir_ + "/kinect/fanta");
-//        top_kinect->addModel("fresh_discs", model_dir_ + "/kinect/fresh_discs");
-//        top_kinect->addModel("garlic_sauce", model_dir_ + "/kinect/garlic_sauce");
-//        top_kinect->addModel("milk", model_dir_ + "/kinect/milk");
-//        top_kinect->addModel("orange_juice", model_dir_ + "/kinect/orange_juice");
-//        top_kinect->addModel("peanut_butter", model_dir_ + "/kinect/peanut_butter");
-//        top_kinect->addModel("seven_up", model_dir_ + "/kinect/seven_up");
-//        top_kinect->addModel("tooth_paste", model_dir_ + "/kinect/tooth_paste");
 
         amigo->registerSensor(top_kinect);
         amigo->getLink("top_kinect/openni_rgb_optical_frame")->addChild(top_kinect);
@@ -159,16 +117,9 @@ Object* SimulatorROS::getObjectFromModel(const std::string& model_name, const st
         // add kinect
         Kinect* top_kinect = new Kinect();
 
-        top_kinect->addRGBTopic("/sergio/top_kinect/rgb/image_rect_color");
-        top_kinect->addRGBTopic("/sergio/top_kinect/rgb/image_color");
-        top_kinect->addDepthTopic("/sergio/top_kinect/depth_registered/image");
-        top_kinect->addDepthTopic("/sergio/top_kinect/depth_registered/image_rect");
-        top_kinect->addRGBCameraInfoTopic("/sergio/top_kinect/rgb/camera_info");
-        top_kinect->addDepthCameraInfoTopic("/sergio/top_kinect/depth_registered/camera_info");
-        top_kinect->addPointCloudTopic("/sergio/top_kinect/rgb/points");
-        top_kinect->addPointCloudTopic("/sergio/top_kinect/depth_registered/points");
         top_kinect->setRGBFrame("/sergio/top_kinect/openni_rgb_optical_frame");
         top_kinect->setDepthFrame("/sergio/top_kinect/openni_rgb_optical_frame");
+        top_kinect->setRGBDName("/sergio/top_kinect/rgbd");
 
         // load object models
         tue::filesystem::Crawler crawler(model_dir_ + "/kinect");
