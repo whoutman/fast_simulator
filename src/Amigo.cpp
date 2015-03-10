@@ -81,6 +81,15 @@ Amigo::Amigo(ros::NodeHandle& nh, bool publish_localization) : Robot(nh, "amigo"
 
     event_odom_pub_.scheduleRecurring(50);
     event_refs_pub_.scheduleRecurring(100);
+
+
+    // Setup action server
+    as_ = new TrajectoryActionServer(nh,"left_arm/joint_trajectory_action",false);
+    as_->registerGoalCallback(boost::bind(&Amigo::goalCallback, this, _1));
+    as_->registerCancelCallback(boost::bind(&Amigo::cancelCallback, this, _1));
+
+    // Start action server
+    as_->start();
 }
 
 Amigo::~Amigo() {
@@ -221,6 +230,24 @@ void Amigo::callbackJointTrajectory(const trajectory_msgs::JointTrajectory::Cons
     }
 }
 
+void Amigo::goalCallback(TrajectoryActionServer::GoalHandle gh)
+{
+    // Accept the goal
+    gh.setAccepted();
+
+    // Push back goal handle
+    goal_handles_.push_back(gh);
+}
+
+void Amigo::cancelCallback(TrajectoryActionServer::GoalHandle gh)
+{
+    // Find the goalhandle in the goal_handles_ vector
+    std::vector<TrajectoryActionServer::GoalHandle>::iterator it = std::find(goal_handles_.begin(), goal_handles_.end(), gh);
+
+    // Check if element exist (just for safety) and erase the element
+    if (it != goal_handles_.end()) { goal_handles_.erase(it); }
+}
+
 void Amigo::publishControlRefs() {
     std_msgs::Header header;
     header.stamp = ros::Time::now();
@@ -271,4 +298,3 @@ void Amigo::publishControlRefs() {
     }
     pub_right_gripper_.publish(right_gripper);
 }
-

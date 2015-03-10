@@ -3,11 +3,15 @@
 
 #include "tue_msgs/GripperCommand.h"
 #include "tue_msgs/GripperMeasurement.h"
-#include <trajectory_msgs/JointTrajectory.h>
+#include <trajectory_msgs/JointTrajectory.h> // Delete
+#include <actionlib/server/action_server.h>
+#include <control_msgs/FollowJointTrajectoryAction.h>
 
 #include "fast_simulator/Robot.h"
 
-class Amigo : public Robot {
+typedef actionlib::ActionServer<control_msgs::FollowJointTrajectoryAction> TrajectoryActionServer;
+
+class Amigo : public Robot {    
 
 public:
 
@@ -58,6 +62,11 @@ protected:
     void callbackJointReference(const sensor_msgs::JointState::ConstPtr msg);
 
     void callbackJointTrajectory(const trajectory_msgs::JointTrajectory::ConstPtr msg);
+
+    void goalCallback(TrajectoryActionServer::GoalHandle gh);
+    void cancelCallback(TrajectoryActionServer::GoalHandle gh);
+    TrajectoryActionServer* as_;
+    std::vector < TrajectoryActionServer::GoalHandle > goal_handles_;
 
     void callbackInitialPose(const geometry_msgs::PoseWithCovarianceStamped::ConstPtr& msg);
 
