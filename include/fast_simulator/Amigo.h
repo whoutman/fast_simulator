@@ -50,6 +50,14 @@ protected:
 
     std::vector<std::string> left_arm_joint_names;
     std::vector<std::string> right_arm_joint_names;
+    std::vector<std::string> joint_names;
+
+    std::map<std::string,double> intermediate_goal_constraints;
+    std::map<std::string,double> final_goal_constraints;
+    std::map<std::string,double> trajectory_constraints;
+    std::map<std::string,double> joint_min_constraints;
+    std::map<std::string,double> joint_max_constraints;
+
 
     std::map<std::string, Trajectory> joint_trajectories_;
 

@@ -49,6 +49,22 @@ Amigo::Amigo(ros::NodeHandle& nh, bool publish_localization) : Robot(nh, "amigo"
     right_arm_joint_names.push_back("wrist_pitch_joint_right");
     right_arm_joint_names.push_back("wrist_yaw_joint_right");
 
+    joint_names.push_back("shoulder_yaw_joint_left");
+    joint_names.push_back("shoulder_pitch_joint_left");
+    joint_names.push_back("shoulder_roll_joint_left");
+    joint_names.push_back("elbow_pitch_joint_left");
+    joint_names.push_back("elbow_roll_joint_left");
+    joint_names.push_back("wrist_pitch_joint_left");
+    joint_names.push_back("wrist_yaw_joint_left");
+
+    joint_names.push_back("shoulder_yaw_joint_right");
+    joint_names.push_back("shoulder_pitch_joint_right");
+    joint_names.push_back("shoulder_roll_joint_right");
+    joint_names.push_back("elbow_pitch_joint_right");
+    joint_names.push_back("elbow_roll_joint_right");
+    joint_names.push_back("wrist_pitch_joint_right");
+    joint_names.push_back("wrist_yaw_joint_right");
+
     pub_head_ = nh.advertise<sensor_msgs::JointState>("/amigo/neck/measurements", 10);
     pub_left_arm_ = nh.advertise<sensor_msgs::JointState>("/amigo/left_arm/measurements", 10);
     pub_right_arm_ = nh.advertise<sensor_msgs::JointState>("/amigo/right_arm/measurements", 10);
@@ -82,6 +98,23 @@ Amigo::Amigo(ros::NodeHandle& nh, bool publish_localization) : Robot(nh, "amigo"
     event_odom_pub_.scheduleRecurring(50);
     event_refs_pub_.scheduleRecurring(100);
 
+    // Gets the constraints for each joint.
+    for (size_t i = 0; i < joint_names.size(); ++i)
+    {
+        std::string ns = std::string("constraints/") + joint_names[i];
+        double ig, fg, t, mip, map;
+        nh.param(ns + "/intermediate_goal", ig, -1.0);
+        nh.param(ns + "/final_goal", fg, -1.0);
+        nh.param(ns + "/trajectory", t, -1.0);
+        nh.param(ns + "/min_pos", mip, -1.0);
+        nh.param(ns + "/max_pos", map, -1.0);
+        intermediate_goal_constraints[joint_names[i]] = ig;
+        final_goal_constraints[joint_names[i]] = fg;
+        trajectory_constraints[joint_names[i]] = t;
+        joint_min_constraints[joint_names[i]] = mip;
+        joint_max_constraints[joint_names[i]] = map;
+        ROS_DEBUG("Joint %s, min = %f, max = %f, int = %f, final = %f, traj = %f", joint_names[i].c_str(), mip, map, ig, fg, t);
+    }
 
     // Setup action server
     as_ = new TrajectoryActionServer(nh,"left_arm/joint_trajectory_action",false);
@@ -232,6 +265,22 @@ void Amigo::callbackJointTrajectory(const trajectory_msgs::JointTrajectory::Cons
 
 void Amigo::goalCallback(TrajectoryActionServer::GoalHandle gh)
 {
+    int number_of_goal_joints = gh.getGoal()->trajectory.joint_names.size();
+
+    // Check feasibility of arm joint goals
+    for (uint i = 0; i < number_of_goal_joints; i++) {
+        std::string joint_name = gh.getGoal()->trajectory.joint_names[i];
+        for (uint j = 0; j < gh.getGoal()->trajectory.points.size(); j++) {
+            double ref = gh.getGoal()->trajectory.points[j].positions[i];
+            if (ref < joint_min_constraints[joint_name] || ref > joint_max_constraints[joint_name]) {
+                ROS_WARN("Reference for joint %s is %f but should be between %f and %f.",joint_name.c_str(),ref,joint_min_constraints[joint_name],joint_max_constraints[joint_name]);
+                gh.setRejected();
+                return;
+            }
+        }
+    }
+
+
     // Accept the goal
     gh.setAccepted();
 
