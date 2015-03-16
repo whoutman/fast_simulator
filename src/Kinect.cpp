@@ -132,14 +132,12 @@ void Kinect::step(World& world)
         }
 
         if (it_image != type_to_image_.end()) {
-            geo::Transform tf_kinect_to_object = getAbsolutePose().inverseTimes(obj.getAbsolutePose());
+            geo::Transform tf_kinect_to_object = tf_map_to_kinect.inverse() * obj.getAbsolutePose();
 
-            double x = tf_kinect_to_object.getOrigin().getX();
-            double y = tf_kinect_to_object.getOrigin().getY();
-            double z = tf_kinect_to_object.getOrigin().getZ();
+            double z = -tf_kinect_to_object.getOrigin().getZ();
 
             if (z > 0 && z < 3) {
-                cv::Point2d pos2d = cam_model_.project3Dto2D(geo::Vector3(x, y, z));
+                cv::Point2d pos2d = cam_model_.project3Dto2D(tf_kinect_to_object.t);
 
                 if (pos2d.x > 0 && pos2d.x < image_rgb_.cols && pos2d.y > 0 && pos2d.y < image_rgb_.rows) {
 
@@ -158,26 +156,31 @@ void Kinect::step(World& world)
                         }
                     }
 
-                    //cout << "Z = " << z << endl;
+                    // Scale images based on distance
+                    float scale = distance / z;
+                    cv::Mat mask_scaled, rgb_img_scaled, depth_img_scaled;
+                    cv::resize(mask, mask_scaled, cv::Size(), scale, scale);
+                    cv::resize(rgb_img, rgb_img_scaled, cv::Size(), scale, scale);
+                    cv::resize(depth_img, depth_img_scaled, cv::Size(), scale, scale);
 
-                    int x_tl = pos2d.x - mask.cols / 2;
-                    int y_tl = pos2d.y - mask.rows / 2;
+                    int x_tl = pos2d.x - mask_scaled.cols / 2;
+                    int y_tl = pos2d.y - mask_scaled.rows / 2;
 
-                    for(int y = 0; y < mask.rows; ++y) {
-                        for(int x = 0; x < mask.cols; ++x) {
+                    for(int y = 0; y < mask_scaled.rows; ++y) {
+                        for(int x = 0; x < mask_scaled.cols; ++x) {
 
                             int ix = x_tl + x;
                             int iy = y_tl + y;
 
                             if (ix >=0 && iy >= 0 && ix < image_rgb_.cols && iy < image_rgb_.rows) {
 
-                                unsigned char alpha = mask.at<unsigned char>(y, x);
+                                unsigned char alpha = mask_scaled.at<unsigned char>(y, x);
                                 if (alpha > 0) {
 //                                    image_depth_.image.at<float>(iy, ix) = depth_img.at<float>(y, x) - distance + z;
                                     //cout << "   " << image_depth_.image.at<float>(iy, ix);
 
                                     cv::Vec3b image_clr =  image_rgb_.at<cv::Vec3b>(iy, ix);
-                                    cv::Vec3b object_clr = rgb_img.at<cv::Vec3b>(y, x);
+                                    cv::Vec3b object_clr = rgb_img_scaled.at<cv::Vec3b>(y, x);
 
                                     cv::Vec3b color;
                                     color[0] = (image_clr[0] * (255 - alpha) + object_clr[0] * alpha) / 255;
