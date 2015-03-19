@@ -64,8 +64,13 @@ void Kinect::addModel(const std::string& type, const std::string& filename) {
     Image image;
     try {
         image = Image::loadFromFile(filename);
+        if (!image.getMaskImage().data)
+        {
+            std::cout << "[FSIM] Image file '" << filename << "' does not contain mask." << std::endl;
+            return;
+        }
     } catch (rosbag::BagException& e) {
-        std::cout << "Could not load Kinect model '" << filename << "'" << std::endl;
+        std::cout << "[FSIM] Could not load Kinect model '" << filename << "'" << std::endl;
         return;
     }
     type_to_image_[type] = image;
