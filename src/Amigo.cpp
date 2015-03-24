@@ -41,6 +41,8 @@ Amigo::Amigo(ros::NodeHandle& nh, bool publish_localization) : Robot(nh, "amigo"
     right_arm_joint_names.push_back("wrist_pitch_joint_right");
     right_arm_joint_names.push_back("wrist_yaw_joint_right");
 
+    joint_names.push_back("torso_joint");
+
     joint_names.push_back("shoulder_yaw_joint_left");
     joint_names.push_back("shoulder_pitch_joint_left");
     joint_names.push_back("shoulder_roll_joint_left");
