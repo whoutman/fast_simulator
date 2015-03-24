@@ -119,19 +119,64 @@ Amigo::~Amigo() {
 
 }
 
-void Amigo::step(double dt) {
-    for (std::map<std::string, Trajectory>::iterator it = joint_trajectories_.begin(); it != joint_trajectories_.end(); ++it) {
-        Trajectory& t = it->second;
-        if (!t.set_points.empty()) {
-            int num_steps = std::max(1, (int)(dt / t.dt));
+void Amigo::step(double dt)
+{
+    if (!goal_handles_.empty())
+    {       
+        TrajectoryInfo& t_info = goal_handles_.front();
 
-            double ref = t.set_points.back();
-            for (int i = 0; i < num_steps && !t.set_points.empty(); ++i) {
-                ref = t.set_points.back();
-                t.set_points.pop_back();
+        TrajectoryActionServer::GoalHandle& gh = t_info.goal_handle;
+
+        double t_end = t_info.time + dt;
+
+        const std::vector<trajectory_msgs::JointTrajectoryPoint>& points = gh.getGoal()->trajectory.points;
+
+        //std::cout << "Trajectory with " << points.size() << " points" << std::endl;
+
+        int new_index = -1;
+        for(int i = t_info.index + 1; i < (int)points.size(); ++i)
+        {
+            //std::cout << "    checking index " << i << std::endl;
+
+            const trajectory_msgs::JointTrajectoryPoint& p = points[i];
+
+            //std::cout << "        " << p.time_from_start.toSec() << " / " << t_end << std::endl;
+
+            if (p.time_from_start.toSec() > t_end)
+                break;
+
+            new_index = i;
+        }
+
+        if (new_index > t_info.index)
+        {
+            //std::cout << "    new point!" << std::endl;
+
+            const trajectory_msgs::JointTrajectoryPoint& p = points[new_index];
+
+            // Send point to 'controller'
+            const std::vector<std::string>& joint_names = gh.getGoal()->trajectory.joint_names;
+
+            //std::cout << joint_names.size() << " " << p.positions.size() << std::endl;
+
+            for(unsigned int j = 0; j < joint_names.size(); ++j)
+            {
+                //std::cout << "Joint " << joint_names[j] << " to " << p.positions[j] << std::endl;
+                this->setJointPosition(joint_names[j], p.positions[j]);
             }
 
-            setJointReference(it->first, ref);
+            // Progress index
+            t_info.index = new_index;
+        }
+
+        // Progress time
+        t_info.time += dt;
+
+        // Check if this was the last point. If so, remove the goal handle
+        if (new_index + 1 == points.size())
+        {
+            gh.setSucceeded();
+            goal_handles_.erase(goal_handles_.begin());
         }
     }
 
@@ -280,21 +325,28 @@ void Amigo::goalCallback(TrajectoryActionServer::GoalHandle gh)
         return;
     }
 
-
     // Accept the goal
     gh.setAccepted();
 
+    TrajectoryInfo t_info;
+    t_info.goal_handle = gh;
+
     // Push back goal handle
-    goal_handles_.push_back(gh);
+    goal_handles_.push_back(t_info);
 }
 
 void Amigo::cancelCallback(TrajectoryActionServer::GoalHandle gh)
 {
     // Find the goalhandle in the goal_handles_ vector
-    std::vector<TrajectoryActionServer::GoalHandle>::iterator it = std::find(goal_handles_.begin(), goal_handles_.end(), gh);
-
-    // Check if element exist (just for safety) and erase the element
-    if (it != goal_handles_.end()) { goal_handles_.erase(it); }
+    for(std::vector<TrajectoryInfo>::iterator it = goal_handles_.begin(); it != goal_handles_.end(); ++it)
+    {
+        if (gh.getGoalID().id == it->goal_handle.getGoalID().id)
+        {
+            it->goal_handle.setCanceled();
+            it = goal_handles_.erase(it);
+            return;
+        }
+    }
 }
 
 void Amigo::publishControlRefs() {

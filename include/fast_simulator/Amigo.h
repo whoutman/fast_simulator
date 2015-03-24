@@ -11,6 +11,19 @@
 
 typedef actionlib::ActionServer<control_msgs::FollowJointTrajectoryAction> TrajectoryActionServer;
 
+// ----------------------------------------------------------------------------------------------------
+
+struct TrajectoryInfo
+{
+    TrajectoryInfo() : time(0), index(-1) {}
+
+    TrajectoryActionServer::GoalHandle goal_handle;
+    double time;
+    int index;
+};
+
+// ----------------------------------------------------------------------------------------------------
+
 class Amigo : public Robot {    
 
 public:
@@ -73,7 +86,7 @@ protected:
     void goalCallback(TrajectoryActionServer::GoalHandle gh);
     void cancelCallback(TrajectoryActionServer::GoalHandle gh);
     TrajectoryActionServer* as_;
-    std::vector < TrajectoryActionServer::GoalHandle > goal_handles_;
+    std::vector < TrajectoryInfo > goal_handles_;
 
     void callbackInitialPose(const geometry_msgs::PoseWithCovarianceStamped::ConstPtr& msg);
 
