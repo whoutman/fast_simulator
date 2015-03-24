@@ -33,6 +33,14 @@ Amigo::Amigo(ros::NodeHandle& nh, bool publish_localization) : Robot(nh, "amigo"
     setJointPosition("neck_pan_joint", -3.033573445776483e-07);
     setJointPosition("neck_tilt_joint", 0.00029286782768789266);
 
+    left_arm_joint_names.push_back("shoulder_yaw_joint_left");
+    left_arm_joint_names.push_back("shoulder_pitch_joint_left");
+    left_arm_joint_names.push_back("shoulder_roll_joint_left");
+    left_arm_joint_names.push_back("elbow_pitch_joint_left");
+    left_arm_joint_names.push_back("elbow_roll_joint_left");
+    left_arm_joint_names.push_back("wrist_pitch_joint_left");
+    left_arm_joint_names.push_back("wrist_yaw_joint_left");
+
     right_arm_joint_names.push_back("shoulder_yaw_joint_right");
     right_arm_joint_names.push_back("shoulder_pitch_joint_right");
     right_arm_joint_names.push_back("shoulder_roll_joint_right");
@@ -73,9 +81,11 @@ Amigo::Amigo(ros::NodeHandle& nh, bool publish_localization) : Robot(nh, "amigo"
     sub_cmd_vel = nh.subscribe("/amigo/base/references", 10, &Amigo::callbackCmdVel, this);
     sub_head = nh.subscribe("/amigo/neck/references", 10, &Amigo::callbackJointReference, this);
     sub_spindle = nh.subscribe("/amigo/torso/references", 10, &Amigo::callbackJointReference, this);
+    sub_left_arm = nh.subscribe("/amigo/left_arm/references", 10, &Amigo::callbackJointReference, this);
     sub_right_arm = nh.subscribe("/amigo/right_arm/references", 10, &Amigo::callbackJointReference, this);
 
     sub_spindle_traj_ = nh.subscribe("/amigo/torso/ref_trajectory", 10, &Amigo::callbackJointTrajectory, this);
+    sub_left_arm_traj_ = nh.subscribe("/amigo/left_arm/ref_trajectory", 10, &Amigo::callbackJointTrajectory, this);
     sub_right_arm_traj_ = nh.subscribe("/amigo/right_arm/ref_trajectory", 10, &Amigo::callbackJointTrajectory, this);
 
     left_gripper_direction_ = tue_msgs::GripperMeasurement::OPEN;
