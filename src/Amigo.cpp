@@ -33,14 +33,6 @@ Amigo::Amigo(ros::NodeHandle& nh, bool publish_localization) : Robot(nh, "amigo"
     setJointPosition("neck_pan_joint", -3.033573445776483e-07);
     setJointPosition("neck_tilt_joint", 0.00029286782768789266);
 
-    left_arm_joint_names.push_back("shoulder_yaw_joint_left");
-    left_arm_joint_names.push_back("shoulder_pitch_joint_left");
-    left_arm_joint_names.push_back("shoulder_roll_joint_left");
-    left_arm_joint_names.push_back("elbow_pitch_joint_left");
-    left_arm_joint_names.push_back("elbow_roll_joint_left");
-    left_arm_joint_names.push_back("wrist_pitch_joint_left");
-    left_arm_joint_names.push_back("wrist_yaw_joint_left");
-
     right_arm_joint_names.push_back("shoulder_yaw_joint_right");
     right_arm_joint_names.push_back("shoulder_pitch_joint_right");
     right_arm_joint_names.push_back("shoulder_roll_joint_right");
@@ -79,11 +71,9 @@ Amigo::Amigo(ros::NodeHandle& nh, bool publish_localization) : Robot(nh, "amigo"
     sub_cmd_vel = nh.subscribe("/amigo/base/references", 10, &Amigo::callbackCmdVel, this);
     sub_head = nh.subscribe("/amigo/neck/references", 10, &Amigo::callbackJointReference, this);
     sub_spindle = nh.subscribe("/amigo/torso/references", 10, &Amigo::callbackJointReference, this);
-    sub_left_arm = nh.subscribe("/amigo/left_arm/references", 10, &Amigo::callbackJointReference, this);
     sub_right_arm = nh.subscribe("/amigo/right_arm/references", 10, &Amigo::callbackJointReference, this);
 
     sub_spindle_traj_ = nh.subscribe("/amigo/torso/ref_trajectory", 10, &Amigo::callbackJointTrajectory, this);
-    sub_left_arm_traj_ = nh.subscribe("/amigo/left_arm/ref_trajectory", 10, &Amigo::callbackJointTrajectory, this);
     sub_right_arm_traj_ = nh.subscribe("/amigo/right_arm/ref_trajectory", 10, &Amigo::callbackJointTrajectory, this);
 
     left_gripper_direction_ = tue_msgs::GripperMeasurement::OPEN;
@@ -265,19 +255,29 @@ void Amigo::callbackJointTrajectory(const trajectory_msgs::JointTrajectory::Cons
 
 void Amigo::goalCallback(TrajectoryActionServer::GoalHandle gh)
 {
+    bool valid_goal = true;
     int number_of_goal_joints = gh.getGoal()->trajectory.joint_names.size();
 
     // Check feasibility of arm joint goals
     for (uint i = 0; i < number_of_goal_joints; i++) {
         std::string joint_name = gh.getGoal()->trajectory.joint_names[i];
-        for (uint j = 0; j < gh.getGoal()->trajectory.points.size(); j++) {
-            double ref = gh.getGoal()->trajectory.points[j].positions[i];
-            if (ref < joint_min_constraints[joint_name] || ref > joint_max_constraints[joint_name]) {
-                ROS_WARN("Reference for joint %s is %f but should be between %f and %f.",joint_name.c_str(),ref,joint_min_constraints[joint_name],joint_max_constraints[joint_name]);
-                gh.setRejected();
-                return;
+        if (std::find(joint_names.begin(), joint_names.end(), joint_name) == joint_names.end()) {
+            ROS_ERROR("Unknown joint %s",joint_name.c_str());
+            valid_goal = false;
+        }
+        else {
+            for (uint j = 0; j < gh.getGoal()->trajectory.points.size(); j++) {
+                double ref = gh.getGoal()->trajectory.points[j].positions[i];
+                if (ref < joint_min_constraints[joint_name] || ref > joint_max_constraints[joint_name]) {
+                    ROS_ERROR("Reference for joint %s is %f but should be between %f and %f.",joint_name.c_str(),ref,joint_min_constraints[joint_name],joint_max_constraints[joint_name]);
+                    valid_goal = false;
+                }
             }
         }
+    }
+    if (!valid_goal) {
+        gh.setRejected();
+        return;
     }
 
 

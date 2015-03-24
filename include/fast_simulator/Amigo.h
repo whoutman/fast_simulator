@@ -39,7 +39,6 @@ protected:
     ros::Subscriber sub_init_pose;
     ros::Subscriber sub_head;
     ros::Subscriber sub_spindle, sub_spindle_traj_;
-    ros::Subscriber sub_left_arm, sub_left_arm_traj_;
     ros::Subscriber sub_right_arm, sub_right_arm_traj_;
 
     ros::Subscriber sub_left_gripper;
