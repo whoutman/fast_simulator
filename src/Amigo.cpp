@@ -7,6 +7,10 @@ using namespace std;
 
 Amigo::Amigo(ros::NodeHandle& nh, bool publish_localization) : Robot(nh, "amigo", publish_localization) {
 
+    Model.initParam("/amigo/robot_description");
+    boost::shared_ptr<const urdf::Joint> Torso = Model.getJoint("torso_joint");
+    std::cout << "Torso limit: " << Torso->limits->lower << std::endl;
+
     setJointPosition("torso_joint", 0.351846521684684);
     setJointPosition("shoulder_yaw_joint_left", -0.010038043598955326);
     setJointPosition("shoulder_pitch_joint_left", -0.39997462399515005);

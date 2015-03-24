@@ -6,6 +6,7 @@
 #include <trajectory_msgs/JointTrajectory.h> // Delete
 #include <actionlib/server/action_server.h>
 #include <control_msgs/FollowJointTrajectoryAction.h>
+#include <urdf/model.h>
 
 #include "fast_simulator/Robot.h"
 
@@ -93,6 +94,8 @@ protected:
 
     Event event_odom_pub_;
     Event event_refs_pub_;
+
+    urdf::Model Model;
 
 };
 
