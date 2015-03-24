@@ -109,7 +109,7 @@ Amigo::Amigo(ros::NodeHandle& nh, bool publish_localization) : Robot(nh, "amigo"
     }
 
     // Setup action server
-    as_ = new TrajectoryActionServer(nh,"left_arm/joint_trajectory_action",false);
+    as_ = new TrajectoryActionServer(nh,"joint_trajectory_action",false);
     as_->registerGoalCallback(boost::bind(&Amigo::goalCallback, this, _1));
     as_->registerCancelCallback(boost::bind(&Amigo::cancelCallback, this, _1));
 
