@@ -155,16 +155,16 @@ Object* SimulatorROS::getObjectFromModel(const std::string& model_name, const st
         obj->setShape(geo::Box(geo::Vector3(-0.4, -0.4, 0), geo::Vector3(0.4, 0.4, 1)));
         return obj;
     }
-    else if (model_name == "loy")
+    else if (model_name == "loy" || model_name == "rob" || model_name == "tim" || model_name == "erik" || model_name == "sjoerd")
     {
         Object* obj = new Object(model_name);
 
         Object* body = new Object("body", id + "-body");
-        body->setShape(ModelParser::getHeightMapFromImage(model_dir_ + "/laser/body.pgm", 1, 0.025));
-        obj->addChild(body, geo::Transform(geo::Matrix3::identity(), geo::Vector3(0, 0, 0.5)));
+        body->setShape(geo::Box(geo::Vector3(-0.2, -0.2, 0), geo::Vector3(0.2, 0.2, 1.8)));
+        obj->addChild(body, geo::Transform(geo::Matrix3::identity(), geo::Vector3(0, 0, 0)));
 
         Object* face = new Object(model_name + "-face", id + "-face");
-        obj->addChild(face, geo::Transform(geo::Matrix3::identity(), geo::Vector3(0, 0, 1.6)));
+        obj->addChild(face, geo::Transform(geo::Matrix3::identity(), geo::Vector3(0, 0, 1.7)));
 
         return obj;
     }
