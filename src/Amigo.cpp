@@ -84,10 +84,6 @@ Amigo::Amigo(ros::NodeHandle& nh, bool publish_localization) : Robot(nh, "amigo"
     sub_left_arm = nh.subscribe("/amigo/left_arm/references", 10, &Amigo::callbackJointReference, this);
     sub_right_arm = nh.subscribe("/amigo/right_arm/references", 10, &Amigo::callbackJointReference, this);
 
-    sub_spindle_traj_ = nh.subscribe("/amigo/torso/ref_trajectory", 10, &Amigo::callbackJointTrajectory, this);
-    sub_left_arm_traj_ = nh.subscribe("/amigo/left_arm/ref_trajectory", 10, &Amigo::callbackJointTrajectory, this);
-    sub_right_arm_traj_ = nh.subscribe("/amigo/right_arm/ref_trajectory", 10, &Amigo::callbackJointTrajectory, this);
-
     left_gripper_direction_ = tue_msgs::GripperMeasurement::OPEN;
     right_gripper_direction_ = tue_msgs::GripperMeasurement::OPEN;
 
@@ -290,23 +286,6 @@ void Amigo::callbackInitialPose(const geometry_msgs::PoseWithCovarianceStamped::
 void Amigo::callbackJointReference(const sensor_msgs::JointState::ConstPtr msg) {
     for(unsigned int i = 0; i < msg->name.size(); ++i) {
         setJointReference(msg->name[i], msg->position[i]);
-    }
-}
-
-void Amigo::callbackJointTrajectory(const trajectory_msgs::JointTrajectory::ConstPtr msg) {
-    for(unsigned int i = 0; i < msg->joint_names.size(); ++i) {
-        Trajectory& trajectory = joint_trajectories_[msg->joint_names[i]];
-        trajectory.set_points.resize(msg->points.size());
-
-        if (msg->points.size() >= 2) {
-            trajectory.dt = (msg->points[1].time_from_start - msg->points[0].time_from_start).toSec();
-        } else {
-            trajectory.dt = 0;
-        }
-
-        for(unsigned int j = 0; j < msg->points.size(); ++j) {
-            trajectory.set_points[msg->points.size() - j - 1] = msg->points[j].positions[i];
-        }
     }
 }
 

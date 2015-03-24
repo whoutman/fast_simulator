@@ -51,8 +51,9 @@ protected:
     ros::Subscriber sub_cmd_vel;
     ros::Subscriber sub_init_pose;
     ros::Subscriber sub_head;
-    ros::Subscriber sub_spindle, sub_spindle_traj_;
-    ros::Subscriber sub_right_arm, sub_right_arm_traj_;
+    ros::Subscriber sub_spindle;
+    ros::Subscriber sub_left_arm;
+    ros::Subscriber sub_right_arm;
 
     ros::Subscriber sub_left_gripper;
     ros::Subscriber sub_right_gripper;
@@ -80,8 +81,6 @@ protected:
     void callbackRightGripper(const tue_msgs::GripperCommand::ConstPtr& msg);    
 
     void callbackJointReference(const sensor_msgs::JointState::ConstPtr msg);
-
-    void callbackJointTrajectory(const trajectory_msgs::JointTrajectory::ConstPtr msg);
 
     void goalCallback(TrajectoryActionServer::GoalHandle gh);
     void cancelCallback(TrajectoryActionServer::GoalHandle gh);
