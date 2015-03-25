@@ -7,10 +7,6 @@ using namespace std;
 
 Amigo::Amigo(ros::NodeHandle& nh, bool publish_localization) : Robot(nh, "amigo", publish_localization) {
 
-    Model.initParam("/amigo/robot_description");
-    boost::shared_ptr<const urdf::Joint> Torso = Model.getJoint("torso_joint");
-    std::cout << "Torso limit: " << Torso->limits->lower << std::endl;
-
     setJointPosition("torso_joint", 0.351846521684684);
     setJointPosition("shoulder_yaw_joint_left", -0.010038043598955326);
     setJointPosition("shoulder_pitch_joint_left", -0.39997462399515005);
@@ -100,26 +96,19 @@ Amigo::Amigo(ros::NodeHandle& nh, bool publish_localization) : Robot(nh, "amigo"
     event_odom_pub_.scheduleRecurring(50);
     event_refs_pub_.scheduleRecurring(100);
 
-    // Gets the constraints for each joint.
+    // Get the constraints for each joint from the URDF model
+    urdf::Model Model;
+    Model.initParam("/amigo/robot_description");
+
     for (size_t i = 0; i < joint_names.size(); ++i)
     {
-        std::string ns = std::string("constraints/") + joint_names[i];
-        double ig, fg, t, mip, map;
-        nh.param(ns + "/intermediate_goal", ig, -1.0);
-        nh.param(ns + "/final_goal", fg, -1.0);
-        nh.param(ns + "/trajectory", t, -1.0);
-        nh.param(ns + "/min_pos", mip, -1.0);
-        nh.param(ns + "/max_pos", map, -1.0);
-        intermediate_goal_constraints[joint_names[i]] = ig;
-        final_goal_constraints[joint_names[i]] = fg;
-        trajectory_constraints[joint_names[i]] = t;
-        joint_min_constraints[joint_names[i]] = mip;
-        joint_max_constraints[joint_names[i]] = map;
-        ROS_DEBUG("Joint %s, min = %f, max = %f, int = %f, final = %f, traj = %f", joint_names[i].c_str(), mip, map, ig, fg, t);
+        boost::shared_ptr<const urdf::Joint> Joint = Model.getJoint(joint_names[i]);
+        joint_min_constraints[joint_names[i]] = Joint->limits->lower;
+        joint_max_constraints[joint_names[i]] = Joint->limits->upper;
     }
 
     // Setup action server
-    as_ = new TrajectoryActionServer(nh,"joint_trajectory_action",false);
+    as_ = new TrajectoryActionServer(nh,"/amigo/joint_trajectory_action",false);
     as_->registerGoalCallback(boost::bind(&Amigo::goalCallback, this, _1));
     as_->registerCancelCallback(boost::bind(&Amigo::cancelCallback, this, _1));
 
