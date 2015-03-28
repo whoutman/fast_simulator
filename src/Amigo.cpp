@@ -67,6 +67,7 @@ Amigo::Amigo(ros::NodeHandle& nh, bool publish_localization) : Robot(nh, "amigo"
     joint_names.push_back("wrist_pitch_joint_right");
     joint_names.push_back("wrist_yaw_joint_right");
 
+    pub_body_ = nh.advertise<sensor_msgs::JointState>("/amigo/body/measurements", 10);
     pub_head_ = nh.advertise<sensor_msgs::JointState>("/amigo/neck/measurements", 10);
     pub_left_arm_ = nh.advertise<sensor_msgs::JointState>("/amigo/left_arm/measurements", 10);
     pub_right_arm_ = nh.advertise<sensor_msgs::JointState>("/amigo/right_arm/measurements", 10);
@@ -343,6 +344,20 @@ void Amigo::cancelCallback(TrajectoryActionServer::GoalHandle gh)
 void Amigo::publishControlRefs() {
     std_msgs::Header header;
     header.stamp = ros::Time::now();
+
+    sensor_msgs::JointState body_meas_msg;
+    body_meas_msg.header = header;
+    body_meas_msg.name.push_back("torso_joint");
+    body_meas_msg.position.push_back(getJointPosition("torso_joint"));
+    for(unsigned int j = 0; j < left_arm_joint_names.size(); ++j) {
+        body_meas_msg.name.push_back(left_arm_joint_names[j]);
+        body_meas_msg.position.push_back(getJointPosition(left_arm_joint_names[j]));
+    }
+    for(unsigned int j = 0; j < right_arm_joint_names.size(); ++j) {
+        body_meas_msg.name.push_back(right_arm_joint_names[j]);
+        body_meas_msg.position.push_back(getJointPosition(left_arm_joint_names[j]));
+    }
+    pub_head_.publish(body_meas_msg);
 
     sensor_msgs::JointState head_meas_msg;
     head_meas_msg.header = header;

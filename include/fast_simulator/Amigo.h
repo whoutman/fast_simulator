@@ -40,6 +40,7 @@ protected:
 
     ros::Time t_last_cmd_vel_;
 
+    ros::Publisher pub_body_;
     ros::Publisher pub_head_;
     ros::Publisher pub_left_arm_;
     ros::Publisher pub_right_arm_;
