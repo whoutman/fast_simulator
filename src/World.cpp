@@ -58,6 +58,11 @@ World& World::getInstance() {
     return *instance_;
 }
 
+void World::destroy()
+{
+    delete instance_;
+}
+
 void World::step(double dt) {
     for(map<string, Object*>::iterator it_obj = objects_.begin(); it_obj != objects_.end(); ++it_obj) {
         Object* obj = it_obj->second;

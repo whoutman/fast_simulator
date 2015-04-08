@@ -16,6 +16,8 @@ public:
 
     virtual ~World();
 
+    static void destroy();
+
     World(const World& orig);
 
     World getCopy() const;

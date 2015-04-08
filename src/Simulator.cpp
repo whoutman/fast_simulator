@@ -6,8 +6,9 @@ Simulator::Simulator() : world_(World::getInstance()) {
 
 }
 
-Simulator::~Simulator() {
-
+Simulator::~Simulator()
+{
+    World::destroy();
 }
 
 void Simulator::step(double dt) {

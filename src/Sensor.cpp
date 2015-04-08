@@ -7,7 +7,10 @@ Sensor::Sensor() : rate_(10) {
     type_ = "sensor";
 }
 
-Sensor::~Sensor() {}
+Sensor::~Sensor()
+{
+    worker_thread_.join();
+}
 
 void Sensor::start() {
     worker_thread_ = boost::thread(&Sensor::run, this);
