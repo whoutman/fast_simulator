@@ -112,9 +112,29 @@ Amigo::Amigo(ros::NodeHandle& nh, bool publish_localization) : Robot(nh, "amigo"
     as_ = new TrajectoryActionServer(nh,"body/joint_trajectory_action",false);
     as_->registerGoalCallback(boost::bind(&Amigo::goalCallback, this, _1));
     as_->registerCancelCallback(boost::bind(&Amigo::cancelCallback, this, _1));
-
-    // Start action server
     as_->start();
+
+    // Setup action server left arm
+    TrajectoryActionServer* asla_;
+    asla_ = new TrajectoryActionServer(nh,"left_arm/joint_trajectory_action",false);
+    asla_->registerGoalCallback(boost::bind(&Amigo::goalCallback, this, _1));
+    asla_->registerCancelCallback(boost::bind(&Amigo::cancelCallback, this, _1));
+    asla_->start();
+
+    // Setup action server right arm
+    TrajectoryActionServer* asra_;
+    asra_ = new TrajectoryActionServer(nh,"right_arm/joint_trajectory_action",false);
+    asra_->registerGoalCallback(boost::bind(&Amigo::goalCallback, this, _1));
+    asra_->registerCancelCallback(boost::bind(&Amigo::cancelCallback, this, _1));
+    asra_->start();
+
+    // Setup action server left arm
+    TrajectoryActionServer* ast_;
+    ast_ = new TrajectoryActionServer(nh,"torso_server",false);
+    ast_->registerGoalCallback(boost::bind(&Amigo::goalCallback, this, _1));
+    ast_->registerCancelCallback(boost::bind(&Amigo::cancelCallback, this, _1));
+    ast_->start();
+
 }
 
 Amigo::~Amigo() {
