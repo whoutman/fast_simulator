@@ -6,8 +6,6 @@
        - Get rid of counting and replace with event queue
        - Parallelize controllers from sensors
 
-
-
 */
 
 #include "fast_simulator/SimulatorROS.h"
@@ -249,7 +247,21 @@ bool SimulatorROS::setObject(fast_simulator::SetObject::Request& req, fast_simul
         obj->setPose(pose);
 
         cout << "Set " << req.id << " (type: " << req.type << "): " << pose << endl;
-    } else {
+    }
+    else if (req.action == fast_simulator::SetObject::Request::SET_PATH)
+    {
+        std::vector<geo::Transform> path;
+        for(unsigned int i = 0; i < req.path.size(); ++i)
+        {
+            geo::Transform pose;
+            geo::convert(req.path[i], pose);
+            path.push_back(pose);
+        }
+
+        obj->setPath(path, req.path_velocity);
+    }
+    else
+    {
         if (!obj) {
             res.result_msg = "Object with id " + req.id + " does not exist";
             return true;

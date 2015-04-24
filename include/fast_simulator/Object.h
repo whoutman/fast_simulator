@@ -13,6 +13,8 @@
 #include <geolib/datatypes.h>
 #include "fast_simulator/Event.h"
 
+#include <queue>
+
 class World;
 
 class Object {
@@ -55,6 +57,14 @@ public:
 
     void setPose(const geo::Transform& pose);
 
+    void setPath(const std::vector<geo::Transform>& path, double path_vel)
+    {
+        path_ = std::queue<geo::Transform>();
+        for(unsigned int i = 0; i < path.size(); ++i)
+            path_.push(path[i]);
+        path_vel_ = path_vel;
+    }
+
     const std::string& getType() const;
 
     bool intersect(const geo::Ray& r, float t0, float t1, double& distance) const;
@@ -72,6 +82,10 @@ private:
     geo::Transform pose_;
 
     geo::Transform pose_inv_;
+
+    std::queue<geo::Transform> path_;
+
+    double path_vel_;
 
 protected:
 

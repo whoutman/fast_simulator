@@ -63,7 +63,31 @@ void Object::step(double dt) {
 
 //    tf::Vector3 trans = (t2 * t1).getOrigin();
 
-    geo::Vector3 trans = pose_.getBasis() * geo::Vector3(velocity_.linear.x * dt, velocity_.linear.y * dt, velocity_.linear.z * dt);
+    geo::Vector3 trans(0, 0, 0);
+    if (!path_.empty())
+    {
+        const geo::Transform& goal = path_.front();
+        geo::Vector3 diff = goal.t - pose_.t;
+
+        double dist = diff.length();
+        geo::Vector3 diff_n = diff / dist;
+
+        double traveled_dist = dt * path_vel_;
+
+        if (dist < traveled_dist)
+        {
+            pose_.t = goal.t;
+            path_.pop();
+        }
+        else
+        {
+            trans = traveled_dist * diff_n;
+        }
+    }
+    else
+    {
+        trans = pose_.getBasis() * geo::Vector3(velocity_.linear.x * dt, velocity_.linear.y * dt, velocity_.linear.z * dt);
+    }
 
     geo::Matrix3 rot;
     rot.setRPY(velocity_.angular.x * dt, velocity_.angular.y * dt, velocity_.angular.z * dt);

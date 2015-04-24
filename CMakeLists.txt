@@ -69,6 +69,29 @@ catkin_package(
 
 include_directories(include ${catkin_INCLUDE_DIRS})
 
+SET(HEADER_FILES
+    include/fast_simulator/simulator.h
+    include/fast_simulator/Joint.h
+    include/fast_simulator/Pico.h
+    include/fast_simulator/Object.h
+    include/fast_simulator/LRF.h
+    include/fast_simulator/util.h
+    include/fast_simulator/StandaloneLRF.h
+    include/fast_simulator/SimulatorROS.h
+    include/fast_simulator/Sensor.h
+    include/fast_simulator/StandaloneKinect.h
+    include/fast_simulator/Sergio.h
+    include/fast_simulator/ModelParser.h
+    include/fast_simulator/Pera.h
+    include/fast_simulator/Simulator.h
+    include/fast_simulator/World.h
+    include/fast_simulator/Robot.h
+    include/fast_simulator/Amigo.h
+    include/fast_simulator/Sonar.h
+    include/fast_simulator/Kinect.h
+    include/fast_simulator/Event.h
+)
+
 add_executable(simulator
     src/simulator.cpp
     src/Simulator.cpp

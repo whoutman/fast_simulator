@@ -8,6 +8,7 @@ string id
 string type
 geometry_msgs/Pose pose
 geometry_msgs/Pose[] path
+float64 path_velocity
 
 string[] param_names
 string[] param_values

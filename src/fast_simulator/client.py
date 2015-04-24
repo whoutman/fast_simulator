@@ -132,7 +132,7 @@ class SimObject(object):
 
 
 
-    def set_path(self, path, frame_id="/map"):
+    def set_path(self, path, path_vel, frame_id="/map"):
         if not path:
             return
 
@@ -153,6 +153,8 @@ class SimObject(object):
             waypoint.orientation.w = 1
 
             req.path += [waypoint]
+
+        req.path_velocity = path_vel
 
         self.world.srv_set(req)
 
