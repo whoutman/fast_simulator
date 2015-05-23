@@ -91,16 +91,16 @@ Object* SimulatorROS::getObjectFromModel(const std::string& model_name, const st
         }
 
         amigo->registerSensor(top_kinect);
-        amigo->getLink("top_kinect/openni_rgb_optical_frame")->addChild(top_kinect);
+        amigo->getLink("amigo/top_kinect/openni_rgb_optical_frame")->addChild(top_kinect);
 
 
         LRF* base_lrf = new LRF("/amigo/base_laser/scan", "/amigo/base_laser");
         amigo->registerSensor(base_lrf);
-        amigo->getLink("base_laser")->addChild(base_lrf);
+        amigo->getLink("amigo/base_laser")->addChild(base_lrf);
 
         LRF* torso_lrf = new LRF("/amigo/torso_laser/scan", "/amigo/torso_laser");
         amigo->registerSensor(torso_lrf);
-        amigo->getLink("torso_laser")->addChild(torso_lrf);
+        amigo->getLink("amigo/torso_laser")->addChild(torso_lrf);
 
         //tf::Transform tf_base_link_to_top_laser;
         //tf_base_link_to_top_laser.setOrigin(tf::Vector3(0.31, 0, 1.0));
