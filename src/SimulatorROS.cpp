@@ -54,7 +54,7 @@ void SimulatorROS::parseModelFile(const std::string& filename, const std::string
 Object* SimulatorROS::getObjectFromModel(const std::string& model_name, const std::string& id) {
 
     if (model_name == "pico") {
-        Pico* pico = new Pico(nh_, true); //publish_localization);
+        Pico* pico = new Pico(nh_);
 
         // add laser
         LRF* laser_range_finder_ = new LRF("/pico/laser", "/pico/laser");
@@ -70,7 +70,7 @@ Object* SimulatorROS::getObjectFromModel(const std::string& model_name, const st
         Pera* pera = new Pera(nh_);
         return pera;
     } else if (model_name == "amigo") {
-        Amigo* amigo = new Amigo(nh_, true); //publish_localization);
+        Amigo* amigo = new Amigo(nh_);
 
         // add kinect
         Kinect* top_kinect = new Kinect();
@@ -110,7 +110,7 @@ Object* SimulatorROS::getObjectFromModel(const std::string& model_name, const st
 
         return amigo;
     } else if (model_name == "sergio") {
-        Sergio* sergio = new Sergio(nh_, true); //publish_localization);
+        Sergio* sergio = new Sergio(nh_);
 
         // add kinect
         Kinect* top_kinect = new Kinect();
@@ -143,7 +143,7 @@ Object* SimulatorROS::getObjectFromModel(const std::string& model_name, const st
 
         return sergio;
     } else if (model_name == "kinect") {
-        StandaloneKinect* kinect = new StandaloneKinect(nh_, model_dir_);
+        StandaloneKinect* kinect = new StandaloneKinect(nh_, "/kinect/rgbd", "/kinect/frame", model_dir_);
         return kinect;
     } else if (model_name == "lrf") {
         StandaloneLRF* lrf = new StandaloneLRF(nh_);

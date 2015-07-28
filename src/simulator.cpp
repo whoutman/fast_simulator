@@ -1,9 +1,12 @@
 #include "fast_simulator/SimulatorROS.h"
 
-#include <ros/package.h>
-#include <boost/program_options.hpp>
+#include <tue/config/loaders/yaml.h>
+#include <tue/config/configuration.h>
 
-using namespace std;
+// Models
+#include "fast_simulator/StandaloneKinect.h"
+
+#include <ros/package.h>
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 //
@@ -11,86 +14,117 @@ using namespace std;
 //
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 
-namespace po = boost::program_options;
+void configure(SimulatorROS& sim, tue::Configuration config, ros::NodeHandle& nh, const std::string& model_dir)
+{
+    if (config.readArray("objects"))
+    {
+        while (config.nextArrayItem())
+        {
+            // Check for the 'enabled' field. If it exists and the value is 0, omit this object. This allows
+            // the user to easily enable and disable certain objects with one single flag.
+            int enabled;
+            if (config.value("enabled", enabled, tue::OPTIONAL) && !enabled)
+                continue;
 
-int main(int argc, char **argv) {
-    // Initialize node
+            std::string id;
+            if (!config.value("id", id))
+                continue;
+
+            std::string type;
+            config.value("type", type, tue::OPTIONAL);
+
+            geo::Pose3D pose = geo::Pose3D::identity();
+            if (config.readGroup("pose", tue::REQUIRED))
+            {
+                config.value("x", pose.t.x);
+                config.value("y", pose.t.y);
+                config.value("z", pose.t.z);
+
+                double roll = 0, pitch = 0, yaw = 0;
+                config.value("roll", roll, tue::OPTIONAL);
+                config.value("pitch", pitch, tue::OPTIONAL);
+                config.value("yaw", yaw, tue::OPTIONAL);
+                pose.R.setRPY(roll, pitch, yaw);
+
+                config.endGroup();
+            }
+            else
+                continue;
+
+            Object* obj = 0;
+            if (type == "kinect")
+            {
+                std::string topic, frame_id;
+                if (config.value("topic", topic) && config.value("frame", frame_id))
+                {
+                    StandaloneKinect* kinect = new StandaloneKinect(nh, topic, frame_id, model_dir);
+                    obj = kinect;
+                }
+            }
+            else if (!type.empty())
+            {
+                obj = sim.getObjectFromModel(type, id);
+            }
+
+            if (obj)
+            {
+                std::cout << "Added object: id = '" << id << "', type = '" << type << "', pose = " << pose << std::endl;
+
+                obj->setPose(pose);
+                sim.addObject(id, obj);
+            }
+        }
+
+        config.endArray();
+    }
+}
+
+// ----------------------------------------------------------------------------------------------------
+
+int main(int argc, char **argv)
+{
+    // - - - - - - - - - - - - - - - - - - - - - -
+    // Initialize ROS node
+
     ros::init(argc, argv, "fast_simulator");
     ros::NodeHandle nh;
 
-    tf::Vector3 robot_pos(0, 0, 0);
-    double robot_ori_x = 0;
-    double robot_ori_y = 0;
-    double robot_ori_z = 0;
+    // - - - - - - - - - - - - - - - - - - - - - -
+    // Create simulator
 
-    // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
-    // PARSE COMMAND-LINE ARGUMENTS
+    std::string model_dir = ros::package::getPath("fast_simulator_data");
 
-    po::options_description desc("Allowed options");
-    desc.add_options()
-        ("help", "Show this")
-        ("robot", po::value<string>(), "Type of robot: pico or amigo")
-        ("world", po::value<string>(), "Name of the model that should be used as world")
-        ("x", po::value<double>(), "X-value of robot intial pose")
-        ("y", po::value<double>(), "Y-value of robot intial pose")
-        ("z", po::value<double>(), "Z-value of robot intial pose")
-        ("rx", po::value<double>(), "X-value of robot intial rotation")
-        ("ry", po::value<double>(), "Y-value of robot intial rotation")
-        ("rz", po::value<double>(), "Z-value of robot intial rotation")
-        ("model-dir", po::value<string>(), "Model directory")
-        ("no-localization", "Set if no transformation from /map to /odom should be published")
-        ("kinect-raytracing", po::value<bool>(), "If set to false, Kinect raytracing is disabled (default: true)")
-    ;
+    SimulatorROS sim(nh, model_dir + "/models/models.xml", model_dir);
+    sim.parseModelFile(model_dir + "/models/models.xml", model_dir);
 
-    po::variables_map vm;
-    po::store(po::parse_command_line(argc, argv, desc), vm);
-    po::notify(vm);
+    // - - - - - - - - - - - - - - - - - - - - - -
+    // Configure simulator
 
-    if (vm.count("help")) {
-        cout << desc << "\n";
-        return 1;
+    if (argc >= 2)
+    {
+        tue::Configuration config;
+        std::string yaml_filename = argv[1];
+        config.loadFromYAMLFile(yaml_filename);
+
+        if (config.hasError())
+        {
+            std::cout << std::endl << "Could not load configuration file:" << std::endl << std::endl << config.error() << std::endl;
+            return 1;
+        }
+
+        configure(sim, config, nh, model_dir);
+
+        if (config.hasError())
+        {
+            std::cout << std::endl << "Error during configuration:" << std::endl << std::endl << config.error() << std::endl;
+            return 1;
+        }
     }
 
-    if (vm.count("x")) { robot_pos.setX(vm["x"].as<double>()); }
-    if (vm.count("y")) { robot_pos.setY(vm["y"].as<double>()); }
-    if (vm.count("z")) { robot_pos.setZ(vm["z"].as<double>()); }
+    // - - - - - - - - - - - - - - - - - - - - - -
+    // Start simulator
 
-    if (vm.count("rx")) { robot_ori_x = vm["rx"].as<double>(); }
-    if (vm.count("ry")) { robot_ori_y = vm["ry"].as<double>(); }
-    if (vm.count("rz")) { robot_ori_z = vm["rz"].as<double>(); }
-
-    bool publish_localization = !(vm.count("no-localization"));
-
-    bool raytrace = true;
-    if (vm.count("kinect-raytracing")) { raytrace = vm["kinect-raytracing"].as<bool>(); }
-
-    string robot_name = "";
-    if (vm.count("robot")) {
-        robot_name = vm["robot"].as<string>();
-    }
-
-    string world_name = "";
-    if (vm.count("world")) {
-        world_name = vm["world"].as<string>();
-    }
-
-    string model_dir = "";
-    if (vm.count("model-dir")) {
-        model_dir = vm["model-dir"].as<string>();
-    }
-
-    if (model_dir == "") {
-        ROS_ERROR("Model directory not specified (use option -model-dir). Exiting..");
-        exit(-1);
-    }
-
-    tf::Quaternion robot_ori;
-    robot_ori.setEuler(robot_ori_x, robot_ori_y, robot_ori_z);
-
-    SimulatorROS SIM(nh, model_dir + "/models/models.xml", model_dir);
-    SIM.parseModelFile(model_dir + "/models/models.xml", model_dir);
-
-    SIM.start();
+    sim.start();
 
     return 0;
 }

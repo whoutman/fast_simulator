@@ -5,7 +5,7 @@
 
 using namespace std;
 
-Pico::Pico(ros::NodeHandle& nh, bool publish_localization) : Robot(nh, "pico", publish_localization) {
+Pico::Pico(ros::NodeHandle& nh) : Robot(nh, "pico") {
 
     setJointPosition("head_yaw_joint", 0.0);
     setJointPosition("head_pitch_joint", 0.0);

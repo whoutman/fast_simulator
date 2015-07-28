@@ -11,7 +11,7 @@ class Sergio : public Robot {
 
 public:
 
-    Sergio(ros::NodeHandle& nh, bool publish_localization = true);
+    Sergio(ros::NodeHandle& nh);
 
     virtual ~Sergio();
 

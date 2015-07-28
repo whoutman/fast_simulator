@@ -4,7 +4,17 @@
 
 using namespace std;
 
-Robot::Robot(ros::NodeHandle& nh, const std::string& robot_type, bool publish_localization) : nh_(nh) {
+// ----------------------------------------------------------------------------------------------------
+
+Robot::Robot(ros::NodeHandle& nh) : nh_(nh)
+{
+
+}
+
+// ----------------------------------------------------------------------------------------------------
+
+Robot::Robot(ros::NodeHandle& nh, const std::string& robot_type) : nh_(nh)
+{
     // joint_states
     pub_joint_states = nh.advertise<sensor_msgs::JointState>("/" + robot_type + "/joint_states", 10);
 
@@ -19,13 +29,19 @@ Robot::Robot(ros::NodeHandle& nh, const std::string& robot_type, bool publish_lo
     }
 }
 
-Robot::~Robot() {
+// ----------------------------------------------------------------------------------------------------
+
+Robot::~Robot()
+{
     for(vector<Sensor*>::iterator it_sensor = sensors_.begin(); it_sensor != sensors_.end(); ++it_sensor) {
         delete *it_sensor;
     }
 }
 
-void Robot::addChildren(Object& obj, const KDL::SegmentMap::const_iterator segment) {
+// ----------------------------------------------------------------------------------------------------
+
+void Robot::addChildren(Object& obj, const KDL::SegmentMap::const_iterator segment)
+{
     //const std::string& root = segment->second.segment.getName();
 
     const std::vector<KDL::SegmentMap::const_iterator>& children = segment->second.children;

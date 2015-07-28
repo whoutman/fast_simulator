@@ -7,7 +7,7 @@
 
 using namespace std;
 
-Sergio::Sergio(ros::NodeHandle& nh, bool publish_localization) : Robot(nh, "sergio", publish_localization) {
+Sergio::Sergio(ros::NodeHandle& nh) : Robot(nh, "sergio") {
 
     setJointPosition("ankle_joint", 0.87);
     setJointPosition("knee_joint", 2.0);

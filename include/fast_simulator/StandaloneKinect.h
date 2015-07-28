@@ -7,7 +7,8 @@ class StandaloneKinect : public Robot {
 
 public:
 
-    StandaloneKinect(ros::NodeHandle& nh, const std::string& model_dir);
+    StandaloneKinect(ros::NodeHandle& nh, const std::string& topic,
+                     const std::string& frame_id, const std::string& model_dir);
 
     virtual ~StandaloneKinect();
 
