@@ -29,21 +29,170 @@
 
 #include <tue/filesystem/crawler.h>
 
-using namespace std;
+// Heightmap loading
+#include <opencv2/highgui/highgui.hpp>
+
+// ----------------------------------------------------------------------------------------------------
 
 SimulatorROS::SimulatorROS(ros::NodeHandle& nh, const std::string& model_file, const std::string& model_dir)
-    : nh_(nh), model_parser_(new ModelParser(model_file, model_dir)), model_dir_(model_dir) {
+    : nh_(nh), model_parser_(new ModelParser(model_file, model_dir)), model_dir_(model_dir)
+{
     pub_marker_ = nh_.advertise<visualization_msgs::MarkerArray>("/fast_simulator/visualization", 10);
     srv_set_object_ = nh_.advertiseService("/fast_simulator/set_object", &SimulatorROS::setObject, this);
 
 }
 
-SimulatorROS::~SimulatorROS() {
+// ----------------------------------------------------------------------------------------------------
+
+SimulatorROS::~SimulatorROS()
+{
     srv_set_object_.shutdown();
     delete model_parser_;
 }
 
-void SimulatorROS::parseModelFile(const std::string& filename, const std::string& model_dir) {
+// ----------------------------------------------------------------------------------------------------
+
+void SimulatorROS::configure(tue::Configuration& config)
+{
+    if (config.readArray("objects"))
+    {
+        while (config.nextArrayItem())
+        {
+            // Check for the 'enabled' field. If it exists and the value is 0, omit this object. This allows
+            // the user to easily enable and disable certain objects with one single flag.
+            int enabled;
+            if (config.value("enabled", enabled, tue::OPTIONAL) && !enabled)
+                continue;
+
+            std::string id;
+            if (!config.value("id", id))
+                continue;
+
+            // - - - - - - - - - - - - - - - - - - - - - - - -
+            // Load pose
+
+            geo::Pose3D pose = geo::Pose3D::identity();
+            if (config.readGroup("pose", tue::REQUIRED))
+            {
+                config.value("x", pose.t.x);
+                config.value("y", pose.t.y);
+                config.value("z", pose.t.z);
+
+                double roll = 0, pitch = 0, yaw = 0;
+                config.value("roll", roll, tue::OPTIONAL);
+                config.value("pitch", pitch, tue::OPTIONAL);
+                config.value("yaw", yaw, tue::OPTIONAL);
+                pose.R.setRPY(roll, pitch, yaw);
+
+                config.endGroup();
+            }
+            else
+                continue;
+
+            // - - - - - - - - - - - - - - - - - - - - - - - -
+            // Load type
+
+            std::string type;
+            config.value("type", type, tue::OPTIONAL);
+
+            Object* obj = 0;
+            if (type == "kinect")
+            {
+                std::string topic, frame_id;
+                if (config.value("topic", topic) && config.value("frame", frame_id))
+                {
+                    StandaloneKinect* kinect = new StandaloneKinect(nh_, topic, frame_id, model_dir_);
+                    obj = kinect;
+                }
+            }
+            else
+            {
+                if (type.empty())
+                {
+                    obj = new Object("", id);
+                }
+                else
+                {
+                    obj = getObjectFromModel(type, id);
+                }
+
+            }
+
+            // - - - - - - - - - - - - - - - - - - - - - - - -
+            // Load shape
+
+            if (config.readGroup("shape"))
+            {
+                std::string shape_type;
+                config.value("type", shape_type);
+
+                if (shape_type == "heightmap")
+                {
+                    double height, resolution;
+                    std::string image_filename;
+
+                    if (config.value("image", image_filename) && config.value("height", height)
+                            && config.value("resolution", resolution))
+                    {
+                        cv::Mat img = cv::imread(image_filename, CV_LOAD_IMAGE_GRAYSCALE);
+                        if (img.data)
+                        {
+                            // Create shape from heightmap
+
+                            int h = img.rows;
+                            int w = img.cols;
+
+                            std::vector<std::vector<double> > grid(w, std::vector<double>(h, 0));
+                            for(unsigned int y = 0; y < h; ++y)
+                                for(unsigned int x = 0; x < w; ++x)
+                                    grid[x][h - y - 1] = (height * (255 - img.at<unsigned char>(y, x))) / 255;
+
+                            geo::Shape shape = geo::HeightMap::fromGrid(grid, resolution);
+
+                            for(unsigned int i = 0; i < shape.getMesh().getPoints().size(); ++i)
+                            {
+                                std::cout << shape.getMesh().getPoints()[i] << std::endl;
+                            }
+
+                            std::cout << "Walls have: " << shape.getMesh().getTriangleIs().size() << " triangles" << std::endl;
+
+                            obj->setShape(shape);
+                        }
+                        else
+                        {
+                            config.addError("Could not read heightmap image '" + image_filename + "'");
+                        }
+                    }
+                }
+                else
+                {
+                    config.addError("Unknown shape type: '" + type + "'");
+                }
+
+                config.endGroup();
+            }
+
+            // - - - - - - - - - - - - - - - - - - - - - - - -
+            // Add object
+
+            if (obj)
+            {
+                std::cout << "Added object: id = '" << id << "', type = '" << type << "', pose = " << pose << std::endl;
+
+                obj->setPose(pose);
+                addObject(id, obj);
+            }
+
+        }
+
+        config.endArray();
+    }
+}
+
+// ----------------------------------------------------------------------------------------------------
+
+void SimulatorROS::parseModelFile(const std::string& filename, const std::string& model_dir)
+{
     faces_.insert("loy");
     faces_.insert("tim");
     faces_.insert("rob");
@@ -51,8 +200,10 @@ void SimulatorROS::parseModelFile(const std::string& filename, const std::string
     faces_.insert("sjoerd");
 }
 
-Object* SimulatorROS::getObjectFromModel(const std::string& model_name, const std::string& id) {
+// ----------------------------------------------------------------------------------------------------
 
+Object* SimulatorROS::getObjectFromModel(const std::string& model_name, const std::string& id)
+{
     if (model_name == "pico") {
         Pico* pico = new Pico(nh_);
 
@@ -167,7 +318,7 @@ Object* SimulatorROS::getObjectFromModel(const std::string& model_name, const st
         return obj;
     }
 
-    string parse_error;
+    std::string parse_error;
     Object* obj = model_parser_->parse(model_name, id, parse_error);
     if (!parse_error.empty()) {
         ROS_ERROR("While parsing model file: %s", parse_error.c_str());
@@ -177,16 +328,22 @@ Object* SimulatorROS::getObjectFromModel(const std::string& model_name, const st
         return obj;
     }
 
-    cout << "Model " << model_name << " not found" << endl;
+    std::cout << "Model " << model_name << " not found" << std::endl;
 
     return 0;
 }
 
-void SimulatorROS::addObject(const std::string& id, Object* obj) {
+// ----------------------------------------------------------------------------------------------------
+
+void SimulatorROS::addObject(const std::string& id, Object* obj)
+{
     simulator_.addObject(id, obj);
 }
 
-void SimulatorROS::start() {
+// ----------------------------------------------------------------------------------------------------
+
+void SimulatorROS::start()
+{
     double real_time_factor = 1;
 
     double freq = 100;
@@ -228,8 +385,10 @@ void SimulatorROS::start() {
     }
 }
 
-bool SimulatorROS::setObject(fast_simulator::SetObject::Request& req, fast_simulator::SetObject::Response& res) {
+// ----------------------------------------------------------------------------------------------------
 
+bool SimulatorROS::setObject(fast_simulator::SetObject::Request& req, fast_simulator::SetObject::Response& res)
+{
     Object* obj = simulator_.getObject(req.id);
 
     if (req.action == fast_simulator::SetObject::Request::SET_POSE) {
@@ -246,7 +405,7 @@ bool SimulatorROS::setObject(fast_simulator::SetObject::Request& req, fast_simul
         geo::convert(req.pose, pose);
         obj->setPose(pose);
 
-        cout << "Set " << req.id << " (type: " << req.type << "): " << pose << endl;
+        std::cout << "Set " << req.id << " (type: " << req.type << "): " << pose << std::endl;
     }
     else if (req.action == fast_simulator::SetObject::Request::SET_PATH)
     {
@@ -291,19 +450,22 @@ bool SimulatorROS::setObject(fast_simulator::SetObject::Request& req, fast_simul
 //
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 
-visualization_msgs::MarkerArray SimulatorROS::getROSVisualizationMessage() {
-    map<string, Object*> objects = simulator_.getObjects();
+// ----------------------------------------------------------------------------------------------------
+
+visualization_msgs::MarkerArray SimulatorROS::getROSVisualizationMessage()
+{
+    std::map<std::string, Object*> objects = simulator_.getObjects();
 
     visualization_msgs::MarkerArray marker_array;
 
-    for(map<string, Object*>::const_iterator it_obj = objects.begin(); it_obj != objects.end(); ++it_obj) {
+    for(std::map<std::string, Object*>::const_iterator it_obj = objects.begin(); it_obj != objects.end(); ++it_obj) {
 
         Object& obj = *it_obj->second;
 
         geo::Transform pose = obj.getAbsolutePose();
 
-        const vector<Object>& children = obj.getChildren();
-        for(vector<Object>::const_iterator it_child = children.begin(); it_child != children.end(); ++it_child) {
+        const std::vector<Object>& children = obj.getChildren();
+        for(std::vector<Object>::const_iterator it_child = children.begin(); it_child != children.end(); ++it_child) {
             const Object& child = *it_child;
 
             geo::ShapePtr shape = child.getShape();

@@ -1,10 +1,9 @@
 objects:
   - id: walls
-    type: robotics_testlabs
-    pose: {x: 0, y: 0, z: 0, yaw: 0}
+    pose: {x: -13.8, y: -14.2, z: 0, yaw: 0}
     shape:
         type: heightmap
-        image: heightmap.png
+        image: heightmap.pgm
         height: 2.0
         resolution: 0.025
   - id: kinect1
