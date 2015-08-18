@@ -29,7 +29,7 @@ class Amigo : public Robot {
 
 public:
 
-    Amigo(ros::NodeHandle& nh, bool publish_localization = true);
+    Amigo(ros::NodeHandle& nh);
 
     virtual ~Amigo();
 

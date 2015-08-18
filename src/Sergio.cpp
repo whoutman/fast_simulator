@@ -7,7 +7,7 @@
 
 using namespace std;
 
-Sergio::Sergio(ros::NodeHandle& nh, bool publish_localization) : Robot(nh, "sergio", publish_localization) {
+Sergio::Sergio(ros::NodeHandle& nh) : Robot(nh, "sergio") {
 
     setJointPosition("ankle_joint", 0.87);
     setJointPosition("knee_joint", 2.0);
@@ -59,7 +59,7 @@ Sergio::Sergio(ros::NodeHandle& nh, bool publish_localization) : Robot(nh, "serg
     torso_joint_names.push_back("hip_joint");
 
     pub_head_ = nh.advertise<sensor_msgs::JointState>("/sergio/neck/measurements", 10);
-    pub_dynamixel_ = nh.advertise<sensor_msgs::JointState>("/sergio/dynamixel/measurements", 10);
+    pub_dynamixel_ = nh.advertise<sensor_msgs::JointState>("/sergio/neck/measurements", 10);
     pub_left_arm_ = nh.advertise<sensor_msgs::JointState>("/sergio/left_arm/measurements", 10);
     pub_right_arm_ = nh.advertise<sensor_msgs::JointState>("/sergio/right_arm/measurements", 10);
     pub_torso_ = nh.advertise<sensor_msgs::JointState>("/sergio/torso/measurements", 10);
@@ -72,7 +72,7 @@ Sergio::Sergio(ros::NodeHandle& nh, bool publish_localization) : Robot(nh, "serg
     sub_init_pose = nh.subscribe("/sergio/initialpose", 10, &Sergio::callbackInitialPose, this);
     sub_cmd_vel = nh.subscribe("/sergio/base/references", 10, &Sergio::callbackCmdVel, this);
     sub_head = nh.subscribe("/sergio/neck/references", 10, &Sergio::callbackJointReference, this);
-    sub_dynamixel = nh.subscribe("/sergio/dynamixel/references", 10, &Sergio::callbackJointReference, this);
+    sub_dynamixel = nh.subscribe("/sergio/neck/references", 10, &Sergio::callbackJointReference, this);
     sub_spindle = nh.subscribe("/sergio/torso/references", 10, &Sergio::callbackJointReference, this);
     sub_left_arm = nh.subscribe("/sergio/left_arm/references", 10, &Sergio::callbackJointReference, this);
     sub_right_arm = nh.subscribe("/sergio/right_arm/references", 10, &Sergio::callbackJointReference, this);

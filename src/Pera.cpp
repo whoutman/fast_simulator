@@ -5,7 +5,7 @@
 
 using namespace std;
 
-Pera::Pera(ros::NodeHandle& nh) : Robot(nh, "pera", false) {
+Pera::Pera(ros::NodeHandle& nh) : Robot(nh, "pera") {
 
     setJointPosition("shoulder_yaw_joint_left", -0.010038043598955326);
     setJointPosition("shoulder_pitch_joint_left", -0.39997462399515005);

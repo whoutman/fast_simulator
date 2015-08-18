@@ -9,13 +9,18 @@
 #include "fast_simulator/SetObject.h"
 #include "ModelParser.h"
 
-class SimulatorROS {
+#include <tue/config/configuration.h>
+
+class SimulatorROS
+{
 
 public:
 
     SimulatorROS(ros::NodeHandle& nh, const std::string& model_file, const std::string& model_dir);
 
-    virtual ~SimulatorROS();
+    ~SimulatorROS();
+
+    void configure(tue::Configuration& config);
 
     void parseModelFile(const std::string& filename, const std::string& model_dir);
 

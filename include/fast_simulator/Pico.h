@@ -25,7 +25,7 @@ class Pico : public Robot {
 
 public:
 
-    Pico(ros::NodeHandle& nh, bool publish_localization = true);
+    Pico(ros::NodeHandle& nh);
 
     virtual ~Pico();
 

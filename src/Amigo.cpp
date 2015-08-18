@@ -5,7 +5,7 @@
 
 using namespace std;
 
-Amigo::Amigo(ros::NodeHandle& nh, bool publish_localization) : Robot(nh, "amigo", publish_localization) {
+Amigo::Amigo(ros::NodeHandle& nh) : Robot(nh, "amigo") {
 
     setJointPosition("torso_joint", 0.351846521684684);
     setJointPosition("shoulder_yaw_joint_left", -0.010038043598955326);

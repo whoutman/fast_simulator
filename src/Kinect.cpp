@@ -125,7 +125,8 @@ void Kinect::step(World& world)
 
     // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 
-    image_rgb_.setTo(cv::Scalar(255,255,255));
+    for(int i = 0; i < image_rgb_.cols * image_rgb_.rows; ++i)
+        image_rgb_.at<cv::Vec3b>(i) = (image_depth_.at<float>(i) / 10) * cv::Vec3b(0, 255, 0);
 
     vector<Object*> objects_rec = world.getObjectsRecursive();
     for(vector<Object*>::const_iterator it_obj = objects_rec.begin(); it_obj != objects_rec.end(); ++it_obj) {

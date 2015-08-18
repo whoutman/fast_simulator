@@ -1,0 +1,23 @@
+objects:
+  - id: walls
+    pose: {x: -13.8, y: -14.2, z: 0, yaw: 0}
+    shape:
+        type: heightmap
+        image: heightmap.pgm
+        height: 2.0
+        resolution: 0.025
+  - id: kinect1
+    type: kinect
+    pose: {x: 1, y: 0, z: 5, roll: 3.1415}
+    topic: /kinect1
+    frame: /kinect1
+  - id: kinect2
+    type: kinect
+    pose: {x: 2, y: 0, z: 5, roll: 3.1415}
+    topic: /kinect2
+    frame: /kinect2
+  - id: kinect3
+    type: kinect
+    pose: {x: 3, y: 0, z: 5, roll: 3.1415}
+    topic: /kinect3
+    frame: /kinect3
