@@ -10,6 +10,7 @@
 #include <tinyxml.h>
 
 #include <ed/update_request.h>
+#include <geolib/shapes.h>
 
 using namespace std;
 
@@ -184,7 +185,23 @@ Object* ModelParser::parse(const std::string& model_name, const std::string& id,
                         } else {
                             s_error << "In definition for model '" << name << "': shape '" << shape_type << "' has no size property" << endl;
                         }
+                    } else if (shape_type == "cylinder") {
+                        if (!size.empty()) {
 
+                            geo::Shape shape;
+                            geo::createCylinder(shape, size[0] / 2, size[2]);
+
+                            Object* obj = new Object();
+                            if (rpy.empty()) {
+                                obj->setShape(shape);
+                            } else {
+                                obj->setShape(shape);
+                                obj->setPose(geo::Transform(rot, pos));
+                            }
+                            model->addChild(obj);
+                        } else {
+                            s_error << "In definition for model '" << name << "': shape '" << shape_type << "' has no size property" << endl;
+                        }
                     } else {
                         s_error << "In definition for model '" << name << "': Unknown shape type: '" << shape_type << "'" << endl;
                     }
