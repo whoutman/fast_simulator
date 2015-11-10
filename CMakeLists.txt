@@ -21,6 +21,7 @@ find_package(catkin REQUIRED COMPONENTS
     virtual_cam
     ed
     tue_config
+    tue_manipulation
 )
 
 ################################################

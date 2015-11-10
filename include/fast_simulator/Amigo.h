@@ -8,9 +8,52 @@
 #include <control_msgs/FollowJointTrajectoryAction.h>
 #include <urdf/model.h>
 
-#include "fast_simulator/Robot.h"
+#include "../../include/fast_simulator/Robot.h"
+
+#include <tue/manipulation/reference_generator.h>
 
 typedef actionlib::ActionServer<control_msgs::FollowJointTrajectoryAction> TrajectoryActionServer;
+
+// ----------------------------------------------------------------------------------------------------
+
+class Amigo;
+
+class BodyPart
+{
+
+public:
+
+    BodyPart();
+
+    ~BodyPart();
+
+    void initialize(ros::NodeHandle& nh, Amigo* robot, const std::string& action_name);
+
+    void initJoint(const std::string& name, double pos, double max_vel, double max_acc);
+
+    void readJointInfoFromModel(const urdf::Model& Model);
+
+    void step(double dt);
+
+    const std::vector<std::string>& joint_names() const { return reference_generator_.joint_names(); }
+
+private:
+
+    Amigo* robot_;
+
+    tue::manipulation::ReferenceGenerator reference_generator_;
+
+    void goalCallback(TrajectoryActionServer::GoalHandle gh);
+
+    void cancelCallback(TrajectoryActionServer::GoalHandle gh);
+
+    TrajectoryActionServer* as_;
+
+    bool has_goal_;
+
+    TrajectoryActionServer::GoalHandle goal_handle_;
+
+};
 
 // ----------------------------------------------------------------------------------------------------
 
@@ -63,15 +106,6 @@ protected:
     int left_gripper_direction_;
     int right_gripper_direction_;
 
-    std::vector<std::string> left_arm_joint_names;
-    std::vector<std::string> right_arm_joint_names;
-    std::vector<std::string> joint_names;
-
-    std::map<std::string,double> joint_min_constraints;
-    std::map<std::string,double> joint_max_constraints;
-
-    std::map<std::string, Trajectory> joint_trajectories_;
-
     void callbackCmdVel(const geometry_msgs::Twist::ConstPtr& msg);
 
     void callbackLeftGripper(const tue_msgs::GripperCommand::ConstPtr& msg);
@@ -80,10 +114,9 @@ protected:
 
     void callbackJointReference(const sensor_msgs::JointState::ConstPtr msg);
 
-    void goalCallback(TrajectoryActionServer::GoalHandle gh);
-    void cancelCallback(TrajectoryActionServer::GoalHandle gh);
-    TrajectoryActionServer* as_;
-    std::vector < TrajectoryInfo > goal_handles_;
+    BodyPart left_arm_;
+    BodyPart right_arm_;
+    BodyPart torso_;
 
     void callbackInitialPose(const geometry_msgs::PoseWithCovarianceStamped::ConstPtr& msg);
 
