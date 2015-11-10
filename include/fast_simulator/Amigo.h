@@ -117,6 +117,7 @@ protected:
     BodyPart left_arm_;
     BodyPart right_arm_;
     BodyPart torso_;
+    BodyPart body_;
 
     void callbackInitialPose(const geometry_msgs::PoseWithCovarianceStamped::ConstPtr& msg);
 

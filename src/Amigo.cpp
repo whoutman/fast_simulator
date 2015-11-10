@@ -118,7 +118,27 @@ Amigo::Amigo(ros::NodeHandle& nh) : Robot(nh, "amigo")
 
     // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-    torso_.initialize(nh, this, "body/joint_trajectory_action");
+    body_.initialize(nh, this, "body/joint_trajectory_action");
+    body_.initJoint("torso_joint", 0.35, 1, 1);
+    body_.initJoint("shoulder_yaw_joint_left", -0.01, 1, 1);
+    body_.initJoint("shoulder_pitch_joint_left", -0.4, 1, 1);
+    body_.initJoint("shoulder_roll_joint_left", 0, 1, 1);
+    body_.initJoint("elbow_pitch_joint_left", 1.2, 1, 1);
+    body_.initJoint("elbow_roll_joint_left", 0, 1, 1);
+    body_.initJoint("wrist_yaw_joint_left", 0, 1, 1);
+    body_.initJoint("wrist_pitch_joint_left", 0.8, 1, 1);
+    body_.initJoint("shoulder_yaw_joint_right", -0.01, 1, 1);
+    body_.initJoint("shoulder_pitch_joint_right", -0.4, 1, 1);
+    body_.initJoint("shoulder_roll_joint_right", 0, 1, 1);
+    body_.initJoint("elbow_pitch_joint_right", 1.2, 1, 1);
+    body_.initJoint("elbow_roll_joint_right", 0, 1, 1);
+    body_.initJoint("wrist_yaw_joint_right", 0, 1, 1);
+    body_.initJoint("wrist_pitch_joint_right", 0.8, 1 ,1);
+    body_.readJointInfoFromModel(model);
+
+    // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+    torso_.initialize(nh, this, "torso/joint_trajectory_action");
     torso_.initJoint("torso_joint", 0.35, 1, 1);
     torso_.readJointInfoFromModel(model);
 
@@ -213,6 +233,7 @@ void Amigo::step(double dt)
     left_arm_.step(dt);
     right_arm_.step(dt);
     torso_.step(dt);
+    body_.step(dt);
 
     Robot::step(dt);
 
