@@ -48,6 +48,7 @@ void BodyPart::readJointInfoFromModel(const urdf::Model& Model)
     {
         boost::shared_ptr<const urdf::Joint> joint = Model.getJoint(joint_names[i]);
         reference_generator_.setPositionLimits(i, joint->limits->lower, joint->limits->upper);
+        reference_generator_.setMaxVelocity(i, joint->limits->velocity);
     }
 }
 
