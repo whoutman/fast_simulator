@@ -119,21 +119,21 @@ Amigo::Amigo(ros::NodeHandle& nh) : Robot(nh, "amigo")
     // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
     torso_.initialize(nh, this, "body/joint_trajectory_action");
-    torso_.initJoint("torso_joint", 0.35, 1, 1);
+    torso_.initJoint("torso_joint", 0.35, 1, 0.2);
     torso_.readJointInfoFromModel(model);
 
     // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
     left_arm_.initialize(nh, this, "left_arm/joint_trajectory_action");
 
-    left_arm_.initJoint("torso_joint", 0.35, 1, 1);
-    left_arm_.initJoint("shoulder_yaw_joint_left", -0.01, 1, 1);
-    left_arm_.initJoint("shoulder_pitch_joint_left", -0.4, 1, 1);
-    left_arm_.initJoint("shoulder_roll_joint_left", 0, 1, 1);
-    left_arm_.initJoint("elbow_pitch_joint_left", 1.2, 1, 1);
-    left_arm_.initJoint("elbow_roll_joint_left", 0, 1, 1);
-    left_arm_.initJoint("wrist_yaw_joint_left", 0, 1, 1);
-    left_arm_.initJoint("wrist_pitch_joint_left", 0.8, 1, 1);
+    left_arm_.initJoint("torso_joint", 0.35, 1, 0.2);
+    left_arm_.initJoint("shoulder_yaw_joint_left", -0.01, 1, 0.2);
+    left_arm_.initJoint("shoulder_pitch_joint_left", -0.4, 1, 0.2);
+    left_arm_.initJoint("shoulder_roll_joint_left", 0, 1, 0.3);
+    left_arm_.initJoint("elbow_pitch_joint_left", 1.2, 1, 0.5);
+    left_arm_.initJoint("elbow_roll_joint_left", 0, 1, 0.5);
+    left_arm_.initJoint("wrist_yaw_joint_left", 0, 1, 0.5);
+    left_arm_.initJoint("wrist_pitch_joint_left", 0.8, 1, 0.5);
 
     left_arm_.readJointInfoFromModel(model);
 
@@ -146,14 +146,14 @@ Amigo::Amigo(ros::NodeHandle& nh) : Robot(nh, "amigo")
 
     right_arm_.initialize(nh, this, "right_arm/joint_trajectory_action");
 
-    right_arm_.initJoint("torso_joint", 0.35, 1, 1);
-    right_arm_.initJoint("shoulder_yaw_joint_right", -0.01, 1, 1);
-    right_arm_.initJoint("shoulder_pitch_joint_right", -0.4, 1, 1);
-    right_arm_.initJoint("shoulder_roll_joint_right", 0, 1, 1);
-    right_arm_.initJoint("elbow_pitch_joint_right", 1.2, 1, 1);
-    right_arm_.initJoint("elbow_roll_joint_right", 0, 1, 1);
-    right_arm_.initJoint("wrist_yaw_joint_right", 0, 1, 1);
-    right_arm_.initJoint("wrist_pitch_joint_right", 0.8, 1 ,1);
+    right_arm_.initJoint("torso_joint", 0.35, 1, 0.2);
+    right_arm_.initJoint("shoulder_yaw_joint_right", -0.01, 1, 0.2);
+    right_arm_.initJoint("shoulder_pitch_joint_right", -0.4, 1, 0.2);
+    right_arm_.initJoint("shoulder_roll_joint_right", 0, 1, 0.3);
+    right_arm_.initJoint("elbow_pitch_joint_right", 1.2, 1, 0.5);
+    right_arm_.initJoint("elbow_roll_joint_right", 0, 1, 0.5);
+    right_arm_.initJoint("wrist_yaw_joint_right", 0, 1, 0.5);
+    right_arm_.initJoint("wrist_pitch_joint_right", 0.8, 1, 0.5);
 
     right_arm_.readJointInfoFromModel(model);
 
