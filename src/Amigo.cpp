@@ -70,9 +70,16 @@ void BodyPart::step(double dt)
     for(std::map<std::string, TrajectoryActionServer::GoalHandle>::iterator it = goal_handles_.begin(); it != goal_handles_.end();)
     {
         TrajectoryActionServer::GoalHandle& gh = it->second;
-        if (!reference_generator_.isActiveGoal(gh.getGoalID().id))
+        tue::manipulation::JointGoalStatus status = reference_generator_.getGoalStatus(gh.getGoalID().id);
+
+        if (status == tue::manipulation::JOINT_GOAL_SUCCEEDED)
         {
             gh.setSucceeded();
+            goal_handles_.erase(it++);
+        }
+        else if (status == tue::manipulation::JOINT_GOAL_CANCELED)
+        {
+            gh.setCanceled();
             goal_handles_.erase(it++);
         }
         else
@@ -107,6 +114,7 @@ void BodyPart::cancelCallback(TrajectoryActionServer::GoalHandle gh)
 {
     gh.setCanceled();
     reference_generator_.cancelGoal(gh.getGoalID().id);
+    goal_handles_.erase(gh.getGoalID().id);
 }
 
 // ----------------------------------------------------------------------------------------------------
@@ -119,15 +127,15 @@ Amigo::Amigo(ros::NodeHandle& nh) : Robot(nh, "amigo")
     // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
     body_.setRobot(this);
-    body_.addActionServer(nh, "body/joint_trajectory");
+//    body_.addActionServer(nh, "body/joint_trajectory");
 //    body_.addActionServer(nh, "torso/joint_trajectory");
 //    body_.addActionServer(nh, "left_arm/joint_trajectory");
 //    body_.addActionServer(nh, "right_arm/joint_trajectory");
 
     body_.addActionServer(nh, "body/joint_trajectory_action");
-    body_.addActionServer(nh, "torso/joint_trajectory_action");
-    body_.addActionServer(nh, "left_arm/joint_trajectory_action");
-    body_.addActionServer(nh, "right_arm/joint_trajectory_action");
+//    body_.addActionServer(nh, "torso/joint_trajectory_action");
+//    body_.addActionServer(nh, "left_arm/joint_trajectory_action");
+//    body_.addActionServer(nh, "right_arm/joint_trajectory_action");
 
     body_.initJoint("torso_joint", 0.35);
     body_.initJoint("shoulder_yaw_joint_left", -0.01);
