@@ -7,7 +7,7 @@ using namespace std;
 
 // ----------------------------------------------------------------------------------------------------
 
-BodyPart::BodyPart() : robot_(NULL), as_(NULL), has_goal_(false)
+BodyPart::BodyPart() : robot_(NULL)
 {
 }
 
@@ -15,27 +15,28 @@ BodyPart::BodyPart() : robot_(NULL), as_(NULL), has_goal_(false)
 
 BodyPart::~BodyPart()
 {
-    delete as_;
+    for(std::vector<TrajectoryActionServer*>::iterator it = action_servers_.begin(); it != action_servers_.end(); ++it)
+        delete *it;
 }
 
 // ----------------------------------------------------------------------------------------------------
 
-void BodyPart::initialize(ros::NodeHandle& nh, Amigo* robot, const std::string& action_name)
+void BodyPart::addActionServer(ros::NodeHandle& nh, const std::string& name)
 {
-    robot_ = robot;
+    TrajectoryActionServer* as = new TrajectoryActionServer(nh, name, false);
+    as->registerGoalCallback(boost::bind(&BodyPart::goalCallback, this, _1));
+    as->registerCancelCallback(boost::bind(&BodyPart::cancelCallback, this, _1));
+    as->start();
 
-    delete as_;
-    as_ = new TrajectoryActionServer(nh, action_name, false);
-    as_->registerGoalCallback(boost::bind(&BodyPart::goalCallback, this, _1));
-    as_->registerCancelCallback(boost::bind(&BodyPart::cancelCallback, this, _1));
-    as_->start();
+    action_servers_.push_back(as);
 }
 
 // ----------------------------------------------------------------------------------------------------
 
-void BodyPart::initJoint(const std::string& name, double pos, double max_vel, double max_acc)
+void BodyPart::initJoint(const std::string& name, double pos)
 {
-    reference_generator_.initJoint(name, max_vel, max_acc, 0, 0);
+    reference_generator_.initJoint(name, 0, 0, 0, 0);
+    reference_generator_.setJointState(name, pos, 0);
     robot_->setJointPosition(name, pos);
 }
 
@@ -49,6 +50,7 @@ void BodyPart::readJointInfoFromModel(const urdf::Model& Model)
         boost::shared_ptr<const urdf::Joint> joint = Model.getJoint(joint_names[i]);
         reference_generator_.setPositionLimits(i, joint->limits->lower, joint->limits->upper);
         reference_generator_.setMaxVelocity(i, joint->limits->velocity);
+        reference_generator_.setMaxAcceleration(i, joint->limits->effort);
     }
 }
 
@@ -56,26 +58,27 @@ void BodyPart::readJointInfoFromModel(const urdf::Model& Model)
 
 void BodyPart::step(double dt)
 {
-    if (!has_goal_)
-        return;
-
     const std::vector<std::string>& joint_names = reference_generator_.joint_names();
 
-    std::vector<double> current_positions(joint_names.size(), 0);
-    for(unsigned int i = 0 ; i < joint_names.size(); ++i)
-        current_positions[i] = robot_->getJointPosition(joint_names[i]);
-
     std::vector<double> references;
-    if (!reference_generator_.calculatePositionReferences(current_positions, dt, references))
+    if (!reference_generator_.calculatePositionReferences(dt, references))
         return;
 
     for(unsigned int i = 0 ; i < joint_names.size(); ++i)
         robot_->setJointPosition(joint_names[i], references[i]);
 
-    if (reference_generator_.is_idle())
+    for(std::map<std::string, TrajectoryActionServer::GoalHandle>::iterator it = goal_handles_.begin(); it != goal_handles_.end();)
     {
-        goal_handle_.setSucceeded();
-        has_goal_ = false;
+        TrajectoryActionServer::GoalHandle& gh = it->second;
+        if (!reference_generator_.isActiveGoal(gh.getGoalID().id))
+        {
+            gh.setSucceeded();
+            goal_handles_.erase(it++);
+        }
+        else
+        {
+            ++it;
+        }
     }
 }
 
@@ -83,30 +86,27 @@ void BodyPart::step(double dt)
 
 void BodyPart::goalCallback(TrajectoryActionServer::GoalHandle gh)
 {
+    std::string id = gh.getGoalID().id;
+
     std::stringstream error;
-    if (!reference_generator_.setGoal(*gh.getGoal(), error))
+    if (!reference_generator_.setGoal(*gh.getGoal(), id, error))
     {
-        gh.setRejected();
+        gh.setRejected(control_msgs::FollowJointTrajectoryResult(), error.str());
         ROS_ERROR("%s", error.str().c_str());
         return;
     }
 
     // Accept the goal
     gh.setAccepted();
-
-    goal_handle_ = gh;
-    has_goal_ = true;
+    goal_handles_[id] = gh;
 }
 
 // ----------------------------------------------------------------------------------------------------
 
 void BodyPart::cancelCallback(TrajectoryActionServer::GoalHandle gh)
 {
-    if (!has_goal_)
-        return;
-
     gh.setCanceled();
-    has_goal_ = false;
+    reference_generator_.cancelGoal(gh.getGoalID().id);
 }
 
 // ----------------------------------------------------------------------------------------------------
@@ -118,74 +118,48 @@ Amigo::Amigo(ros::NodeHandle& nh) : Robot(nh, "amigo")
 
     // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-    body_.initialize(nh, this, "body/joint_trajectory_action");
-    body_.initJoint("torso_joint", 0.35, 1, 1);
-    body_.initJoint("shoulder_yaw_joint_left", -0.01, 1, 1);
-    body_.initJoint("shoulder_pitch_joint_left", -0.4, 1, 1);
-    body_.initJoint("shoulder_roll_joint_left", 0, 1, 1);
-    body_.initJoint("elbow_pitch_joint_left", 1.2, 1, 1);
-    body_.initJoint("elbow_roll_joint_left", 0, 1, 1);
-    body_.initJoint("wrist_yaw_joint_left", 0, 1, 1);
-    body_.initJoint("wrist_pitch_joint_left", 0.8, 1, 1);
-    body_.initJoint("shoulder_yaw_joint_right", -0.01, 1, 1);
-    body_.initJoint("shoulder_pitch_joint_right", -0.4, 1, 1);
-    body_.initJoint("shoulder_roll_joint_right", 0, 1, 1);
-    body_.initJoint("elbow_pitch_joint_right", 1.2, 1, 1);
-    body_.initJoint("elbow_roll_joint_right", 0, 1, 1);
-    body_.initJoint("wrist_yaw_joint_right", 0, 1, 1);
-    body_.initJoint("wrist_pitch_joint_right", 0.8, 1 ,1);
+    body_.setRobot(this);
+    body_.addActionServer(nh, "body/joint_trajectory");
+//    body_.addActionServer(nh, "torso/joint_trajectory");
+//    body_.addActionServer(nh, "left_arm/joint_trajectory");
+//    body_.addActionServer(nh, "right_arm/joint_trajectory");
+
+    body_.addActionServer(nh, "body/joint_trajectory_action");
+    body_.addActionServer(nh, "torso/joint_trajectory_action");
+    body_.addActionServer(nh, "left_arm/joint_trajectory_action");
+    body_.addActionServer(nh, "right_arm/joint_trajectory_action");
+
+    body_.initJoint("torso_joint", 0.35);
+    body_.initJoint("shoulder_yaw_joint_left", -0.01);
+    body_.initJoint("shoulder_pitch_joint_left", -0.4);
+    body_.initJoint("shoulder_roll_joint_left", 0);
+    body_.initJoint("elbow_pitch_joint_left", 1.2);
+    body_.initJoint("elbow_roll_joint_left", 0);
+    body_.initJoint("wrist_yaw_joint_left", 0);
+    body_.initJoint("wrist_pitch_joint_left", 0.8);
+    body_.initJoint("shoulder_yaw_joint_right", -0.01);
+    body_.initJoint("shoulder_pitch_joint_right", -0.4);
+    body_.initJoint("shoulder_roll_joint_right", 0);
+    body_.initJoint("elbow_pitch_joint_right", 1.2);
+    body_.initJoint("elbow_roll_joint_right", 0);
+    body_.initJoint("wrist_yaw_joint_right", 0);
+    body_.initJoint("wrist_pitch_joint_right", 0.8);
     body_.readJointInfoFromModel(model);
 
-    // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+    setJointPosition("finger1_joint_left", 0.6);
+    setJointPosition("finger2_joint_left", 0.6);
+    setJointPosition("finger1_tip_joint_left", -0.2);
+    setJointPosition("finger2_tip_joint_left", -0.2);
 
-    torso_.initialize(nh, this, "torso/joint_trajectory_action");
-    torso_.initJoint("torso_joint", 0.35, 1, 1);
-    torso_.readJointInfoFromModel(model);
-
-    // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-
-    left_arm_.initialize(nh, this, "left_arm/joint_trajectory_action");
-
-    left_arm_.initJoint("torso_joint", 0.35, 1, 1);
-    left_arm_.initJoint("shoulder_yaw_joint_left", -0.01, 1, 1);
-    left_arm_.initJoint("shoulder_pitch_joint_left", -0.4, 1, 1);
-    left_arm_.initJoint("shoulder_roll_joint_left", 0, 1, 1);
-    left_arm_.initJoint("elbow_pitch_joint_left", 1.2, 1, 1);
-    left_arm_.initJoint("elbow_roll_joint_left", 0, 1, 1);
-    left_arm_.initJoint("wrist_yaw_joint_left", 0, 1, 1);
-    left_arm_.initJoint("wrist_pitch_joint_left", 0.8, 1, 1);
-
-    left_arm_.readJointInfoFromModel(model);
-
-    setJointPosition("finger1_joint_left", 0.6000396498469334);
-    setJointPosition("finger2_joint_left", 0.6000510112333535);
-    setJointPosition("finger1_tip_joint_left", -0.20000170842812892);
-    setJointPosition("finger2_tip_joint_left", -0.1999984035736233);
+    setJointPosition("finger1_joint_right", 0.6);
+    setJointPosition("finger2_joint_right", 0.6);
+    setJointPosition("finger1_tip_joint_right", -0.2);
+    setJointPosition("finger2_tip_joint_right", -0.2);
 
     // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-    right_arm_.initialize(nh, this, "right_arm/joint_trajectory_action");
-
-    right_arm_.initJoint("torso_joint", 0.35, 1, 1);
-    right_arm_.initJoint("shoulder_yaw_joint_right", -0.01, 1, 1);
-    right_arm_.initJoint("shoulder_pitch_joint_right", -0.4, 1, 1);
-    right_arm_.initJoint("shoulder_roll_joint_right", 0, 1, 1);
-    right_arm_.initJoint("elbow_pitch_joint_right", 1.2, 1, 1);
-    right_arm_.initJoint("elbow_roll_joint_right", 0, 1, 1);
-    right_arm_.initJoint("wrist_yaw_joint_right", 0, 1, 1);
-    right_arm_.initJoint("wrist_pitch_joint_right", 0.8, 1 ,1);
-
-    right_arm_.readJointInfoFromModel(model);
-
-    setJointPosition("finger1_joint_right", 0.6000464445187825);
-    setJointPosition("finger2_joint_right", 0.6000300525013822);
-    setJointPosition("finger1_tip_joint_right", -0.1999953219398023);
-    setJointPosition("finger2_tip_joint_right", -0.20000480019727807);
-
-    // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-
-    setJointPosition("neck_pan_joint", -3.033573445776483e-07);
-    setJointPosition("neck_tilt_joint", 0.00029286782768789266);
+    setJointPosition("neck_pan_joint", 0);
+    setJointPosition("neck_tilt_joint", 0);
 
     // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
@@ -230,9 +204,6 @@ Amigo::~Amigo() {
 
 void Amigo::step(double dt)
 {
-    left_arm_.step(dt);
-    right_arm_.step(dt);
-    torso_.step(dt);
     body_.step(dt);
 
     Robot::step(dt);
@@ -356,26 +327,20 @@ void Amigo::publishControlRefs()
 
     sensor_msgs::JointState body_meas_msg;
     body_meas_msg.header = header;
-    body_meas_msg.name.push_back("torso_joint");
-    body_meas_msg.position.push_back(getJointPosition("torso_joint"));
-    pub_torso_.publish(body_meas_msg);
 
     // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-    for(unsigned int j = 0; j < left_arm_.joint_names().size(); ++j)
+    for(unsigned int j = 0; j < body_.joint_names().size(); ++j)
     {
-        body_meas_msg.name.push_back(left_arm_.joint_names()[j]);
-        body_meas_msg.position.push_back(getJointPosition(left_arm_.joint_names()[j]));
+        const std::string& joint_name = body_.joint_names()[j];
+        body_meas_msg.name.push_back(joint_name);
+        body_meas_msg.position.push_back(getJointPosition(joint_name));
     }
 
-    // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-
-    for(unsigned int j = 0; j < right_arm_.joint_names().size(); ++j)
-    {
-        body_meas_msg.name.push_back(right_arm_.joint_names()[j]);
-        body_meas_msg.position.push_back(getJointPosition(right_arm_.joint_names()[j]));
-    }
     pub_body_.publish(body_meas_msg);
+    pub_left_arm_.publish(body_meas_msg);
+    pub_right_arm_.publish(body_meas_msg);
+    pub_torso_.publish(body_meas_msg);
 
     // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
@@ -394,26 +359,6 @@ void Amigo::publishControlRefs()
     torso_meas_msg.name.push_back("torso_joint");
     torso_meas_msg.position.push_back(getJointPosition("torso_joint"));
     pub_torso_.publish(torso_meas_msg);
-
-    // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-
-    sensor_msgs::JointState left_arm_joints;
-    left_arm_joints.header = header;
-    for(unsigned int j = 0; j < left_arm_.joint_names().size(); ++j) {
-        left_arm_joints.name.push_back(left_arm_.joint_names()[j]);
-        left_arm_joints.position.push_back(getJointPosition(left_arm_.joint_names()[j]));
-    }
-    pub_left_arm_.publish(left_arm_joints);
-
-    // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-
-    sensor_msgs::JointState right_arm_joints;
-    right_arm_joints.header = header;
-    for(unsigned int j = 0; j < right_arm_.joint_names().size(); ++j) {
-        right_arm_joints.name.push_back(right_arm_.joint_names()[j]);
-        right_arm_joints.position.push_back(getJointPosition(right_arm_.joint_names()[j]));
-    }
-    pub_right_arm_.publish(right_arm_joints);
 
     // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
