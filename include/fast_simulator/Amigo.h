@@ -27,9 +27,11 @@ public:
 
     ~BodyPart();
 
-    void initialize(ros::NodeHandle& nh, Amigo* robot, const std::string& action_name);
+    void setRobot(Amigo* robot) { robot_ = robot; }
 
-    void initJoint(const std::string& name, double pos, double max_vel, double max_acc);
+    void addActionServer(ros::NodeHandle& nh, const std::string& name);
+
+    void initJoint(const std::string& name, double pos);
 
     void readJointInfoFromModel(const urdf::Model& Model);
 
@@ -47,11 +49,9 @@ private:
 
     void cancelCallback(TrajectoryActionServer::GoalHandle gh);
 
-    TrajectoryActionServer* as_;
+    std::vector<TrajectoryActionServer*> action_servers_;
 
-    bool has_goal_;
-
-    TrajectoryActionServer::GoalHandle goal_handle_;
+    std::map<std::string, TrajectoryActionServer::GoalHandle> goal_handles_;
 
 };
 
@@ -114,9 +114,7 @@ protected:
 
     void callbackJointReference(const sensor_msgs::JointState::ConstPtr msg);
 
-    BodyPart left_arm_;
-    BodyPart right_arm_;
-    BodyPart torso_;
+    BodyPart body_;
 
     void callbackInitialPose(const geometry_msgs::PoseWithCovarianceStamped::ConstPtr& msg);
 
