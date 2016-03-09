@@ -4,9 +4,6 @@ language: generic
 env:
   - ROS_DISTRO=indigo
   - ROS_DISTRO=jade
-matrix:
-  allow_failures:
-    - compiler: clang
 notifications:
   email:
     on_success: change # [always|never|change], default=change
