@@ -288,6 +288,10 @@ Object* SimulatorROS::getObjectFromModel(const std::string& model_name, const st
         sergio->registerSensor(base_lrf);
         sergio->getLink("base_laser")->addChild(base_lrf);
 
+        LRF* back_lrf = new LRF("/sergio/back_laser/scan", "/sergio/back_laser");
+        sergio->registerSensor(back_lrf);
+        sergio->getLink("back_laser")->addChild(back_lrf);
+
         LRF* torso_lrf = new LRF("/sergio/torso_laser/scan", "/sergio/torso_laser");
         sergio->registerSensor(torso_lrf);
         sergio->getLink("torso_laser")->addChild(torso_lrf);
