@@ -196,7 +196,7 @@ Amigo::Amigo(ros::NodeHandle& nh) : Robot(nh, "amigo")
     sub_right_gripper = nh.subscribe("/amigo/right_arm/gripper/references", 10, &Amigo::callbackRightGripper, this);
 
     tf_odom_to_base_link.frame_id_ = "/amigo/odom";
-    tf_odom_to_base_link.child_frame_id_ = "/amigo/base_link";
+    tf_odom_to_base_link.child_frame_id_ = "/amigo/manipulation_root";
 
     event_odom_pub_.scheduleRecurring(50);
     event_refs_pub_.scheduleRecurring(100);
@@ -238,7 +238,7 @@ void Amigo::step(double dt)
         nav_msgs::Odometry odom_msg;
         odom_msg.header.frame_id = "/amigo/odom";
         odom_msg.header.stamp    = ros::Time::now();
-        odom_msg.child_frame_id  = "/amigo/base_link";
+        odom_msg.child_frame_id  = "/amigo/manipulation_root";
         tf::Vector3 position = tf_odom_to_base_link.getOrigin();
         odom_msg.pose.pose.position.x = position.getX();
         odom_msg.pose.pose.position.y = position.getY();
