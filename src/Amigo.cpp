@@ -137,6 +137,8 @@ Amigo::Amigo(ros::NodeHandle& nh) : Robot(nh, "amigo")
 //    body_.addActionServer(nh, "left_arm/joint_trajectory_action");
 //    body_.addActionServer(nh, "right_arm/joint_trajectory_action");
 
+    //body_.initJoint("manipulation_joint", 0.0); // As it should 
+    body_.initJoint("manipulation_joint", 1.57); // For testing... ToDo: replace by previous line 
     body_.initJoint("torso_joint", 0.35);
     body_.initJoint("shoulder_yaw_joint_left", -0.01);
     body_.initJoint("shoulder_pitch_joint_left", -0.4);
