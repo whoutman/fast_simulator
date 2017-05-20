@@ -226,9 +226,9 @@ Object* SimulatorROS::getObjectFromModel(const std::string& model_name, const st
         // add kinect
         Kinect* top_kinect = new Kinect();
 
-        top_kinect->setRGBFrame("/amigo/top_kinect/openni_rgb_optical_frame");
-        top_kinect->setDepthFrame("/amigo/top_kinect/openni_rgb_optical_frame");
-        top_kinect->setRGBDName("/amigo/top_kinect/rgbd");
+        top_kinect->setRGBFrame("amigo/top_kinect/openni_rgb_optical_frame");
+        top_kinect->setDepthFrame("amigo/top_kinect/openni_rgb_optical_frame");
+        top_kinect->setRGBDName("/amigo/top_kinect");
 
         // load object models
         tue::filesystem::Crawler crawler(model_dir_ + "/kinect");
