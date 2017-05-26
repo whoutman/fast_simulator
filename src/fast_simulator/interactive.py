@@ -50,12 +50,32 @@ if __name__ == "__main__":
     # create a control which will move the box
     # this control does not contain any markers,
     # which will cause RViz to insert two arrows
-    rotate_control = InteractiveMarkerControl()
-    rotate_control.interaction_mode = InteractiveMarkerControl.MOVE_AXIS
-    rotate_control.name = "translate_x"
+    translate_x = InteractiveMarkerControl()
+    translate_x.interaction_mode = InteractiveMarkerControl.MOVE_AXIS
+    translate_x.orientation.w = 1
+    translate_x.orientation.x = 1
+    translate_x.orientation.y = 0
+    translate_x.orientation.z = 0
+    translate_x.name = "translate_x"
+    interactive_marker.controls.append(translate_x)
 
-    # add the control to the interactive marker
-    interactive_marker.controls.append(rotate_control)
+    translate_y = InteractiveMarkerControl()
+    translate_y.interaction_mode = InteractiveMarkerControl.MOVE_AXIS
+    translate_y.orientation.w = 1
+    translate_y.orientation.x = 0
+    translate_y.orientation.y = 0
+    translate_y.orientation.z = 1
+    translate_y.name = "translate_y"
+    interactive_marker.controls.append(translate_y)
+
+    translate_z = InteractiveMarkerControl()
+    translate_z.interaction_mode = InteractiveMarkerControl.MOVE_AXIS
+    translate_z.orientation.w = 1
+    translate_z.orientation.x = 0
+    translate_z.orientation.y = 1
+    translate_z.orientation.z = 0
+    translate_z.name = "translate_z"
+    interactive_marker.controls.append(translate_z)
 
     def update_object(feedback):
         p = feedback.pose.position
